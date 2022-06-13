@@ -8,15 +8,14 @@ import androidx.compose.runtime.Composable
 
 private val DarkColorPalette = darkColors(
     primary = primary,
-    primaryVariant = primaryDark,
-    secondary = secondary
+    primaryVariant = primary_dark,
+    secondary = secondary,
 )
 
 private val LightColorPalette = lightColors(
     primary = primary,
-    primaryVariant = primaryDark,
+    primaryVariant = primary_dark,
     secondary = secondary,
-    background = secondary
     /* Other default colors to override
     background = Color.White,
     surface = Color.White,
@@ -42,6 +41,6 @@ fun MyShoppingListTheme(
         colors = colors,
         typography = Typography,
         shapes = Shapes,
-        content = content
+        content = content,
     )
 }

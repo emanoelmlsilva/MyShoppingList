@@ -3,8 +3,10 @@ package com.example.myshoppinglist.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val primary = Color(0xFF3CEB54)
-val primaryDark = Color(0xFF199E2B)
+val primary_dark = Color(0xFF199E2B)
 val secondary = Color(0xFFFFFFFF)
+val secondary_dark = Color(0xFF7D7D7D)
+val secondary_light = Color(0xFFC4C4C4)
 val error = Color(0xFF9E1E40)
 val text_primary = Color(0xFF000000)
 val text_secondary= Color(0xFFFFFFFF)
