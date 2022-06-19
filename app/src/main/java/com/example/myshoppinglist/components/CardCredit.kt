@@ -20,29 +20,25 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myshoppinglist.screen.CardCredit
+import com.example.myshoppinglist.screen.CardCreditViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.Format
 
 @Composable
-fun CardCredit(isClicable: Boolean, isDefault: Boolean, cardColor: Color, isChoiceColor: Boolean) {
+fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCredit: CardCredit, cardCreditViewModel: CardCreditViewModel) {
+    val colorCurrent: Color by cardCreditViewModel.colorCurrent.observeAsState(card_blue)
+
     if (isChoiceColor) {
 
-        val cardCreditViewModel: CardCreditViewModel = viewModel()
-        val colorCurrent: Color by cardCreditViewModel.colorCurrent.observeAsState(card_blue)
+        Column{
 
-        Column(
-            verticalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier
-                .fillMaxHeight(0.3f)
-                .fillMaxWidth()
-        ) {
-
-            CustomCardCredit(isDefault, isClicable, colorCurrent, true)
+            CustomCardCredit(isDefault, isClicable, colorCurrent,  cardCredit)
 
             ChoiceColor(cardCreditViewModel)
         }
     } else {
-        CustomCardCredit(isDefault, isClicable, cardColor, false)
+        CustomCardCredit(isDefault, isClicable, colorCurrent, cardCredit)
 
     }
 
@@ -53,16 +49,16 @@ fun CustomCardCredit(
     isDefault: Boolean,
     isClicable: Boolean,
     cardColor: Color,
-    isChoiceColor: Boolean
+    cardCredit: CardCredit
 ) {
     Card(
-        backgroundColor = (if (isDefault) secondary_light else cardColor),
+        backgroundColor = ((if (isDefault) secondary_light else cardColor)!!),
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(if (isChoiceColor) 0.8f else 0.25f)
-            .padding(horizontal = 32.dp, vertical = 4.dp)
+            .width(400.dp)
+            .height(200.dp)
+            .padding(horizontal = 4.dp, vertical = 4.dp)
             .clickable(isClicable) {},
-        elevation = 10.dp, shape = RoundedCornerShape(8.dp)
+        elevation = 2.dp, shape = RoundedCornerShape(8.dp)
     ) {
         if (isDefault) {
             Box(
@@ -92,11 +88,11 @@ fun CustomCardCredit(
                             .padding(start = 16.dp, 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        CustomTextColumn(title = "Titular", subTitle = "Emanoel", 0.5f, 0.4f)
-                        CustomTextColumn(title = "Nome Cartão", subTitle = "El barto", 1f, 1f)
+                        CustomTextColumn(title = "Titular", subTitle = cardCredit.name, 0.5f, 0.4f)
+                        CustomTextColumn(title = "Nome Cartão", subTitle = cardCredit.nickName, 1f, 1f)
                     }
 
-                    Footer(value = 0F)
+                    Footer(value = cardCredit!!.value)
                 }
 
             }
@@ -171,7 +167,7 @@ fun ChoiceColor(cardCreditViewModel: CardCreditViewModel) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = 30.dp),
+            .padding(end = 5.dp, top = 20.dp),
         horizontalArrangement = Arrangement.End,
     ) {
         items(colorCollection) { color ->
@@ -192,7 +188,7 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
         border = if (isChoiced) BorderStroke(1.dp, text_primary) else null,
         modifier = Modifier
             .padding(start = 2.dp)
-            .fillMaxHeight(0.3f)
+            .fillMaxHeight(0.03f)
             .width(20.dp)
             .padding(0.dp),
         onClick = onClickListener
@@ -203,13 +199,7 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewCardCredit() {
-    CardCredit(isClicable = false, isDefault = false, cardColor = card_blue, isChoiceColor = true)
-}
-
-class CardCreditViewModel : ViewModel() {
-    var colorCurrent: MutableLiveData<Color> = MutableLiveData(card_blue)
-
-    fun onChangeColorCurrent(newColorCurrent: Color) {
-        colorCurrent.value = newColorCurrent
-    }
+    val cardCreditViewModel: CardCreditViewModel = viewModel()
+    CardCredit(isClicable = false, isDefault = false, isChoiceColor = true, CardCredit(
+        card_purple, 123.4F, "Teste", "teste"), cardCreditViewModel)
 }
