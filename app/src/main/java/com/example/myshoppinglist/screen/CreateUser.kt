@@ -37,6 +37,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.ui.theme.*
 
 @ExperimentalComposeUiApi
@@ -44,6 +45,7 @@ import com.example.myshoppinglist.ui.theme.*
 @Composable
 fun CreateUser(navController: NavController?) {
     val createUserViewModel: CreateUserViewModel = viewModel()
+    val hasToobar: String = "true"
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -62,7 +64,11 @@ fun CreateUser(navController: NavController?) {
             HeaderImage(createUserViewModel)
             ContentAvatares(createUserViewModel)
             TextFieldContent(createUserViewModel)
-            ButtonContent(createUserViewModel)
+            ButtonsFooterContent(
+                btnTextAccept = "PROXIMO",
+                btnTextCancel = "CANCELAR",
+                Icons.Filled.ArrowForward, null,
+                onClickAccept = { navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}") }, onClickCancel = {})
         }
 
     }
@@ -178,7 +184,10 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
     var isErrorNickName by remember { mutableStateOf(false)}
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Column (Modifier.height(180.dp).fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween){
+    Column (
+        Modifier
+            .height(180.dp)
+            .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween){
         Column{
             OutlinedTextField(
                 value = name,
@@ -213,38 +222,12 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
 
 }
 
-@Composable
-fun ButtonContent(createUserViewModel: CreateUserViewModel){
-    Row(Modifier.fillMaxWidth().padding(0.dp, 12.dp), horizontalArrangement = Arrangement.SpaceBetween){
-        TextButton(
-            modifier = Modifier.fillMaxWidth(0.4F).background(secondary)
-                .padding(start = 16.dp, bottom = 16.dp, end = 16.dp),
-            onClick = { /*Nothing*/ }) {
-            Text("Cancelar", color = text_primary)
-        }
-
-        Button(
-            modifier = Modifier
-                .padding(start = 16.dp, bottom = 16.dp, end = 16.dp),
-            onClick = { /*Nothing*/ }) {
-            Text("PROXIMO")
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Icon(
-                Icons.Filled.ArrowForward,
-                contentDescription = "Proximo",
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-
-        }
-    }
-}
-
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    CreateUser(null)
+//    CreateUser(null)
 }
 
 class CreateUserViewModel: ViewModel(){
