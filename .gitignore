@@ -37,3 +37,11 @@ build/
 .idea/vcs.xml
 .idea/workspace.xml
 .gradle/7.0.2/
+
+  .gradle/7.0.2/dependencies-accessors/dependencies-accessors.lock
+   .gradle/7.0.2/executionHistory/executionHistory.bin
+   .gradle/7.0.2/executionHistory/executionHistory.lock
+   .gradle/7.0.2/fileHashes/fileHashes.bin
+   .gradle/7.0.2/fileHashes/fileHashes.lock
+   .gradle/buildOutputCleanup/buildOutputCleanup.lock
+   .gradle/checksums/checksums.lock
