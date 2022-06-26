@@ -30,3 +30,10 @@ hs_err_pid*
 
 .idea/
 .gradle/
+build/
+
+.idea/libraries
+.idea/tasks.xml
+.idea/vcs.xml
+.idea/workspace.xml
+.gradle/7.0.2/

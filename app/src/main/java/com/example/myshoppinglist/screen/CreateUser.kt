@@ -11,9 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -21,31 +19,39 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.components.ButtonsFooterContent
-import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.ui.theme.primary
+import com.example.myshoppinglist.ui.theme.secondary
+import com.example.myshoppinglist.ui.theme.secondary_dark
+import com.example.myshoppinglist.ui.theme.text_primary
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUser(navController: NavController?) {
-    val createUserViewModel: CreateUserViewModel = viewModel()
-    val hasToobar: String = "true"
+fun CreateUser(navController: NavController?, createUserViewModel: CreateUserViewModel) {
+    val hasToobar: String = "false"
+    val name: String by createUserViewModel.name.observeAsState("")
+    val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
+    val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
+    val context = LocalContext.current
+    val userViewModel: UserViewModel = UserViewModel(context)
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -55,6 +61,7 @@ fun CreateUser(navController: NavController?) {
             .fillMaxHeight()
             .background(secondary)
     ) {
+
         Column(
             Modifier
                 .fillMaxHeight()
@@ -68,9 +75,17 @@ fun CreateUser(navController: NavController?) {
                 btnTextAccept = "PROXIMO",
                 btnTextCancel = "CANCELAR",
                 Icons.Filled.ArrowForward, null,
-                onClickAccept = { navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}") }, onClickCancel = {})
+                onClickAccept = {
+                    if (createUserViewModel.checkFiledsUser()) {
+                        userViewModel.insertUser(User(name, nickName, idAvatar))
+                        navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}")
+                    }
+                }, onClickCancel = {
+                    userViewModel.findUserByName("Emanoel")
+                    var seond = userViewModel.hasExistUser()
+                    Log.d("TESTE", "teste  ${seond}")
+                })
         }
-
     }
 }
 
@@ -98,7 +113,7 @@ fun HeaderImage(createUserViewModel: CreateUserViewModel) {
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(initial = R.drawable.clover)
-    Log.d("TEST", "atual $idAvatar")
+
     Row(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
@@ -164,7 +179,6 @@ fun ContentAvatares(createUserViewModel: CreateUserViewModel){
                                 CircleShape
                             )
                             .clickable {
-                                Log.d("TEST", "$idAvatar")
                                 createUserViewModel.onChangeIdAvatar(idAvatar)
                             }
                     )
@@ -180,8 +194,8 @@ fun ContentAvatares(createUserViewModel: CreateUserViewModel){
 fun TextFieldContent(createUserViewModel: CreateUserViewModel){
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
-    var isErrorName by remember { mutableStateOf(false)}
-    var isErrorNickName by remember { mutableStateOf(false)}
+    val isErrorName: Boolean by createUserViewModel.isErrorName.observeAsState(false)
+    val isErrorNickName: Boolean by createUserViewModel.isErrorNickName.observeAsState(false)
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Column (
@@ -192,7 +206,6 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
             OutlinedTextField(
                 value = name,
                 onValueChange = {
-                    isErrorName = it.isBlank()
                     createUserViewModel.onChangeName(it) },
                 label = { Text("Nome") },
                 modifier = Modifier.fillMaxWidth(),
@@ -207,7 +220,6 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
             OutlinedTextField(
                 value = nickName,
                 onValueChange = {
-                    isErrorNickName = it.isBlank()
                     createUserViewModel.onChangeNickName(it)
                                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -222,30 +234,48 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
 
 }
 
-@ExperimentalComposeUiApi
-@ExperimentalFoundationApi
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-//    CreateUser(null)
-}
-
 class CreateUserViewModel: ViewModel(){
 
     var name: MutableLiveData<String> = MutableLiveData("")
     var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar);
     var nickName: MutableLiveData<String> = MutableLiveData("")
+    var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
+    var isErrorNickName: MutableLiveData<Boolean> = MutableLiveData(false)
 
     fun onChangeIdAvatar(newIdAvatar: Int){
         idAvatar.value = newIdAvatar
     }
 
-    fun onChangeName(newName: String){
+    fun onChangeName(newName: String) {
+        onChangeIsErrorName(newName.isBlank())
         name.value = newName
     }
 
-    fun onChangeNickName(newNickName: String){
+    fun onChangeNickName(newNickName: String) {
+        onChangeisErrorNickName(newNickName.isBlank())
         nickName.value = newNickName
     }
 
+    fun onChangeIsErrorName(newIsErrorName: Boolean){
+        isErrorName.value = newIsErrorName
+    }
+
+    fun onChangeisErrorNickName(newIsErrorNickName: Boolean){
+        isErrorNickName.value = newIsErrorNickName
+    }
+
+    fun checkFiledsUser(): Boolean {
+
+        if (name.value!!.isBlank()) {
+            onChangeIsErrorName(true);
+            return false
+        }
+
+        if(nickName.value!!.isBlank()){
+            onChangeisErrorNickName(true);
+            return false
+        }
+
+        return true
+    }
 }
