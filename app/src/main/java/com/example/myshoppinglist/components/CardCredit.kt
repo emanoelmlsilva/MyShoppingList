@@ -21,13 +21,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myshoppinglist.screen.CardCredit
-import com.example.myshoppinglist.screen.CardCreditViewModel
+import com.example.myshoppinglist.screen.CreateCardCreditViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.Format
 
 @Composable
-fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCredit: CardCredit, cardCreditViewModel: CardCreditViewModel) {
-    val colorCurrent: Color by cardCreditViewModel.colorCurrent.observeAsState(card_blue)
+fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCredit: CardCredit, createCardCreditViewModel: CreateCardCreditViewModel) {
+    val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(card_blue)
 
     if (isChoiceColor) {
 
@@ -35,7 +35,7 @@ fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, 
 
             CustomCardCredit(isDefault, isClicable, colorCurrent,  cardCredit)
 
-            ChoiceColor(cardCreditViewModel)
+            ChoiceColor(createCardCreditViewModel)
         }
     } else {
         CustomCardCredit(isDefault, isClicable, colorCurrent, cardCredit)
@@ -146,7 +146,7 @@ fun Footer(value: Float) {
 }
 
 @Composable
-fun ChoiceColor(cardCreditViewModel: CardCreditViewModel) {
+fun ChoiceColor(createCardCreditViewModel: CreateCardCreditViewModel) {
     val colorCollection: List<Color> = listOf(
         card_blue,
         card_purple,
@@ -162,7 +162,7 @@ fun ChoiceColor(cardCreditViewModel: CardCreditViewModel) {
         card_orange
     )
 
-    val colorCurrent: Color by cardCreditViewModel.colorCurrent.observeAsState(card_blue)
+    val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(card_blue)
 
     LazyRow(
         modifier = Modifier
@@ -174,7 +174,7 @@ fun ChoiceColor(cardCreditViewModel: CardCreditViewModel) {
             ItemColor(
                 color,
                 color == colorCurrent
-            ) { if (colorCurrent != color) cardCreditViewModel.onChangeColorCurrent(color) }
+            ) { if (colorCurrent != color) createCardCreditViewModel.onChangeColorCurrent(color) }
         }
     }
 }
@@ -199,7 +199,7 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewCardCredit() {
-    val cardCreditViewModel: CardCreditViewModel = viewModel()
+    val createCardCreditViewModel: CreateCardCreditViewModel = viewModel()
     CardCredit(isClicable = false, isDefault = false, isChoiceColor = true, CardCredit(
-        card_purple, 123.4F, "Teste", "teste"), cardCreditViewModel)
+        card_purple, 123.4F, "Teste", "teste"), createCardCreditViewModel)
 }
