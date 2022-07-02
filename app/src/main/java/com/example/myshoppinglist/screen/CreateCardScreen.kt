@@ -19,7 +19,7 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCredit
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.viewModels.BaseViewModel
+import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.TypeCard
@@ -27,7 +27,7 @@ import com.example.myshoppinglist.ui.theme.card_blue
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
 
-data class CardCredit(
+data class CardCreditDTO(
     val color: androidx.compose.ui.graphics.Color,
     val value: Float,
     val name: String,
@@ -37,7 +37,7 @@ data class CardCredit(
 @ExperimentalComposeUiApi
 @Composable
 fun CreateCardScreen(navController: NavController?) {
-    val createCardCreditViewModel: CreateCardCreditViewModel = viewModel()
+    val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModel(context)
     val userViewModel = UserViewModel(context)
@@ -63,7 +63,7 @@ fun CreateCardScreen(navController: NavController?) {
                 isClicable = false,
                 isDefault = false,
                 isChoiceColor = true,
-                cardCredit = CardCredit(card_blue, 0F, name, nameCard), createCardCreditViewModel
+                cardCreditDTO = CardCreditDTO(card_blue, 0F, name, nameCard), createCardCreditViewModel
             )
             Column(modifier = Modifier.height(230.dp), verticalArrangement = Arrangement.SpaceBetween) {
                 Column(
@@ -114,7 +114,7 @@ fun CreateCardScreen(navController: NavController?) {
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(cardCreditViewModel: CreateCardCreditViewModel) {
+fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
     val name: String by cardCreditViewModel.name.observeAsState("")
     val nameCard: String by cardCreditViewModel.nameCard.observeAsState(initial = "")
     val isErrorName by cardCreditViewModel.isErrorName.observeAsState(initial = false)
@@ -159,7 +159,7 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditViewModel) {
 
 }
 
-class CreateCardCreditViewModel : BaseViewModel() {
+class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var name: MutableLiveData<String> = MutableLiveData("")
     var nameCard: MutableLiveData<String> = MutableLiveData("")
     var colorCurrent: MutableLiveData<Color> = MutableLiveData(card_blue)

@@ -28,12 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.database.entities.User
-import com.example.myshoppinglist.database.viewModels.BaseViewModel
+import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.primary
 import com.example.myshoppinglist.ui.theme.secondary
@@ -43,8 +43,9 @@ import com.example.myshoppinglist.ui.theme.text_primary
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUserScreen(navController: NavController?, createUserViewModel: CreateUserViewModel) {
+fun CreateUserScreen(navController: NavController?) {
     val hasToobar: String = "false"
+    var createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
@@ -105,7 +106,7 @@ fun HeaderText() {
 }
 
 @Composable
-fun HeaderImage(createUserViewModel: CreateUserViewModel) {
+fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(initial = R.drawable.clover)
@@ -136,7 +137,7 @@ fun HeaderImage(createUserViewModel: CreateUserViewModel) {
 
 @ExperimentalFoundationApi
 @Composable
-fun ContentAvatares(createUserViewModel: CreateUserViewModel){
+fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel){
     val idAvatarCurrent: Int by createUserViewModel.idAvatar.observeAsState(R.drawable.default_avatar)
 
     var idsAvatar: List<Int> = listOf(R.drawable.clover, R.drawable.docinho, R.drawable.flapjack, R.drawable.jack, R.drawable.kuki, R.drawable.mabel, R.drawable.marceline, R.drawable.patolino, R.drawable.san, R.drawable.snoopy, R.drawable.default_avatar)
@@ -187,7 +188,7 @@ fun ContentAvatares(createUserViewModel: CreateUserViewModel){
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(createUserViewModel: CreateUserViewModel){
+fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel){
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val isErrorName: Boolean by createUserViewModel.isErrorName.observeAsState(false)
@@ -230,7 +231,7 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
 
 }
 
-class CreateUserViewModel: BaseViewModel(){
+class CreateUserFieldViewModel: BaseFieldViewModel(){
 
     var name: MutableLiveData<String> = MutableLiveData("")
     var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar);

@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.myshoppinglist.screen.CreateCardScreen
 import com.example.myshoppinglist.screen.CreateUserScreen
-import com.example.myshoppinglist.screen.CreateUserViewModel
 import com.example.myshoppinglist.ui.theme.secondary
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
@@ -29,9 +28,8 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 fun NavController(navHostController: NavHostController, window: Window, routeInitial: String){
     NavHost(navController = navHostController, startDestination = routeInitial) {
         composable("createUser") {
-            val createUserViewModel: CreateUserViewModel = viewModel()
             window.statusBarColor = secondary.hashCode()
-            CreateUserScreen(navHostController, createUserViewModel)
+            CreateUserScreen(navHostController)
         }
         composable("createCards?hasToolbar={hasToolbar}", arguments = listOf(navArgument("hasToolbar") { defaultValue = "false" })
         ) { navBackStack ->
