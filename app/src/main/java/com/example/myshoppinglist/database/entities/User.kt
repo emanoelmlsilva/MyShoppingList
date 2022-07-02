@@ -11,7 +11,7 @@ class User {
 
     @PrimaryKey
     @NotNull
-    @ColumnInfo(name = "name")
+    @ColumnInfo(name = "userId")
     var name: String = ""
 
     @ColumnInfo(name = "nickName")

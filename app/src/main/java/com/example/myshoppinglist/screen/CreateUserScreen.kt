@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
@@ -30,12 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.viewModels.BaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.primary
 import com.example.myshoppinglist.ui.theme.secondary
@@ -45,7 +43,7 @@ import com.example.myshoppinglist.ui.theme.text_primary
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUser(navController: NavController?, createUserViewModel: CreateUserViewModel) {
+fun CreateUserScreen(navController: NavController?, createUserViewModel: CreateUserViewModel) {
     val hasToobar: String = "false"
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
@@ -76,14 +74,12 @@ fun CreateUser(navController: NavController?, createUserViewModel: CreateUserVie
                 btnTextCancel = "CANCELAR",
                 Icons.Filled.ArrowForward, null,
                 onClickAccept = {
-                    if (createUserViewModel.checkFiledsUser()) {
+                    if (createUserViewModel.checkFileds()) {
                         userViewModel.insertUser(User(name, nickName, idAvatar))
                         navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}")
                     }
                 }, onClickCancel = {
-                    userViewModel.findUserByName("Emanoel")
-                    var seond = userViewModel.hasExistUser()
-                    Log.d("TESTE", "teste  ${seond}")
+
                 })
         }
     }
@@ -234,7 +230,7 @@ fun TextFieldContent(createUserViewModel: CreateUserViewModel){
 
 }
 
-class CreateUserViewModel: ViewModel(){
+class CreateUserViewModel: BaseViewModel(){
 
     var name: MutableLiveData<String> = MutableLiveData("")
     var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar);
@@ -264,7 +260,7 @@ class CreateUserViewModel: ViewModel(){
         isErrorNickName.value = newIsErrorNickName
     }
 
-    fun checkFiledsUser(): Boolean {
+    override fun checkFileds(): Boolean {
 
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true);

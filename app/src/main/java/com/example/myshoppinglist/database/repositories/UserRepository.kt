@@ -30,11 +30,21 @@ class UserRepository(private val userDao: UserDao) {
         }
     }
 
+    fun getUserCurrent(){
+        coroutineScope.launch(Dispatchers.Main){
+            seachResult.value = asyncFindCurrent().await()
+        }
+    }
+
     fun hasExistUser(): Boolean{
-      return userDao.hasContainUser() > 0
+      return userDao.getUserCurrent() != null
     }
 
     private fun asyncFind(name: String): Deferred<User?> = coroutineScope.async(Dispatchers.IO){
         return@async userDao.findUserByName(name)
+    }
+
+    private fun asyncFindCurrent(): Deferred<User?> = coroutineScope.async(Dispatchers.IO){
+        return@async userDao.getUserCurrent()
     }
 }
