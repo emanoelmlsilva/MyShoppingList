@@ -17,28 +17,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myshoppinglist.screen.CardCredit
-import com.example.myshoppinglist.screen.CreateCardCreditViewModel
+import com.example.myshoppinglist.screen.CardCreditDTO
+import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.Format
 
 @Composable
-fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCredit: CardCredit, createCardCreditViewModel: CreateCardCreditViewModel) {
+fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCreditDTO: CardCreditDTO, createCardCreditViewModel: CreateCardCreditFieldViewModel) {
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(card_blue)
 
     if (isChoiceColor) {
 
         Column{
 
-            CustomCardCredit(isDefault, isClicable, colorCurrent,  cardCredit)
+            CustomCardCredit(isDefault, isClicable, colorCurrent,  cardCreditDTO)
 
             ChoiceColor(createCardCreditViewModel)
         }
     } else {
-        CustomCardCredit(isDefault, isClicable, colorCurrent, cardCredit)
+        CustomCardCredit(isDefault, isClicable, colorCurrent, cardCreditDTO)
 
     }
 
@@ -49,7 +47,7 @@ fun CustomCardCredit(
     isDefault: Boolean,
     isClicable: Boolean,
     cardColor: Color,
-    cardCredit: CardCredit
+    cardCreditDTO: CardCreditDTO
 ) {
     Card(
         backgroundColor = ((if (isDefault) secondary_light else cardColor)!!),
@@ -88,11 +86,11 @@ fun CustomCardCredit(
                             .padding(start = 16.dp, 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        CustomTextColumn(title = "Titular", subTitle = cardCredit.name, 0.5f, 0.4f)
-                        CustomTextColumn(title = "Nome Cartão", subTitle = cardCredit.nickName, 1f, 1f)
+                        CustomTextColumn(title = "Titular", subTitle = cardCreditDTO.name, 0.5f, 0.4f)
+                        CustomTextColumn(title = "Nome Cartão", subTitle = cardCreditDTO.nickName, 1f, 1f)
                     }
 
-                    Footer(value = cardCredit!!.value)
+                    Footer(value = cardCreditDTO!!.value)
                 }
 
             }
@@ -146,7 +144,7 @@ fun Footer(value: Float) {
 }
 
 @Composable
-fun ChoiceColor(createCardCreditViewModel: CreateCardCreditViewModel) {
+fun ChoiceColor(createCardCreditViewModel: CreateCardCreditFieldViewModel) {
     val colorCollection: List<Color> = listOf(
         card_blue,
         card_purple,
@@ -199,7 +197,7 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewCardCredit() {
-    val createCardCreditViewModel: CreateCardCreditViewModel = viewModel()
-    CardCredit(isClicable = false, isDefault = false, isChoiceColor = true, CardCredit(
+    val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
+    CardCredit(isClicable = false, isDefault = false, isChoiceColor = true, CardCreditDTO(
         card_purple, 123.4F, "Teste", "teste"), createCardCreditViewModel)
 }

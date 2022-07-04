@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue
 import org.jetbrains.annotations.NotNull
@@ -51,4 +52,7 @@ class CreditCard {
     }
 
 
+    fun toParseDTO(): CreditCardDTO{
+        return CreditCardDTO()
+    }
 }

@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.database.dtos.UserDTO
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "users")
@@ -18,7 +19,7 @@ class User {
     var nickName: String = ""
 
     @ColumnInfo(name = "idAvatar")
-    var idAvatar = R.drawable.default_avatar
+    var idAvatar:Int = R.drawable.default_avatar
 
     constructor()
 
@@ -32,5 +33,8 @@ class User {
         return "User(name='$name', nickName='$nickName', idAvatar=$idAvatar)"
     }
 
+    fun toParseUserDTO(): UserDTO{
+        return UserDTO()
+    }
 
 }
