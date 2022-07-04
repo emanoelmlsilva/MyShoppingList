@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +22,8 @@ import com.example.myshoppinglist.ui.theme.*
 @Composable
 fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
     var isVisibleValue = createHeaderFieldViewModel.isVisibleValue.observeAsState(initial = true)
+    val name = createHeaderFieldViewModel.nameUser.observeAsState(initial = "")
+    val idAvatar: Int by createHeaderFieldViewModel.idAvatar.observeAsState(R.drawable.clover)
 
     Box(
         Modifier
@@ -36,15 +39,16 @@ fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
                     .fillMaxHeight()
                     .fillMaxWidth(.75f), verticalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Image(
-                    painterResource(R.drawable.clover),
+                    painterResource(idAvatar),
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(55.dp)
                         .clip(CircleShape)
                 )
-                Text(text = "Ola, Emanoel", Modifier.padding(0.dp, 16.dp), color = text_secondary)
+                Text(text = "Ola, ${name.value}", Modifier.padding(0.dp, 16.dp), color = text_secondary)
             }
             IconButton(onClick = { createHeaderFieldViewModel.onChangeIsVisibleValue()}) {
                 Icon(
@@ -66,9 +70,19 @@ fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
 
 class CreateHeaderFieldViewModel: BaseFieldViewModel(){
     var isVisibleValue: MutableLiveData<Boolean> = MutableLiveData(true)
+    var nameUser: MutableLiveData<String> = MutableLiveData("")
+    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.clover)
 
     fun onChangeIsVisibleValue(){
         isVisibleValue.value = !isVisibleValue.value!!
+    }
+
+    fun onChangeNameUser(newNameUser: String){
+        nameUser.value = newNameUser
+    }
+
+    fun onchangeIdAvatar(newIdAvatar: Int){
+        idAvatar.value = newIdAvatar
     }
 
     override fun checkFileds(): Boolean {

@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                 val context = LocalContext.current
                 val userViewModel: UserViewModel = UserViewModel(context)
 
-                val route = if(userViewModel.hasExistUser()) "createUser" else "createUser"
+                val route = if(userViewModel.hasExistUser()) "home" else "createUser"
 
                 Surface(color = MaterialTheme.colors.background) {
                     NavController(navHostController = navController, window, route)

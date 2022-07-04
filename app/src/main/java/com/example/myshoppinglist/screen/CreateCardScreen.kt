@@ -98,7 +98,7 @@ fun CreateCardScreen(navController: NavController?) {
                                         it.name
                                     )
                                 )
-                                navController?.navigate("")
+                                navController?.navigate("home")
                             }
 
                         }
