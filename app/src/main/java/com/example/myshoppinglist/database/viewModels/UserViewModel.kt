@@ -19,8 +19,6 @@ class UserViewModel(context: Context): ViewModel() {
         repository = UserRepository(userDao)
 
         searchResult = repository.seachResult
-
-        getUserCurrent()
     }
 
     fun insertUser(user: User) {

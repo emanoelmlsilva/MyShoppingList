@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.database.entities
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -22,8 +23,8 @@ class CreditCard {
     var cardName: String = ""
     @ColumnInfo(name = "value")
     var value: Float = 0F
-//    @ColumnInfo(name = "colorCard")
-//    var colorCard: Color = card_blue
+    @ColumnInfo(name = "colorCard")
+    var colorCard: Int = card_blue.toArgb()
     @ColumnInfo(name = "typeCard")
     var typeCard: TypeCard = TypeCard.CREDIT
     @ColumnInfo(name = "cardUserId")
@@ -35,24 +36,20 @@ class CreditCard {
         holderName: String,
         cardName: String,
         value: Float,
-//        colorCard: Color,
+        colorCard: Int,
         typeCard: TypeCard,
         cardUserId: String
     ) {
         this.holderName = holderName
         this.cardName = cardName
         this.value = value
-//        this.colorCard = colorCard
+        this.colorCard = colorCard
         this.typeCard = typeCard
         this.cardUserId = cardUserId
     }
 
     override fun toString(): String {
-        return "CreditCard(id=$id, holderName='$holderName', cardName='$cardName', value=$value, typeCard=$typeCard, cardUserId='$cardUserId')"
+        return "CreditCard(id=$id, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId')"
     }
 
-
-    fun toParseDTO(): CreditCardDTO{
-        return CreditCardDTO()
-    }
 }

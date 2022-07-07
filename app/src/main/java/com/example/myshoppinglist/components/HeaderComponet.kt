@@ -11,19 +11,27 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.controller.Callback
+import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
 
 @Composable
-fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
-    var isVisibleValue = createHeaderFieldViewModel.isVisibleValue.observeAsState(initial = true)
-    val name = createHeaderFieldViewModel.nameUser.observeAsState(initial = "")
-    val idAvatar: Int by createHeaderFieldViewModel.idAvatar.observeAsState(R.drawable.clover)
+fun HeaderComponent(userViewModel: UserViewModel, callBack: Callback){
+
+    val createHeaderFieldViewModel = CreateHeaderFieldViewModel()
+
+    val isVisibleValue = createHeaderFieldViewModel.isVisibleValue.observeAsState(initial = true)
+    val user = userViewModel.searchResult.observeAsState(initial = User())
+    val name = user.value.name
+    val idAvatar: Int = user.value.idAvatar
 
     Box(
         Modifier
@@ -48,9 +56,12 @@ fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
                         .size(55.dp)
                         .clip(CircleShape)
                 )
-                Text(text = "Ola, ${name.value}", Modifier.padding(0.dp, 16.dp), color = text_secondary)
+                Text(text = "Ola, ${name}", Modifier.padding(0.dp, 16.dp), color = text_secondary)
             }
-            IconButton(onClick = { createHeaderFieldViewModel.onChangeIsVisibleValue()}) {
+            IconButton(onClick = {
+                createHeaderFieldViewModel.onChangeIsVisibleValue()
+                callBack.onClick()
+            }) {
                 Icon(
                     painter = painterResource(id = if(isVisibleValue.value) R.drawable.ic_baseline_visibility_24 else R.drawable.ic_baseline_visibility_off_24),
                     contentDescription = "Visible Values",
@@ -71,18 +82,10 @@ fun HeaderComponent(createHeaderFieldViewModel: CreateHeaderFieldViewModel){
 class CreateHeaderFieldViewModel: BaseFieldViewModel(){
     var isVisibleValue: MutableLiveData<Boolean> = MutableLiveData(true)
     var nameUser: MutableLiveData<String> = MutableLiveData("")
-    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.clover)
+    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar)
 
     fun onChangeIsVisibleValue(){
         isVisibleValue.value = !isVisibleValue.value!!
-    }
-
-    fun onChangeNameUser(newNameUser: String){
-        nameUser.value = newNameUser
-    }
-
-    fun onchangeIdAvatar(newIdAvatar: Int){
-        idAvatar.value = newIdAvatar
     }
 
     override fun checkFileds(): Boolean {
@@ -94,6 +97,11 @@ class CreateHeaderFieldViewModel: BaseFieldViewModel(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewHeaderComponent(){
-    var createHeaderFieldViewModel = CreateHeaderFieldViewModel()
-    HeaderComponent(createHeaderFieldViewModel)
+    val context = LocalContext.current
+    val userViewModel = UserViewModel(context)
+    HeaderComponent(userViewModel, object : Callback {
+        override fun onClick() {
+            TODO("Not yet implemented")
+        }
+    })
 }
