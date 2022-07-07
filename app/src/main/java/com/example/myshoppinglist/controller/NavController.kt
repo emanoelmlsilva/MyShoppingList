@@ -13,11 +13,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardScreen
 import com.example.myshoppinglist.screen.CreateUserScreen
+import com.example.myshoppinglist.screen.CreditCollectionScreen
 import com.example.myshoppinglist.screen.HomeScreen
 import com.example.myshoppinglist.ui.theme.primary_dark
 import com.example.myshoppinglist.ui.theme.secondary
@@ -44,7 +47,7 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
                         TopAppBar(
                             title = {},
                             navigationIcon = {
-                                IconButton(onClick = { }) {
+                                IconButton(onClick = {navHostController.popBackStack()}) {
                                     Icon(
                                         imageVector = Icons.Filled.ArrowBack,
                                         contentDescription = "Menu Btn",
@@ -57,15 +60,18 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
                         )
                     }
                 ) {
-                    CreateCardScreen(navHostController)
+                    CreateCardScreen(navHostController, TypeCard.CREDIT)
                 }
             } else {
-                CreateCardScreen(navHostController)
+                CreateCardScreen(navHostController,TypeCard.MONEY)
             }
         }
         composable("home"){
             window.statusBarColor = primary_dark.hashCode()
             HomeScreen(navHostController)
+        }
+        composable("credit_collection"){
+            CreditCollectionScreen(navHostController)
         }
     }
 }

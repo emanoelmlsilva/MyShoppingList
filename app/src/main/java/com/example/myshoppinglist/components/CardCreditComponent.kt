@@ -13,30 +13,37 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myshoppinglist.screen.CardCreditDTO
+import androidx.navigation.NavController
+import com.example.myshoppinglist.R
+import com.example.myshoppinglist.controller.CallbackColor
+import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.Format
 
 @Composable
-fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, cardCreditDTO: CardCreditDTO, createCardCreditViewModel: CreateCardCreditFieldViewModel) {
-    val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(card_blue)
+fun CardCreditComponent(navController: NavController? = null, isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, typeCard: TypeCard, cardCreditDTO: CreditCardDTO, createCardCreditViewModel: CreateCardCreditFieldViewModel, modifier: Modifier?, callbackColor: CallbackColor?) {
+
+    var colorCurrent: Color = createCardCreditViewModel.colorCurrent.observeAsState(card_blue).value
 
     if (isChoiceColor) {
-
+card_blue
         Column{
 
-            CustomCardCredit(isDefault, isClicable, colorCurrent,  cardCreditDTO)
+            CustomCardCredit(null, isDefault, isClicable, typeCard, colorCurrent,  cardCreditDTO, null)
 
-            ChoiceColor(createCardCreditViewModel)
+            ChoiceColor(createCardCreditViewModel, callbackColor = callbackColor)
         }
     } else {
-        CustomCardCredit(isDefault, isClicable, colorCurrent, cardCreditDTO)
+        colorCurrent = Color(cardCreditDTO.colorCard)
+        CustomCardCredit(navController,isDefault, isClicable, typeCard, colorCurrent, cardCreditDTO, modifier)
 
     }
 
@@ -44,18 +51,28 @@ fun CardCredit(isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, 
 
 @Composable
 fun CustomCardCredit(
+    navController: NavController?,
     isDefault: Boolean,
     isClicable: Boolean,
+    typeCard: TypeCard,
     cardColor: Color,
-    cardCreditDTO: CardCreditDTO
+    cardCreditDTO: CreditCardDTO,
+    modifier: Modifier?
 ) {
-    Card(
-        backgroundColor = ((if (isDefault) secondary_light else cardColor)!!),
-        modifier = Modifier
+    val hasToobar = true
+
+    var modifierAux = modifier
+        ?: Modifier
             .width(400.dp)
             .height(200.dp)
+
+    Card(
+        backgroundColor = ((if (isDefault) background_card else cardColor)),
+        modifier = modifierAux
             .padding(horizontal = 4.dp, vertical = 4.dp)
-            .clickable(isClicable) {},
+            .clickable(isClicable) {
+                navController?.navigate("createCards?hasToolbar=${hasToobar}")
+            },
         elevation = 2.dp, shape = RoundedCornerShape(8.dp)
     ) {
         if (isDefault) {
@@ -68,30 +85,32 @@ fun CustomCardCredit(
         } else {
 
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.BottomCenter
             ) {
-
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.7f)
-                ) {
-                    Row(
-                        Modifier
-                            .fillMaxHeight(0.5f)
-                            .fillMaxWidth(0.9f)
-                            .padding(start = 16.dp, 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                Column( modifier = Modifier
+                    .fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween
+                ){
+                    Icon(modifier = Modifier.padding(start = 6.dp, top = 24.dp), painter = painterResource(id = if(typeCard == TypeCard.MONEY) R.drawable.ic_baseline_monetization_on_24 else R.drawable.ic_baseline_credit_card_24), contentDescription = "tipo de cartao",)
+                    Column(
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.79f)
                     ) {
-                        CustomTextColumn(title = "Titular", subTitle = cardCreditDTO.name, 0.5f, 0.4f)
-                        CustomTextColumn(title = "Nome Cartão", subTitle = cardCreditDTO.nickName, 1f, 1f)
-                    }
+                        Row(
+                            Modifier
+                                .fillMaxHeight(0.5f)
+                                .fillMaxWidth(0.9f)
+                                .padding(start = 16.dp, 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            CustomTextColumn(title = "Titular", subTitle = cardCreditDTO.holderName, 0.5f, 0.4f)
+                            CustomTextColumn(title = "Nome Cartão", subTitle = cardCreditDTO.cardName, 1f, 1f)
+                        }
 
-                    Footer(value = cardCreditDTO!!.value)
+                        Footer(value = cardCreditDTO!!.value)
+                    }
                 }
+
 
             }
 
@@ -130,7 +149,7 @@ fun Footer(value: Float) {
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
-            .fillMaxHeight(0.7f)
+            .fillMaxHeight(0.75f)
             .fillMaxWidth()
     ) {
         Divider(
@@ -139,12 +158,14 @@ fun Footer(value: Float) {
                 .fillMaxWidth()
                 .fillMaxHeight(0.006f)
         )
-        Text(Format().getFormatValue(value), modifier = Modifier.padding(start = 16.dp, bottom = 14.dp), color = text_secondary)
+        Text(Format().getFormatValue(value), modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 16.dp, top = 7.dp), color = text_secondary)
     }
 }
 
 @Composable
-fun ChoiceColor(createCardCreditViewModel: CreateCardCreditFieldViewModel) {
+fun ChoiceColor(createCardCreditViewModel: CreateCardCreditFieldViewModel, callbackColor: CallbackColor?) {
     val colorCollection: List<Color> = listOf(
         card_blue,
         card_purple,
@@ -172,7 +193,10 @@ fun ChoiceColor(createCardCreditViewModel: CreateCardCreditFieldViewModel) {
             ItemColor(
                 color,
                 color == colorCurrent
-            ) { if (colorCurrent != color) createCardCreditViewModel.onChangeColorCurrent(color) }
+            ) { if (colorCurrent != color) {
+                callbackColor?.setColorCurrent(color)
+                createCardCreditViewModel.onChangeColorCurrent(color)
+            } }
         }
     }
 }
@@ -197,7 +221,9 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewCardCredit() {
-    val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
-    CardCredit(isClicable = false, isDefault = false, isChoiceColor = true, CardCreditDTO(
-        card_purple, 123.4F, "Teste", "teste"), createCardCreditViewModel)
+
+    CustomCardCredit(null, isClicable = false, isDefault = false, typeCard = TypeCard.CREDIT, cardColor = card_blue, cardCreditDTO = CreditCardDTO(
+        colorCard = card_purple.toArgb(), value = 123.4F, cardName = "Teste", holderName =  "teste"),
+        modifier = null
+    )
 }

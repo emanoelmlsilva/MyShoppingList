@@ -1,14 +1,17 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import com.example.myshoppinglist.controller.Callback
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -17,7 +20,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.components.ButtonsFooterContent
-import com.example.myshoppinglist.components.CardCredit
+import com.example.myshoppinglist.components.CardCreditComponent
+import com.example.myshoppinglist.controller.CallbackColor
+import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
@@ -27,22 +32,18 @@ import com.example.myshoppinglist.ui.theme.card_blue
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
 
-data class CardCreditDTO(
-    val color: androidx.compose.ui.graphics.Color,
-    val value: Float,
-    val name: String,
-    val nickName: String
-)
-
 @ExperimentalComposeUiApi
 @Composable
-fun CreateCardScreen(navController: NavController?) {
+fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModel(context)
     val userViewModel = UserViewModel(context)
     val name: String by createCardCreditViewModel.name.observeAsState("")
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
+    val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
+
+    userViewModel.getUserCurrent()
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -59,11 +60,18 @@ fun CreateCardScreen(navController: NavController?) {
                 .padding(start = 16.dp, top = 32.dp, bottom = 16.dp, end = 16.dp), verticalArrangement = Arrangement.SpaceBetween
         ) {
 
-            CardCredit(
+            CardCreditComponent(
                 isClicable = false,
                 isDefault = false,
+                typeCard = typeCard,
                 isChoiceColor = true,
-                cardCreditDTO = CardCreditDTO(card_blue, 0F, name, nameCard), createCardCreditViewModel
+                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = name, holderName = nameCard),
+                createCardCreditViewModel = createCardCreditViewModel, modifier = null, callbackColor = object :
+                    CallbackColor() {
+                    override fun setColorCurrent(color: Color) {
+                        createCardCreditViewModel.onChangeColorCurrent(color)
+                    }
+                }
             )
             Column(modifier = Modifier.height(230.dp), verticalArrangement = Arrangement.SpaceBetween) {
                 Column(
@@ -85,23 +93,26 @@ fun CreateCardScreen(navController: NavController?) {
                 btnTextAccept = "SALVAR",
                 btnTextCancel = "CANCELAR",
                 onClickAccept = {
-                    creditCardViewModel.findCreditCardById(1)
                     userViewModel.searchResult.observeForever {
-                        creditCardViewModel.searchResult.observeForever { credit ->
                             if (createCardCreditViewModel.checkFileds()) {
                                 creditCardViewModel.insertCreditCard(
                                     CreditCard(
                                         name,
                                         nameCard,
                                         0F,
-                                        TypeCard.CREDIT,
+                                        colorCurrent.toArgb(),
+                                        typeCard,
                                         it.name
                                     )
                                 )
-                                navController?.navigate("home")
+                                if(typeCard == TypeCard.MONEY){
+                                    navController?.navigate("home"){
+                                        popUpTo(0)
+                                    }
+                                }else{
+                                    navController?.popBackStack()
+                                }
                             }
-
-                        }
                     }
                 },
                 onClickCancel = {
@@ -132,7 +143,7 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
                 onValueChange = {
                     cardCreditViewModel.onChangeName(it)
                 },
-                label = { Text("Nome") },
+                label = { Text("Titular") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = isErrorName,

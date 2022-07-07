@@ -3,6 +3,7 @@ package com.example.myshoppinglist.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -23,11 +24,12 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.ui.theme.*
 
 @Composable
-fun SpendingComponent(){
+fun SpendingComponent(isVisibleValue: Boolean){
     Column(modifier = Modifier
         .background(secondary)
         .height(120.dp)
-        .fillMaxWidth().padding(top = 8.dp)){
+        .fillMaxWidth()
+        .padding(top = 8.dp)){
         Row(modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(.5f), horizontalArrangement = Arrangement.SpaceBetween){
@@ -41,21 +43,28 @@ fun SpendingComponent(){
                 )
             }
         }
-        Row(modifier = Modifier
-            .fillMaxSize().padding(top = 6.dp)){
-            Text(text = "R$ 00,00", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            IconButton(onClick = { }) {
-                Image(
-                    painterResource(id = R.drawable.teste),
-                    contentDescription = "Visible Values",
-                )
+        Card(modifier = Modifier
+            .padding(vertical = 6.dp, horizontal = 10.dp).fillMaxSize(),  elevation = 0.dp) {
+            Row(modifier = Modifier
+                .background(if(isVisibleValue) secondary else secondary_light)){
+                if(isVisibleValue){
+                    Text(text = "R$ 00,00", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    IconButton(onClick = { }) {
+                        Image(
+                            painterResource(id = R.drawable.ic_visa),
+                            contentDescription = "Visible Values",
+                        )
+                    }
+                }
+
             }
         }
+
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewSpendingComponent(){
-    SpendingComponent()
+    SpendingComponent(false)
 }

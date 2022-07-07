@@ -8,8 +8,8 @@ import kotlinx.coroutines.*
 class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
 
     val searchResult = MutableLiveData<CreditCard>()
-
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    val searchCollectionResult = MutableLiveData<List<CreditCard>>()
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     fun insertCreditCard(newCreditCard: CreditCard){
         coroutineScope.launch(Dispatchers.IO) {
@@ -29,11 +29,17 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         }
     }
 
-    fun getAll(nameUser: String): List<CreditCard>{
-        return cardCreditCardDAO.getAll(nameUser)
+    fun getAll(nameUser: String){
+        coroutineScope.launch(Dispatchers.Main){
+            searchCollectionResult.value = asynFindAll(nameUser).await()
+        }
     }
 
     private fun asyncFind(name: String, id: Long): Deferred<CreditCard?> = coroutineScope.async(Dispatchers.IO){
         return@async cardCreditCardDAO.findCreditCardById(name, id)
+    }
+
+    private fun asynFindAll(name: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
+        return@async cardCreditCardDAO.getAll(name)
     }
 }
