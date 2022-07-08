@@ -21,10 +21,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.ui.theme.*
 
 @Composable
-fun SpendingComponent(isVisibleValue: Boolean){
+fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
     Column(modifier = Modifier
         .background(secondary)
         .height(120.dp)
@@ -35,10 +36,10 @@ fun SpendingComponent(isVisibleValue: Boolean){
             .fillMaxHeight(.5f), horizontalArrangement = Arrangement.SpaceBetween){
             Text(text = "Gastos", modifier = Modifier.padding(top = 16.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 20.sp
             )
-            IconButton(onClick = { }) {
+            IconButton(onClick = { callback?.onClick() }) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowRight,
-                    contentDescription = "Visible Values",
+                    contentDescription = "show screen purchase",
                     tint = secondary_dark,
                 )
             }

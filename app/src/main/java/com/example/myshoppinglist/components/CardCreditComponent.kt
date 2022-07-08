@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.controller.CallbackColor
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel

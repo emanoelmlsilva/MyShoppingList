@@ -15,10 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.components.CreateHeaderFieldViewModel
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
-import com.example.myshoppinglist.controller.Callback
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
@@ -39,13 +38,17 @@ fun HomeScreen(navController: NavController?) {
             .fillMaxHeight()
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, object: Callback{
+            HeaderComponent(userViewModel, object: Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
-            SpendingComponent(isVisibleValue.value)
-            BoxCreditCard(object : Callback{
+            SpendingComponent(isVisibleValue.value, object : Callback{
+                override fun onClick() {
+                    navController?.navigate("register_purchase")
+                }
+            })
+            BoxCreditCard(object : Callback {
                 override fun onClick() {
                     navController?.navigate("credit_collection")
                 }
