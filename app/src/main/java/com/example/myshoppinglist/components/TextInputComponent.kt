@@ -31,7 +31,7 @@ fun TextInputComponent(modifier: Modifier? = null, maxChar: Int? = 250, keyboard
             TextField(
                 leadingIcon = {
                     IconButton(
-                        onClick = { },
+                        onClick = {customOnClick.onClick() },
                     ) {
                         Icon(
                             painter = painterResource(icon),
@@ -84,4 +84,7 @@ fun TextInputComponent(modifier: Modifier? = null, maxChar: Int? = 250, keyboard
 
 interface CustomOnClick{
     fun onChangeValeu(newValue: String)
+    fun onClick(){
+
+    }
 }

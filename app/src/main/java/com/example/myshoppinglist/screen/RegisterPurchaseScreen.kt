@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -80,6 +80,8 @@ fun CustomButton(callback: Callback, icon: Int){
 @ExperimentalComposeUiApi
 @Composable
 fun BoxChoiceValue(){
+    var isMoney by remember { mutableStateOf(true) }
+
     Card(elevation = 2.dp, shape = RoundedCornerShape(8.dp), modifier = Modifier.padding(top = 6.dp)){
         Row(modifier = Modifier
             .fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
@@ -88,9 +90,14 @@ fun BoxChoiceValue(){
 
                 }
             }, icon = R.drawable.ic_baseline_remove_24)
-            TextInputComponent(maxChar = 11, icon = R.drawable.ic_baseline_monetization_on_24, isMandatory = false, modifier = Modifier.padding(vertical = 1.dp).fillMaxWidth(0.79f), label = "Quantidade", customOnClick =  object: CustomOnClick{
+            TextInputComponent(maxChar = 11, icon = if(!isMoney) R.drawable.ic_baseline_1k_24 else R.drawable.ic_baseline_123_24
+                ,isMandatory = false, modifier = Modifier.padding(vertical = 1.dp).fillMaxWidth(0.79f)
+                ,label = if(isMoney) "Quantidade" else "Quilo", customOnClick =  object: CustomOnClick{
                 override fun onChangeValeu(newValue: String) {
                     Log.d("TESTE", "RECUPERANDO VALOR ${newValue}")
+                }
+                override fun onClick() {
+                    isMoney = !isMoney
                 }
             })
             CustomButton(callback = object : Callback {
