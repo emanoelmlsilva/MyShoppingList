@@ -8,10 +8,12 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,6 +25,8 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.CustomDropdownMenu
 import com.example.myshoppinglist.components.NumberInputComponent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 
@@ -93,8 +97,13 @@ fun PurchaseAndPaymentComponent(){
     var expanded by remember { mutableStateOf(true)}
     var isBlock by remember { mutableStateOf(false) }
     var isFormPaymentCredit by remember { mutableStateOf(false)}
+    val context = LocalContext.current
+    val creditCardViewModel = CreditCardViewModel(context)
+    val cardCreditCollection = creditCardViewModel.searchCollectionResult.observeAsState()
 
-    Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, modifier = Modifier.padding(top = 16.dp)){
+        creditCardViewModel.getAll()
+
+        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, modifier = Modifier.padding(top = 16.dp)){
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)) {
@@ -153,7 +162,7 @@ fun PurchaseAndPaymentComponent(){
                             .fillMaxWidth()
                             .height(1.dp))
 
-                    if(isFormPaymentCredit) CustomDropdownMenu(listOf(""), object : CustomTextFieldOnClick{
+                    if(isFormPaymentCredit) CustomDropdownMenu(getNameCard(cardCreditCollection.value!!), object : CustomTextFieldOnClick{
                         override fun onChangeValeu(newValue: String) {
 
                         }
@@ -165,6 +174,12 @@ fun PurchaseAndPaymentComponent(){
         }
     }
 
+}
+
+fun getNameCard(creditCardColelction: List<CreditCard>): List<String>{
+    var cardCreditFormated: MutableList<String> = creditCardColelction.map { creditCard -> creditCard.cardName } as MutableList<String>
+    cardCreditFormated.add(0, "Cartões")
+    return cardCreditFormated
 }
 
 @Composable
