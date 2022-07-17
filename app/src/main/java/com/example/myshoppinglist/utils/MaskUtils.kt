@@ -8,7 +8,9 @@ object MaskUtils {
 
     @JvmStatic
     fun replaceAll(value: String): String {
-        return value.replace("[.,]".toRegex(), "")
+        //remove caracteres que não sejam numericos
+        var removeAll = value.replace("[^0-9]".toRegex(), "");
+        return removeAll
     }
 
     @JvmStatic
