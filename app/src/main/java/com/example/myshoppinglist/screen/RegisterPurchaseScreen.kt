@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,6 +20,7 @@ import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.CustomDropdownMenu
 import com.example.myshoppinglist.components.NumberInputComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.ui.theme.*
@@ -28,7 +31,7 @@ import com.example.myshoppinglist.utils.MaskUtils
 fun RegisterPurchaseScreen(navController: NavHostController?){
     var valueProduct by remember {mutableStateOf("")}
 
-    Scaffold(       topBar = {
+    Scaffold(topBar = {
         TopAppBar(
             title = {},
             navigationIcon = {
@@ -54,8 +57,8 @@ fun RegisterPurchaseScreen(navController: NavHostController?){
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp) , horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
-                NumberInputComponent(maxChar = 10, keyboardType = KeyboardType.Number, modifier = Modifier
-                    .fillMaxWidth(0.4f)
+                NumberInputComponent(maxChar = 13, keyboardType = KeyboardType.Number, modifier = Modifier
+                    .fillMaxWidth(0.45f)
                     .padding(end = 16.dp),label = "Preço", customOnClick =  object:
                     CustomTextFieldOnClick {
                     override fun onChangeValeu(newValue: String) {
@@ -89,6 +92,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?){
 fun PurchaseAndPaymentComponent(){
     var expanded by remember { mutableStateOf(true)}
     var isBlock by remember { mutableStateOf(false) }
+    var isFormPaymentCredit by remember { mutableStateOf(false)}
 
     Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, modifier = Modifier.padding(top = 16.dp)){
         Column(modifier = Modifier
@@ -128,6 +132,34 @@ fun PurchaseAndPaymentComponent(){
                         super.onClick()
                     }
                 })
+
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                        Text(text = "Forma de Pagamento")
+                        IconButton(modifier = Modifier.then(Modifier.size(24.dp)),
+                            onClick = { isFormPaymentCredit = !isFormPaymentCredit },
+                        ) {
+                            Icon(
+                                painter = painterResource(id = if(isFormPaymentCredit) R.drawable.ic_baseline_credit_card_24 else R.drawable.ic_baseline_monetization_on_24),
+                                contentDescription = null,
+                                tint = text_primary,)
+                        }
+                    }
+                    Divider(color = text_primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp))
+
+                    if(isFormPaymentCredit) CustomDropdownMenu(listOf(""), object : CustomTextFieldOnClick{
+                        override fun onChangeValeu(newValue: String) {
+
+                        }
+                    })
+
+                }
             }
 
         }
