@@ -26,6 +26,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
@@ -35,6 +37,7 @@ import com.example.myshoppinglist.components.CustomDropdownMenu
 import com.example.myshoppinglist.components.NumberInputComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
@@ -43,9 +46,17 @@ import com.example.myshoppinglist.utils.MaskUtils
 @ExperimentalComposeUiApi
 @Composable
 fun RegisterPurchaseScreen(navController: NavHostController?) {
-    var valueProduct by remember { mutableStateOf("") }
+
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
+    val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
+
+    val product: String by registerTextFieldViewModel.product.observeAsState("")
+    val price: String by registerTextFieldViewModel.price.observeAsState("")
+    val quantOrKilo: String by registerTextFieldViewModel.quantOrKilo.observeAsState("")
+    val locale: String by registerTextFieldViewModel.locale.observeAsState("")
+    val nameCard: String by registerTextFieldViewModel.nameCard.observeAsState("")
+    val isBlock: Boolean by registerTextFieldViewModel.isBlock.observeAsState(false)
     var textCollection = listOf<String>()
 
     Box {
@@ -130,10 +141,10 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
             ) {
                 TextInputComponent(
                     label = "Produto",
-                    value = valueProduct,
+                    value = product,
                     customOnClick = object : CustomTextFieldOnClick {
                         override fun onChangeValeu(newValue: String) {
-                            valueProduct = newValue
+                            registerTextFieldViewModel.onChangeProduct(newValue)
                         }
                     })
                 Row(
@@ -201,7 +212,6 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
 @Composable
 fun PurchaseAndPaymentComponent() {
     var expanded by remember { mutableStateOf(true) }
-    var isBlock by remember { mutableStateOf(false) }
     var isFormPaymentCredit by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModel(context)
@@ -218,7 +228,7 @@ fun PurchaseAndPaymentComponent() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(6.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -385,6 +395,57 @@ fun BoxChoiceValue() {
                 }
             }, icon = R.drawable.ic_baseline_add_24)
         }
+    }
+
+}
+
+class RegisterTextFieldViewModel: BaseFieldViewModel(){
+    var product: MutableLiveData<String> = MutableLiveData("")
+    var price: MutableLiveData<String> = MutableLiveData("")
+    var quantOrKilo: MutableLiveData<String> = MutableLiveData("")
+    var locale: MutableLiveData<String> = MutableLiveData("")
+    var nameCard: MutableLiveData<String> = MutableLiveData("")
+    var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
+
+    override fun checkFileds(): Boolean {
+
+        if(product.value!!.isBlank()) return false
+
+        if(price.value!!.isBlank()) return false
+
+        if(quantOrKilo.value!!.isBlank()) return false
+
+        if(locale.value!!.isBlank()) return false
+
+        if(nameCard.value!!.isBlank()) return false
+
+        if(!isBlock.value!!) return false
+
+        return true
+    }
+
+    fun onChangeProduct(newProduct: String){
+        product.value = newProduct
+    }
+
+    fun onChangePrice(newPrice : String){
+        price.value = newPrice
+    }
+
+    fun onChangeQuantOrKilo(newQuantOrKilo : String){
+        quantOrKilo.value = newQuantOrKilo
+    }
+
+    fun onChangeLocale(newLocale : String){
+        locale.value = newLocale
+    }
+
+    fun onChangeNameCard(newNameCard : String){
+        nameCard.value = newNameCard
+    }
+
+    fun onChangeIsBlock(newIsBlock : Boolean){
+        isBlock.value = newIsBlock
     }
 
 }
