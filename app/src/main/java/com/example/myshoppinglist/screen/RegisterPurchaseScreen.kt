@@ -1,7 +1,10 @@
 package com.example.myshoppinglist.screen
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -14,15 +17,20 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CustomDropdownMenu
 import com.example.myshoppinglist.components.NumberInputComponent
 import com.example.myshoppinglist.components.TextInputComponent
@@ -31,78 +39,160 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 
+@ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
 fun RegisterPurchaseScreen(navController: NavHostController?) {
     var valueProduct by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    var textCollection = listOf<String>()
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = {},
-            navigationIcon = {
-                IconButton(onClick = { navController?.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Menu Btn",
-                        tint = secondary_dark
+    Box {
+        BottomSheetScaffold(
+            sheetBackgroundColor = background_card,
+            sheetContent = {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(.92f)
+                        .background(background_card)
+                        .padding(top = 16.dp, bottom = 70.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Card(
+                        elevation = 2.dp,
+                        shape = RoundedCornerShape(6.dp),
+                        backgroundColor = text_primary,
+                        modifier = Modifier
+                            .fillMaxWidth(.2f)
+                            .height(5.dp)
+                    ) {}
+                    Spacer(Modifier.height(20.dp))
+                    Row {
+                        Text(
+                            text = "Produtos",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
+                        )
+                        Text(
+                            text = "0".padStart(3, '0'), color = text_secondary ,modifier = Modifier
+                                .drawBehind {
+                                    drawCircle(
+                                        color = text_primary,
+                                        radius = this.size.minDimension
+                                    )
+                                }, fontSize = 12.sp
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Divider(
+                        color = text_primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
                     )
+                    Spacer(Modifier.height(20.dp))
+                    LazyColumn(modifier = Modifier
+                        .fillMaxWidth()) {
+                        items(textCollection) { text ->
+                            Text(text = text, modifier = Modifier.padding(vertical = 12.dp))
+
+                        }
+                    }
                 }
             },
-            backgroundColor = text_secondary,
-            elevation = 0.dp
-        )
-    }) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            TextInputComponent(
-                label = "Produto",
-                value = valueProduct,
-                customOnClick = object : CustomTextFieldOnClick {
-                    override fun onChangeValeu(newValue: String) {
-                        Log.d("TESTE", "RECUPERANDO VALOR ${newValue}")
-                        valueProduct = newValue
-                    }
-                })
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+            scaffoldState = scaffoldState,
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = { navController?.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Menu Btn",
+                                tint = secondary_dark
+                            )
+                        }
+                    },
+                    backgroundColor = text_secondary,
+                    elevation = 0.dp
+                )
+            },
+            sheetPeekHeight = 228.dp,
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                NumberInputComponent(maxChar = 13,
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier
-                        .fillMaxWidth(0.45f)
-                        .padding(end = 16.dp),
-                    label = "Preço",
-                    customOnClick = object :
-                        CustomTextFieldOnClick {
+                TextInputComponent(
+                    label = "Produto",
+                    value = valueProduct,
+                    customOnClick = object : CustomTextFieldOnClick {
                         override fun onChangeValeu(newValue: String) {
-                            Log.d("TESTE", "RECUPERANDO VALOR ${newValue}")
+                            valueProduct = newValue
                         }
                     })
-                BoxChoiceValue()
-            }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NumberInputComponent(maxChar = 13,
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier
+                            .fillMaxWidth(0.45f)
+                            .padding(end = 16.dp),
+                        label = "Preço",
+                        customOnClick = object :
+                            CustomTextFieldOnClick {
+                            override fun onChangeValeu(newValue: String) {
+                                Log.d("TESTE", "RECUPERANDO VALOR ${newValue}")
+                            }
+                        })
+                    BoxChoiceValue()
+                }
 
-            PurchaseAndPaymentComponent()
+                PurchaseAndPaymentComponent()
 
-            Button(
-                colors = ButtonDefaults.buttonColors(backgroundColor = primary),
-                modifier = Modifier
-                    .padding(start = 16.dp, bottom = 16.dp, end = 16.dp, top = 16.dp),
-                onClick = { }) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = text_secondary
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("ADICIONAR", color = text_secondary)
+                Button(
+                    colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                    modifier = Modifier
+                        .padding(start = 16.dp, bottom = 16.dp, end = 16.dp, top = 16.dp),
+                    onClick = { }) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = text_secondary
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text("ADICIONAR", color = text_secondary)
+                }
             }
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, placeable.height) {
+                        placeable.place(0, placeable.height / 2)
+                    }
+                }
+                .padding(bottom = 52.dp)
+                .background(text_secondary),
+        ) {
+            ButtonsFooterContent(
+                btnTextCancel = "CANCELAR",
+                btnTextAccept = "SALVAR",
+                onClickCancel = {},
+                onClickAccept = {})
         }
     }
 }
@@ -204,7 +294,7 @@ fun PurchaseAndPaymentComponent() {
                             override fun onChangeValeu(newValue: String) {
 
                             }
-                        })
+                        }) else Spacer(Modifier.height(8.dp))
 
                 }
             }
@@ -299,6 +389,7 @@ fun BoxChoiceValue() {
 
 }
 
+@ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Preview(showBackground = true)
 @Composable

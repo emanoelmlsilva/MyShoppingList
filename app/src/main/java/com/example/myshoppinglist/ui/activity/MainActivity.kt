@@ -13,6 +13,7 @@ import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalMaterialApi
     @ExperimentalComposeUiApi
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
