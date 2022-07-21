@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,19 +15,22 @@ import com.example.myshoppinglist.ui.theme.secondary_dark
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, customOnClick: CustomTextFieldOnClick){
+fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
     val keyboardController = LocalSoftwareKeyboardController.current
     var isErrorNickName by remember { mutableStateOf(false) }
     var customModifier = modifier?:Modifier.fillMaxWidth()
-    var textValeu by remember {mutableStateOf(value)}
+    var textValue by remember {mutableStateOf(value)}
+
+    if(reset){
+        textValue = ""
+    }
 
     Column{
-
             OutlinedTextField(
-                value = textValeu,
+                value = textValue,
                 onValueChange = {
                     if(it.length < maxChar!!){
-                        textValeu = it
+                        textValue = it
                         customOnClick.onChangeValeu(it)
                         isErrorNickName = it.isBlank()
                     }

@@ -63,7 +63,7 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                 isDefault = false,
                 typeCard = typeCard,
                 isChoiceColor = true,
-                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = name, holderName = nameCard),
+                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = nameCard, holderName = name),
                 createCardCreditViewModel = createCardCreditViewModel, modifier = null, callbackColor = object :
                     CallbackColor() {
                     override fun setColorCurrent(color: Color) {

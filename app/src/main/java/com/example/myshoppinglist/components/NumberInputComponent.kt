@@ -21,7 +21,7 @@ import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalComposeUiApi
 @Composable
-fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false, customOnClick: CustomTextFieldOnClick){
+fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false,  reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
     var isKilogram by remember { mutableStateOf(false)}
     val keyboardController = LocalSoftwareKeyboardController.current
     var isErrorNickName by remember { mutableStateOf(false) }
@@ -48,6 +48,19 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
         numberFieldValueState =  TextFieldValue(
             text = valurFormat,
             selection = TextRange(valurFormat.length)
+        )
+    }
+
+    if(reset){
+        numberFieldValueState =  TextFieldValue(
+            text = if(hasIcon!!) {
+                if(isKilogram) MaskUtils.maskKiloGram("") else MaskUtils.maskQuantity(
+                    ""
+                )
+            }else {
+                "$symbol ${MaskUtils.maskValue("")}"
+            },
+            selection = TextRange(0)
         )
     }
 
