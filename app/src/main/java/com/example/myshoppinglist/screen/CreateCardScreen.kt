@@ -1,11 +1,9 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import com.example.myshoppinglist.controller.Callback
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -21,7 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
-import com.example.myshoppinglist.controller.CallbackColor
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
@@ -65,7 +63,7 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                 isDefault = false,
                 typeCard = typeCard,
                 isChoiceColor = true,
-                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = name, holderName = nameCard),
+                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = nameCard, holderName = name),
                 createCardCreditViewModel = createCardCreditViewModel, modifier = null, callbackColor = object :
                     CallbackColor() {
                     override fun setColorCurrent(color: Color) {

@@ -10,16 +10,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.components.CreateHeaderFieldViewModel
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
-import com.example.myshoppinglist.controller.Callback
+import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
 
@@ -27,9 +30,13 @@ import com.example.myshoppinglist.ui.theme.*
 fun HomeScreen(navController: NavController?) {
     val context = LocalContext.current
     val homeFieldViewModel = HomeFieldViewModel()
+    val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
     val isVisibleValue = homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
+    val purchaseCollection = purchaseViewModel.searchCollectionResults.observeAsState(initial = listOf()).value
+
     userViewModel.getUserCurrent()
+    purchaseViewModel.getPurchaseAll()
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -39,17 +46,38 @@ fun HomeScreen(navController: NavController?) {
             .fillMaxHeight()
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, object: Callback{
+            HeaderComponent(userViewModel, object: Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
-            SpendingComponent(isVisibleValue.value)
-            BoxCreditCard(object : Callback{
+            SpendingComponent(isVisibleValue.value, object : Callback{
+                override fun onClick() {
+                    navController?.navigate("register_purchase")
+                }
+            })
+            BoxCreditCard(object : Callback {
                 override fun onClick() {
                     navController?.navigate("credit_collection")
                 }
             })
+
+            Spacer(Modifier.size(32.dp))
+
+            Divider(
+                color = secondary_light,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+            )
+
+            Spacer(Modifier.size(22.dp))
+
+            Text(text = "Histórico", modifier = Modifier.fillMaxWidth().padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+
+            Spacer(Modifier.size(24.dp))
+
+            BoxPurchaseHistoryComponent(purchaseCollection)
         }
     }
 
@@ -71,7 +99,6 @@ fun BoxCreditCard(callBack: Callback){
                 .size(20.dp), painter = painterResource(id =  R.drawable.ic_baseline_credit_card_24), contentDescription = "icon de cartão",)
             Text(text = "Meus Cartões", modifier = Modifier.padding(start = 52.dp))
         }
-
     }
 }
 

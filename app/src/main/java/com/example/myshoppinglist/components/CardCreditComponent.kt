@@ -21,12 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.controller.CallbackColor
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.Format
+import com.example.myshoppinglist.utils.FormatUtils
 
 @Composable
 fun CardCreditComponent(navController: NavController? = null, isClicable: Boolean, isDefault: Boolean, isChoiceColor: Boolean, typeCard: TypeCard, cardCreditDTO: CreditCardDTO, createCardCreditViewModel: CreateCardCreditFieldViewModel, modifier: Modifier?, callbackColor: CallbackColor?) {
@@ -158,7 +158,7 @@ fun Footer(value: Float) {
                 .fillMaxWidth()
                 .fillMaxHeight(0.006f)
         )
-        Text(Format().getFormatValue(value), modifier = Modifier
+        Text(FormatUtils().getFormatValue(value), modifier = Modifier
             .fillMaxSize()
             .padding(start = 16.dp, top = 7.dp), color = text_secondary)
     }
