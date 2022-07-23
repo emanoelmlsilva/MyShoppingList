@@ -7,6 +7,13 @@ import java.util.*
 object MaskUtils {
 
     @JvmStatic
+    fun convertValueStringToDouble(value: String): Double{
+        var valueFormated: String = replaceAll(value)
+
+        return (valueFormated.substring(0, valueFormated.length - 2) +"."+ valueFormated.substring(valueFormated.length - 2, valueFormated.length)).toDouble()
+    }
+
+    @JvmStatic
     fun replaceAll(value: String): String {
         //remove caracteres que não sejam numericos
         var removeAll = value.replace("[^0-9]".toRegex(), "");

@@ -16,19 +16,20 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
+import java.util.HashMap
 
 @Composable
-fun CustomDropdownMenu(valueCollection: List<String>, callback: CustomTextFieldOnClick, reset: Boolean = false){
+fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, callback: CustomTextFieldOnClick, reset: Boolean = false){
     var expanded by remember {mutableStateOf(false)}
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedValue by remember { mutableStateOf(-1L) }
     var items = valueCollection
 
     if(reset){
-        selectedIndex = 0
+        selectedValue = -1L
     }
         Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp ).clickable(onClick = { expanded = true })){
             Row(horizontalArrangement = Arrangement.Center){
-                Text(items[selectedIndex],modifier = Modifier.padding(16.dp))
+                Text(items.entries.find { it.value == selectedValue }!!.key,modifier = Modifier.padding(16.dp))
                 Icon(
                     painter = painterResource(if(expanded) R.drawable.ic_baseline_arrow_drop_up_24 else R.drawable.ic_baseline_arrow_drop_down_24),
                     contentDescription = null,
@@ -37,13 +38,15 @@ fun CustomDropdownMenu(valueCollection: List<String>, callback: CustomTextFieldO
                 )
             }
             DropdownMenu(expanded = expanded, onDismissRequest = {expanded = false}) {
-                items.forEachIndexed { index, value ->
+                items.entries.forEachIndexed { index, hashMap ->
+                    val key = hashMap.key
+                    val value = hashMap.value
                     DropdownMenuItem(onClick = {
-                        selectedIndex = index
+                        selectedValue = value
                         expanded = false
-                        callback.onChangeValeu(value)
+                        callback.onChangeValueLong(value)
                     }) {
-                        Text(text = value)
+                        Text(text = key)
                     }
                 }
             }
@@ -56,9 +59,9 @@ fun CustomDropdownMenu(valueCollection: List<String>, callback: CustomTextFieldO
 @Preview(showBackground = true)
 @Composable
 fun PreviewCustomDropdownMenu(){
-    CustomDropdownMenu(listOf<String>("Cartões", "Card 1", "Card 2", "Card 3"), object : CustomTextFieldOnClick{
-        override fun onChangeValeu(newValue: String) {
-
-        }
-    })
+//    CustomDropdownMenu(listOf<String>("Cartões", "Card 1", "Card 2", "Card 3"), object : CustomTextFieldOnClick{
+//        override fun onChangeValeu(newValue: String) {
+//
+//        }
+//    })
 }

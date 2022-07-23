@@ -2,9 +2,9 @@ package com.example.myshoppinglist.screen
 
 import android.os.Handler
 import android.util.Log
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -39,34 +40,44 @@ import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
-import com.example.myshoppinglist.components.ButtonsFooterContent
-import com.example.myshoppinglist.components.CustomDropdownMenu
-import com.example.myshoppinglist.components.NumberInputComponent
-import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
+import kotlin.streams.toList
 
+class PurchaseInfo{
+    var title: String
+    var purchaseCollection: MutableList<Purchase>
+
+    constructor(title: String, purchaseCollection: MutableList<Purchase>) {
+        this.title = title
+        this.purchaseCollection = purchaseCollection
+    }
+}
+
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
 fun RegisterPurchaseScreen(navController: NavHostController?) {
-
+    val context = LocalContext.current
+    val purchaseViewModel = PurchaseViewModel(context)
     val reset = remember { mutableStateOf(false)}
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
-    val productCollection = remember { mutableStateListOf<Purchase>() }
+    val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
 
     registerTextFieldViewModel.purchaseCollection.observeForever {
-        productCollection.removeAll(productCollection)
-        productCollection.addAll(it)
+        purchaseInfoCollection.removeAll(purchaseInfoCollection)
+        purchaseInfoCollection.addAll(it)
     }
 
     registerTextFieldViewModel.resetDate.observeForever {
@@ -102,7 +113,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                             modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
                         )
                         Text(
-                            text = "${productCollection.size}".padStart(3, '0'), color = text_secondary ,modifier = Modifier
+                            text = "${purchaseInfoCollection.size}".padStart(3, '0'), color = text_secondary ,modifier = Modifier
                                 .drawBehind {
                                     drawCircle(
                                         color = text_primary,
@@ -120,13 +131,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                             .height(1.dp)
                     )
                     Spacer(Modifier.height(20.dp))
-                    LazyColumn(modifier = Modifier
-                        .fillMaxWidth()) {
-                        items(productCollection) { text ->
-                            Text(text = text.name, modifier = Modifier.padding(vertical = 12.dp))
-
-                        }
-                    }
+                    BoxProductRegisterComponent(purchaseInfoCollection)
                 }
             },
             scaffoldState = scaffoldState,
@@ -157,8 +162,12 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                     label = "Produto",
                     reset = reset.value,
                     customOnClick = object : CustomTextFieldOnClick {
-                        override fun onChangeValeu(newValue: String) {
+                        override fun onChangeValue(newValue: String) {
                             registerTextFieldViewModel.onChangeProduct(newValue)
+                        }
+
+                        override fun onChangeTypeProduct(newProduct: TypeProduct) {
+                            TODO("Not yet implemented")
                         }
                     })
                 Row(
@@ -177,8 +186,11 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                         label = "Preço",
                         customOnClick = object :
                             CustomTextFieldOnClick {
-                            override fun onChangeValeu(newValue: String) {
+                            override fun onChangeValue(newValue: String) {
                                 registerTextFieldViewModel.onChangePrice(newValue)
+                            }
+                            override fun onChangeTypeProduct(newProduct: TypeProduct) {
+                                registerTextFieldViewModel.onChangeTypeProduct(newProduct)
                             }
                         })
                     BoxChoiceValue(registerTextFieldViewModel)
@@ -225,7 +237,12 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 btnTextCancel = "CANCELAR",
                 btnTextAccept = "SALVAR",
                 onClickCancel = {},
-                onClickAccept = {})
+                onClickAccept = {
+                    purchaseInfoCollection.forEach { purchaseInfo ->
+                        purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection)
+                        navController!!.popBackStack()
+                    }
+                })
         }
     }
 }
@@ -318,7 +335,7 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                     label = "Local",
                     reset = reset,
                     customOnClick = object : CustomTextFieldOnClick {
-                        override fun onChangeValeu(newValue: String) {
+                        override fun onChangeValue(newValue: String) {
                             registerTextFieldViewModel.onChangeLocale(newValue)
                         }
 
@@ -352,8 +369,8 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                     CustomDropdownMenu(
                         getNameCard(cardCreditCollection),
                         object : CustomTextFieldOnClick {
-                            override fun onChangeValeu(newValue: String) {
-                                registerTextFieldViewModel.onChangeNameCard(newValue)
+                            override fun onChangeValueLong(newValue: Long) {
+                                registerTextFieldViewModel.onChangeIdCard(newValue)
                             }
                         }, reset)
 
@@ -365,10 +382,13 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
 
 }
 
-fun getNameCard(creditCardColelction: List<CreditCard>): List<String> {
-    var cardCreditFormated: MutableList<String> =
-        creditCardColelction.map { creditCard -> creditCard.cardName } as MutableList<String>
-    cardCreditFormated.add(0, "Cartões")
+fun getNameCard(creditCardColelction: List<CreditCard>): HashMap<String, Long> {
+    var cardCreditFormated: HashMap<String, Long> = HashMap<String, Long> ()
+
+    cardCreditFormated.put("Cartões" , -1)
+
+    creditCardColelction.forEach { creditCard -> cardCreditFormated.put(creditCard.cardName , creditCard.id) }
+
     return cardCreditFormated
 }
 
@@ -403,13 +423,17 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
     }
 
     var customOnClick = object : CustomTextFieldOnClick {
-        override fun onChangeValeu(newValue: String) {
+        override fun onChangeValue(newValue: String) {
             value = newValue
             registerTextFieldViewModel.onChangeQuantOrKilo(newValue)
         }
 
         override fun onClick() {
             isMoney = !isMoney
+        }
+
+        override fun onChangeTypeProduct(newProduct: TypeProduct) {
+            registerTextFieldViewModel.onChangeTypeProduct(newProduct)
         }
     }
 
@@ -463,13 +487,13 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
     var price: MutableLiveData<String> = MutableLiveData("")
     var quantOrKilo: MutableLiveData<String> = MutableLiveData("")
     var locale: MutableLiveData<String> = MutableLiveData("")
-    var nameCard: MutableLiveData<String> = MutableLiveData("")
+    var idCard: MutableLiveData<Long?> = MutableLiveData(-1)
     var purchaseCardId: MutableLiveData<Long> = MutableLiveData(0)
     var category: MutableLiveData<TypeCategory> = MutableLiveData(null)
     var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
     var resetDate: MutableLiveData<Boolean> = MutableLiveData(false)
     var typeProduct: MutableLiveData<TypeProduct> = MutableLiveData(TypeProduct.QUANTITY)
-    val purchaseCollection: MutableLiveData<List<Purchase>> = MutableLiveData<List<Purchase>>(listOf())
+    val purchaseCollection: MutableLiveData<MutableList<PurchaseInfo>> = MutableLiveData<MutableList<PurchaseInfo>>(mutableListOf())
 
     override fun checkFileds(): Boolean {
 
@@ -481,11 +505,9 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
         if(locale.value!!.isBlank()) return false
 
-        if(nameCard.value!!.isBlank()) return false
+        if(idCard.value == -1L) return false
 
         if(category.value == null) return false
-
-        if(nameCard.value == null || nameCard.value.equals("Cartões")) return false
 
         return true
     }
@@ -497,8 +519,7 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
         price.value = ""
         quantOrKilo.value = ""
         locale.value = ""
-        nameCard.value = ""
-        purchaseCardId.value = 0
+        idCard.value = -1L
         category.value = null
         typeProduct.value = TypeProduct.QUANTITY
 
@@ -515,15 +536,28 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
         typeProduct.value = newTypeProduct
     }
 
-    fun onChangePurchaseCardId(newPurchaseCardId: Long){
-        purchaseCardId.value = newPurchaseCardId
-    }
-
     fun addPurchase(){
-        val purchase = Purchase(product.value!!, locale.value!!, purchaseCardId.value!!, quantOrKilo.value!!, typeProduct.value!!, Date().time, 2.2)//price.value!!.toDouble())
-        var mutablePurchaseCollection = if(purchaseCollection.value != null && !purchaseCollection.value!!.isEmpty()) purchaseCollection.value as MutableList else mutableListOf<Purchase>()
-        mutablePurchaseCollection.add(purchase)
-        purchaseCollection.value = mutablePurchaseCollection
+
+        val purchase = Purchase(product.value!!, locale.value!!, idCard.value!!, quantOrKilo.value!!, typeProduct.value!!, Date().time, MaskUtils.convertValueStringToDouble(
+            price.value!!
+        ),
+            category.value!!
+        )
+
+        if(purchaseCollection.value != null && !purchaseCollection.value!!.isEmpty()){
+            val indexCurrent = purchaseCollection.value!!.indexOfFirst { it.title.equals(locale.value!!) }
+            if(indexCurrent != -1){
+                purchaseCollection.value!!.get(indexCurrent).purchaseCollection.add(purchase)
+            }else{
+                var newPurchaseCollection = purchaseCollection.value
+                newPurchaseCollection!!.add(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
+                purchaseCollection.value = newPurchaseCollection
+            }
+
+        }else{
+            purchaseCollection.value = mutableListOf(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
+        }
+
     }
 
     fun onChangeProduct(newProduct: String){
@@ -542,8 +576,8 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
         locale.value = newLocale
     }
 
-    fun onChangeNameCard(newNameCard : String){
-        nameCard.value = newNameCard
+    fun onChangeIdCard(newIdCard : Long?){
+        idCard.value = newIdCard
     }
 
     fun onChangeIsBlock(newIsBlock : Boolean){
@@ -557,5 +591,5 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewRegisterPurchaseScreen() {
-    RegisterPurchaseScreen(null)
+//    RegisterPurchaseScreen(null)
 }

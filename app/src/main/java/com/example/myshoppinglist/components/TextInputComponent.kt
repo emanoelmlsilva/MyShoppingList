@@ -31,7 +31,7 @@ fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: 
                 onValueChange = {
                     if(it.length < maxChar!!){
                         textValue = it
-                        customOnClick.onChangeValeu(it)
+                        customOnClick.onChangeValue(it)
                         isErrorNickName = it.isBlank()
                     }
                 },

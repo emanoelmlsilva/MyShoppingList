@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.MaskUtils
@@ -76,7 +77,8 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
                                 text = textValue,
                                 selection = TextRange(textValue.length)
                             )
-                            customOnClick.onChangeValeu(textValue)
+                            customOnClick.onChangeValue(textValue)
+                            customOnClick.onChangeTypeProduct(if(isKilogram) TypeProduct.KILO else TypeProduct.QUANTITY)
                             customOnClick.onClick()
                             isErrorNickName = textValue.isBlank()
                         },
@@ -96,7 +98,7 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
                             text = textValue,
                             selection = TextRange(textValue.length)
                         )
-                        customOnClick.onChangeValeu(textValue)
+                        customOnClick.onChangeValue(textValue)
                         isErrorNickName = textValue.isBlank()
                     }
                 },
@@ -124,7 +126,7 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
                                 selection = TextRange(textValueSimbol.length)
                             )
 
-                        customOnClick.onChangeValeu(textValue)
+                        customOnClick.onChangeValue(textValue)
                         isErrorNickName = textValue.isBlank()
                     }
                 },

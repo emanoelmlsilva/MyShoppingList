@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.myshoppinglist.database.daos.CreditCardDAO
+import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.daos.UserDao
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -15,6 +16,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun creditCardDao(): CreditCardDAO
+    abstract fun purchaseDAO(): PurchaseDAO
 
     companion object {
         private var instance: MyShopListDataBase? = null
@@ -25,7 +27,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "teste02"
+                        "teste03"
                     ).allowMainThreadQueries().build()
                 }
                 return this.instance!!
