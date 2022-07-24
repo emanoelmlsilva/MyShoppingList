@@ -45,24 +45,7 @@ fun CreditCollectionScreen(navController: NavController?){
         creditCardCollectionFieldViewModel.onChangeCreditCardCollectin(generateCardCredit(it))
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = {navController?.popBackStack()}) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Menu Btn",
-                            tint = secondary_dark
-                        )
-                    }
-                },
-                backgroundColor = text_secondary,
-                elevation = 0.dp
-            )
-        }
-    ) {
+    TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, content = {
             LazyRow(
                 state = listState,
                 modifier = Modifier
@@ -86,7 +69,7 @@ fun CreditCollectionScreen(navController: NavController?){
                     )
                 }
             }
-    }
+    })
 }
 
 fun generateCardCredit(creditCardCollection: List<CreditCard>): List<CreditCardDTO>{

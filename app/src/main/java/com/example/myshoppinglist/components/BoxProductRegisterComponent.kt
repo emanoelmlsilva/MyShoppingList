@@ -29,6 +29,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.screen.PurchaseInfo
+import com.example.myshoppinglist.ui.theme.divider
 import com.example.myshoppinglist.ui.theme.secondary_light
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.MaskUtils
@@ -133,7 +134,7 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                         }
                     }
                     Divider(
-                        color = Color(0x46C4C4C4),
+                        color = divider,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
@@ -176,7 +177,7 @@ fun PreviewBoxProductRegisterComponent() {
                         0,
                         "1",
                         TypeProduct.QUANTITY,
-                        Date().time,
+                        "13-06-2022",
                         "0.0".toDouble(),
                         TypeCategory.DRINKS
                     ),
@@ -186,7 +187,7 @@ fun PreviewBoxProductRegisterComponent() {
                         0,
                         "1",
                         TypeProduct.QUANTITY,
-                        Date().time,
+                        "13-06-2022",
                         "0.0".toDouble(),
                         TypeCategory.DRINKS
                     )

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +33,7 @@ fun HomeScreen(navController: NavController?) {
     val homeFieldViewModel = HomeFieldViewModel()
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
-    val isVisibleValue = homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
+    val isVisibleValue by homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
     val purchaseCollection = purchaseViewModel.searchCollectionResults.observeAsState(initial = listOf()).value
 
     userViewModel.getUserCurrent()
@@ -51,9 +52,9 @@ fun HomeScreen(navController: NavController?) {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
-            SpendingComponent(isVisibleValue.value, object : Callback{
+            SpendingComponent(isVisibleValue, object : Callback{
                 override fun onClick() {
-                    navController?.navigate("register_purchase")
+                    navController?.navigate("spending")
                 }
             })
             BoxCreditCard(object : Callback {
@@ -73,7 +74,9 @@ fun HomeScreen(navController: NavController?) {
 
             Spacer(Modifier.size(22.dp))
 
-            Text(text = "Histórico", modifier = Modifier.fillMaxWidth().padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text(text = "Histórico", modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
 
             Spacer(Modifier.size(24.dp))
 

@@ -11,7 +11,7 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.User
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class], version = 3, exportSchema = false)
+@Database(entities = [User::class, CreditCard::class, Purchase::class], version = 1, exportSchema = false)
 abstract class MyShopListDataBase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
@@ -27,7 +27,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "teste03"
+                        "teste05"
                     ).allowMainThreadQueries().build()
                 }
                 return this.instance!!

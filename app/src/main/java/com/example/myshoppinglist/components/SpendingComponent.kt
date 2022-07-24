@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
 fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
@@ -49,7 +50,7 @@ fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
             Row(modifier = Modifier
                 .background(if(isVisibleValue) secondary else secondary_light)){
                 if(isVisibleValue){
-                    Text(text = "R$ 00,00", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text(text = "R$ ${MaskUtils.maskValue("")}", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                     IconButton(onClick = { }) {
                         Image(
                             painterResource(id = R.drawable.ic_visa),

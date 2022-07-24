@@ -49,6 +49,7 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
 import kotlin.streams.toList
@@ -240,8 +241,8 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 onClickAccept = {
                     purchaseInfoCollection.forEach { purchaseInfo ->
                         purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection)
-                        navController!!.popBackStack()
                     }
+                    navController!!.popBackStack()
                 })
         }
     }
@@ -283,8 +284,8 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
     val creditCardViewModel = CreditCardViewModel(context)
     val cardCreditCollection = creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
-
     creditCardViewModel.getAll()
+    val cardColleciton = getNameCard(cardCreditCollection)
 
     Card(
         elevation = 2.dp,
@@ -367,7 +368,7 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                     )
 
                     CustomDropdownMenu(
-                        getNameCard(cardCreditCollection),
+                        cardColleciton,
                         object : CustomTextFieldOnClick {
                             override fun onChangeValueLong(newValue: Long) {
                                 registerTextFieldViewModel.onChangeIdCard(newValue)
@@ -383,13 +384,19 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
 }
 
 fun getNameCard(creditCardColelction: List<CreditCard>): HashMap<String, Long> {
-    var cardCreditFormated: HashMap<String, Long> = HashMap<String, Long> ()
+    val cardCreditFormated: HashMap<String, Long> = HashMap<String, Long> ()
 
     cardCreditFormated.put("Cartões" , -1)
 
-    creditCardColelction.forEach { creditCard -> cardCreditFormated.put(creditCard.cardName , creditCard.id) }
+    creditCardColelction.forEachIndexed { index, creditCard ->
+            cardCreditFormated.put(
+                creditCard.cardName,
+                creditCard.id
+            )
+         }
 
-    return cardCreditFormated
+    return cardCreditFormated.entries.sortedBy { it.value }.associate { it.toPair() } as HashMap<String, Long>
+
 }
 
 @Composable
@@ -538,7 +545,7 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
     fun addPurchase(){
 
-        val purchase = Purchase(product.value!!, locale.value!!, idCard.value!!, quantOrKilo.value!!, typeProduct.value!!, Date().time, MaskUtils.convertValueStringToDouble(
+        val purchase = Purchase(product.value!!, locale.value!!, idCard.value!!, quantOrKilo.value!!, typeProduct.value!!, FormatUtils().getDateString(), MaskUtils.convertValueStringToDouble(
             price.value!!
         ),
             category.value!!
