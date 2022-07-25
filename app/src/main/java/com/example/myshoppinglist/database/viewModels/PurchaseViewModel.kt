@@ -12,6 +12,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
     private val repository: PurchaseRepository
     val searchResult: MutableLiveData<Purchase>
     val searchCollectionResults: MutableLiveData<List<Purchase>>
+    val searchResultMonths: MutableLiveData<List<String>>
     private var userViewModel : UserViewModel
 
     init{
@@ -22,6 +23,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         repository = PurchaseRepository(purchaseDAO)
         searchResult = repository.searchResult
         searchCollectionResults = repository.searchCollecitonResult
+        searchResultMonths = repository.searchMonthsCollection
     }
 
     fun insertPurchase(purchaseCollection: List<Purchase>){
@@ -41,6 +43,30 @@ class PurchaseViewModel(context: Context): ViewModel() {
         userViewModel.searchResult.observeForever {
             nameUser = it.name
             repository.getPurchaseAll(nameUser, idCard)
+        }
+    }
+
+    fun getPurchaseByMonth(idCard: Long, date: String){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getPurchaseByMonth(nameUser, date, idCard)
+        }
+    }
+
+    fun getPurchaseAllByIdCard(idCard: Long){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getPurchaseAllByIdCard(nameUser, idCard)
+        }
+    }
+
+    fun getMonthByIdCard(idCard: Long){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getMonthByIdCard(nameUser, idCard)
         }
     }
 }

@@ -22,5 +22,11 @@ interface PurchaseDAO {
     fun getPurchaseAll(): List<Purchase>
 
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId ORDER BY date DESC")
-    fun getAllByIdCard(nameUser: String, idCard: String): List<Purchase>
+    fun getPurchaseAllByIdCard(nameUser: String, idCard: Long): List<Purchase>
+
+    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
+    fun getPurchaseByMonth(date: String, nameUser: String, idCard: Long): List<Purchase>
+
+    @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date ASC ")
+    fun getMonthByIdCard(nameUser: String, idCard: Long):List<String>
 }

@@ -7,6 +7,8 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +24,7 @@ import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
+import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -34,7 +37,13 @@ fun HomeScreen(navController: NavController?) {
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
     val isVisibleValue by homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
-    val purchaseCollection = purchaseViewModel.searchCollectionResults.observeAsState(initial = listOf()).value
+    val purchaseCollection = remember { mutableStateListOf<Purchase>() }
+
+    purchaseViewModel.searchCollectionResults.observeForever {  purchases ->
+        purchaseCollection.removeAll(purchaseCollection)
+        purchaseCollection.addAll(purchases.map { it }.sortedWith(compareBy {it.date}))
+
+    }
 
     userViewModel.getUserCurrent()
     purchaseViewModel.getPurchaseAll()
