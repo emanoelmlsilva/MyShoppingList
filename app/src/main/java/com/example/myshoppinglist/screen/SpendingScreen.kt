@@ -216,7 +216,7 @@ fun BoxPurchaseSpeding(purchase: Purchase){
             Column{
                 Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
                 Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
-                    color = text_title_secondary, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(.7f), fontSize = 14.sp, textAlign = TextAlign.Center)
+                    color = text_title_secondary, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), fontSize = 14.sp, textAlign = TextAlign.Center)
             }
 
         }
