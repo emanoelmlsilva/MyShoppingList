@@ -2,6 +2,7 @@ package com.example.myshoppinglist.screen
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +27,7 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
@@ -206,9 +209,18 @@ fun BoxPurchaseSpeding(purchase: Purchase){
                     .size(46.dp)
                     .padding(top = 3.dp, end = 8.dp)
             )
-            Text(text = purchase.name, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(.7f))
-            Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
+            Column{
+                Text(text = purchase.name, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(.7f))
+                Text(text = purchase.locale, modifier = Modifier.fillMaxWidth(.7f).padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary)
+            }
+            Column{
+                Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
+                Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                    color = text_title_secondary, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(.7f), fontSize = 14.sp, textAlign = TextAlign.Center)
+            }
+
         }
+
         Divider(
             color = divider,
             modifier = Modifier
