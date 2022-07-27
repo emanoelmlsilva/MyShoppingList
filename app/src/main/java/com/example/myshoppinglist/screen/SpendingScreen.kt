@@ -1,6 +1,6 @@
 package com.example.myshoppinglist.screen
 
-import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,14 +35,17 @@ fun SpendingScreen(navController: NavHostController?) {
     val context = LocalContext.current
     val purchaseViewModel = PurchaseViewModel(context)
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
-    var purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }//spendingTextFieldViewModel.purchaseInfoCollection.observeAsState()//
-
+    val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
+    val price = remember { mutableStateOf<Double?>(null)}
     val monthsCollection = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(Unit){
         purchaseViewModel.getMonthByIdCard(1)
     }
 
+    purchaseViewModel.searchPriceResult.observeForever {
+        price.value = String.format("%.2f", it).toDouble()
+    }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
         if(it.isNotBlank()) {
@@ -58,12 +61,18 @@ fun SpendingScreen(navController: NavHostController?) {
         }.map{ group -> FormatUtils().getMonth("01-${group.key}")}
 
         monthsCollection.addAll(convertedMonth)
-        val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
+        if(convertedMonth.size > 0){
+            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
 
-        purchaseViewModel.getPurchaseByMonth(1, "-$monthAndYearNumber")
+            purchaseViewModel.sumPriceBMonth(1, "-$monthAndYearNumber")
+
+            purchaseViewModel.getPurchaseByMonth(1, "-$monthAndYearNumber")
+        }
+
     }
 
     spendingTextFieldViewModel.purchaseInfoCollection.observeForever {
+        it.forEach{ it.purchaseCollection.forEach { purchase -> Log.d("TESTANDO", "ppurchase $purchase") }}
         purchaseInfoCollection.addAll(it)
     }
 
@@ -85,7 +94,7 @@ fun SpendingScreen(navController: NavHostController?) {
                 Modifier
                     .height(35.dp))
 
-            if(monthsCollection.size > 0) BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection)
+            if(monthsCollection.size > 0) BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, if(price.value == null) "" else price.value.toString())
 
             Spacer(
                 Modifier
@@ -139,7 +148,7 @@ fun SpendingScreen(navController: NavHostController?) {
 }
 
 @Composable
-fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List<String>){
+fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List<String>, value: String){
     val monthCurrent = remember { mutableStateOf(months.get(0)) }
     spendingField.monthCurrent.observeForever {
         if(it.isNotBlank()) monthCurrent.value = it
@@ -148,7 +157,7 @@ fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List
     Column(verticalArrangement = Arrangement.Center){
         Text(text = "Gastos do mês", fontSize = 16.sp, color = text_title_secondary)
         Row(verticalAlignment = Alignment.Bottom){
-            Text(text = "R$ ${MaskUtils.maskValue("")}", fontWeight = FontWeight.Bold, fontSize = 40.sp)
+            Text(text = "R$ ${MaskUtils.maskValue(value)}", fontWeight = FontWeight.Bold, fontSize = 40.sp)
             CustomDropDownMonth(
                 object : CustomTextFieldOnClick {
                     override fun onChangeValue(newValue: String) {
@@ -198,7 +207,7 @@ fun BoxPurchaseSpeding(purchase: Purchase){
                     .padding(top = 3.dp, end = 8.dp)
             )
             Text(text = purchase.name, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(.7f))
-            Text(text = "R$ ${MaskUtils.maskValue(purchase.price.toString())}", fontWeight = FontWeight.Bold)
+            Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
         }
         Divider(
             color = divider,

@@ -26,7 +26,7 @@ import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
-fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
+fun SpendingComponent(price: Double, isVisibleValue: Boolean, callback: Callback? = null){
     Column(modifier = Modifier
         .background(secondary)
         .height(120.dp)
@@ -50,7 +50,7 @@ fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
             Row(modifier = Modifier
                 .background(if(isVisibleValue) secondary else secondary_light)){
                 if(isVisibleValue){
-                    Text(text = "R$ ${MaskUtils.maskValue("")}", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(price))}", modifier = Modifier.padding(top = 6.dp, start = 16.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                     IconButton(onClick = { }) {
                         Image(
                             painterResource(id = R.drawable.ic_visa),
@@ -68,5 +68,5 @@ fun SpendingComponent(isVisibleValue: Boolean, callback: Callback? = null){
 @Preview(showBackground = true)
 @Composable
 fun PreviewSpendingComponent(){
-    SpendingComponent(false)
+    SpendingComponent(0.0,false)
 }

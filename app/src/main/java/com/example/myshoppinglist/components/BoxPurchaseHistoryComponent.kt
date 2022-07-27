@@ -53,7 +53,7 @@ fun BoxPurchaseHistoryComponent(purchaseColleciton: List<Purchase>) {
                         Row(modifier = Modifier
                             .padding(top = 12.dp)) {
                             Text(
-                                text = "R$ ${MaskUtils.maskValue(purchase.price.toString())}",
+                                text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
                                 textAlign = TextAlign.End
                             )
 

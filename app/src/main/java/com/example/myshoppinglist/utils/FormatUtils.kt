@@ -18,6 +18,11 @@ class FormatUtils {
         return formatter.format(Date())
     }
 
+    fun getMonthAndYear(): String{
+        val formatter = SimpleDateFormat("MM-yyyy")
+        return formatter.format(Date())
+    }
+
     fun getFormatValue(value: Float): String {
         return NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
     }

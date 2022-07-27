@@ -4,11 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +26,8 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.FormatUtils
+import java.util.*
 
 @Composable
 fun HomeScreen(navController: NavController?) {
@@ -38,15 +37,10 @@ fun HomeScreen(navController: NavController?) {
     val userViewModel = UserViewModel(context)
     val isVisibleValue by homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
     val purchaseCollection = remember { mutableStateListOf<Purchase>() }
-
-    purchaseViewModel.searchCollectionResults.observeForever {  purchases ->
-        purchaseCollection.removeAll(purchaseCollection)
-        purchaseCollection.addAll(purchases.map { it }.sortedWith(compareBy {it.date}))
-
-    }
-
-    userViewModel.getUserCurrent()
-    purchaseViewModel.getPurchaseAll()
+    val price = remember { mutableStateOf<Double>(0.0)}
+    val dateCurrent = Date()
+    val monthCurrent = if(dateCurrent.month < 10) "0${dateCurrent.month + 1}" else dateCurrent.month + 1
+    val monthAndYearNumber = "${monthCurrent}-${dateCurrent.date}"
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -55,13 +49,35 @@ fun HomeScreen(navController: NavController?) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
+
+        userViewModel.getUserCurrent()
+
+        LaunchedEffect(Unit){
+
+            purchaseViewModel.getPurchaseAll()
+
+            purchaseViewModel.sumPriceBMonth(1, "-${FormatUtils().getMonthAndYear()}")
+
+        }
+
+        purchaseViewModel.searchPriceResult.observeForever {
+            price.value =  String.format("%.2f", it).toDouble()
+        }
+
+        purchaseViewModel.searchCollectionResults.observeForever {  purchases ->
+            purchaseCollection.removeAll(purchaseCollection)
+            purchaseCollection.addAll(purchases.map { it }.sortedWith(compareBy {it.date}))
+
+        }
+
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             HeaderComponent(userViewModel, object: Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
-            SpendingComponent(isVisibleValue, object : Callback{
+            SpendingComponent(price.value, isVisibleValue, object : Callback{
                 override fun onClick() {
                     navController?.navigate("spending")
                 }

@@ -13,6 +13,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
     val searchResult: MutableLiveData<Purchase>
     val searchCollectionResults: MutableLiveData<List<Purchase>>
     val searchResultMonths: MutableLiveData<List<String>>
+    val searchPriceResult: MutableLiveData<Double>
     private var userViewModel : UserViewModel
 
     init{
@@ -24,6 +25,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         searchResult = repository.searchResult
         searchCollectionResults = repository.searchCollecitonResult
         searchResultMonths = repository.searchMonthsCollection
+        searchPriceResult = repository.searchPrice
     }
 
     fun insertPurchase(purchaseCollection: List<Purchase>){
@@ -67,6 +69,22 @@ class PurchaseViewModel(context: Context): ViewModel() {
         userViewModel.searchResult.observeForever {
             nameUser = it.name
             repository.getMonthByIdCard(nameUser, idCard)
+        }
+    }
+
+    fun sumPriceById(idCard: Long){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.sumPriceById(nameUser, idCard)
+        }
+    }
+
+    fun sumPriceBMonth(idCard: Long, date: String){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.sumPriceByMonth(nameUser, idCard, date)
         }
     }
 }

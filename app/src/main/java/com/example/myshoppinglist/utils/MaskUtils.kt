@@ -14,6 +14,11 @@ object MaskUtils {
     }
 
     @JvmStatic
+    fun convertValueDoubleToString(value: Double): String{
+        return "%.2f".format(value)
+    }
+
+    @JvmStatic
     fun replaceAll(value: String): String {
         //remove caracteres que não sejam numericos
         var removeAll = value.replace("[^0-9]".toRegex(), "");
@@ -36,6 +41,14 @@ object MaskUtils {
 
         if (valueFormat.isBlank()) {
             return "0,00"
+        }
+
+        if(value.endsWith(".") || value.endsWith(".")){
+            return value.substring(3, value.length - 1)
+        }
+
+        if(valueFormat.length < 3){
+            valueFormat = valueFormat.padEnd(3, '0')
         }
 
         var sizeValue = valueFormat.length

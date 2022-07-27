@@ -10,6 +10,7 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     val searchResult = MutableLiveData<Purchase>()
     val searchCollecitonResult = MutableLiveData<List<Purchase>>()
     val searchMonthsCollection = MutableLiveData<List<String>>()
+    val searchPrice = MutableLiveData<Double>()
     val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     fun insertPurhcase(purchaseCollection: List<Purchase>){
@@ -48,6 +49,18 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun sumPriceById(nameUser: String, idCard: Long){
+        coroutineScope.launch(Dispatchers.Main){
+            searchPrice.value = asyncSumPriceById(idCard, nameUser).await()
+        }
+    }
+
+    fun sumPriceByMonth(nameUser: String, idCard: Long, date: String){
+        coroutineScope.launch(Dispatchers.Main){
+            searchPrice.value = asyncSumPriceByMonth(idCard, nameUser, date).await()
+        }
+    }
+
     private fun asyncFindAll(): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getPurchaseAll()
     }
@@ -66,5 +79,13 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     private fun asyncFindAllMonthByIdCard(nameUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getMonthByIdCard(nameUser, idCard)
+    }
+
+    private fun asyncSumPriceById(idCard: Long, nameUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceById(nameUser, idCard)
+    }
+
+    private fun asyncSumPriceByMonth(idCard: Long, nameUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
     }
 }
