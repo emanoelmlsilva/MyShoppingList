@@ -6,6 +6,8 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeProduct
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Dao
 interface PurchaseDAO {
@@ -36,5 +38,7 @@ interface PurchaseDAO {
 
     @Query("SELECT SUM(price * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
-     //TODO() :adicionar pesquisa por range(de um dia, semana e mes)
+
+    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND 7 >= CAST(strftime('%J','2022-06-28') - strftime('%J',date) AS INTEGER) ORDER BY date DESC")
+    fun getPurchasesWeek(nameUser: String, idCard: Long): List<Purchase>
 }

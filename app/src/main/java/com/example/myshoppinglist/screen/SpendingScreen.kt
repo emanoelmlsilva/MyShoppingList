@@ -53,23 +53,23 @@ fun SpendingScreen(navController: NavHostController?) {
     spendingTextFieldViewModel.monthCurrent.observeForever {
         if(it.isNotBlank()) {
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(it)
-            purchaseViewModel.getPurchaseByMonth(1, "-$monthAndYearNumber")
+            purchaseViewModel.getPurchaseByMonth(1, "$monthAndYearNumber-")
         }
     }
 
     purchaseViewModel.searchResultMonths.observeForever { months ->
         val convertedMonth = months.groupBy {
             val separaterDate = it.split("-")
-            "${separaterDate.get(1)}-${separaterDate.get(2)}"
-        }.map{ group -> FormatUtils().getMonth("01-${group.key}")}
+            "${separaterDate.get(0)}-${separaterDate.get(1)}"
+        }.map{ group -> FormatUtils().getMonth("${group.key}-01")}
 
         monthsCollection.addAll(convertedMonth)
         if(convertedMonth.size > 0){
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
 
-            purchaseViewModel.sumPriceBMonth(1, "-$monthAndYearNumber")
+            purchaseViewModel.sumPriceBMonth(1, "$monthAndYearNumber")
 
-            purchaseViewModel.getPurchaseByMonth(1, "-$monthAndYearNumber")
+            purchaseViewModel.getPurchaseByMonth(1, "$monthAndYearNumber")
         }
 
     }

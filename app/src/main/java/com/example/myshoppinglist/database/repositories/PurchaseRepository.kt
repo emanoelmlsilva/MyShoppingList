@@ -3,7 +3,9 @@ package com.example.myshoppinglist.database.repositories
 import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.utils.FormatUtils
 import kotlinx.coroutines.*
+import java.util.*
 
 class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
@@ -61,6 +63,15 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun getPurchasesWeek(nameUser: String, idCard: Long){
+        coroutineScope.launch(Dispatchers.Main){
+            val calendar = Calendar.getInstance()
+//            calendar.add(Calendar.DAY_OF_YEAR, -1)
+            val initWeek = FormatUtils().getDateString(calendar.time)
+            searchCollecitonResult.value = asyncGetPurchsesWeek(idCard, nameUser, initWeek).await()
+        }
+    }
+
     private fun asyncFindAll(): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getPurchaseAll()
     }
@@ -87,5 +98,9 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     private fun asyncSumPriceByMonth(idCard: Long, nameUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
+    }
+
+    private fun asyncGetPurchsesWeek(idCard: Long, nameUser: String, from: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesWeek(nameUser, idCard)
     }
 }

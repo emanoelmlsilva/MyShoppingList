@@ -87,4 +87,12 @@ class PurchaseViewModel(context: Context): ViewModel() {
             repository.sumPriceByMonth(nameUser, idCard, date)
         }
     }
+
+    fun getPurchasesWeek(idCard: Long){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getPurchasesWeek(nameUser, idCard)
+        }
+    }
 }

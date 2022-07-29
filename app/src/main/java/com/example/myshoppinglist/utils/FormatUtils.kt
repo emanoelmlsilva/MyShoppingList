@@ -8,18 +8,21 @@ import kotlin.random.nextInt
 
 
 class FormatUtils {
-
-    private val patternDate = "dd-MM-yyyy"
+    private val patternReverseDate = "yyyy-MM-dd"
     private val patternNameDate = "EEEE"
     private val dayOfWeek = 3
 
-    fun getDateString(): String{
-        val formatter = SimpleDateFormat(patternDate)
-        return formatter.format(Date())
+    fun reversed(date: Date): String{
+        val dateFormat1: SimpleDateFormat = SimpleDateFormat(patternReverseDate);
+        return dateFormat1.format(date)
+    }
+
+    fun getDateString(date: Date? = Date(), isReverse: Boolean? = false): String{
+        return reversed(date!!)
     }
 
     fun getMonthAndYear(): String{
-        val formatter = SimpleDateFormat("MM-yyyy")
+        val formatter = SimpleDateFormat("yyyy-MM")
         return formatter.format(Date())
     }
 
@@ -29,14 +32,14 @@ class FormatUtils {
 
     fun getDate(valueDate: String): String{
         val yearCurrent = Date().year
-        val date = SimpleDateFormat(patternDate, Locale("pt", "BR")).parse(valueDate)
+        val date = SimpleDateFormat(patternReverseDate, Locale("pt", "BR")).parse(valueDate)
         val pattern = if(date.year == yearCurrent) "dd MMM" else "dd MMM yyyy"
         return SimpleDateFormat(pattern).format(date)
     }
 
     fun getMonth(valueMonth: String): String{
         val yearCurrent = Date().year
-        val formatter = SimpleDateFormat(patternDate)
+        val formatter = SimpleDateFormat(patternReverseDate, Locale("pt", "BR"))
         val date = formatter.parse(valueMonth)
         val pattern = if(date.year == yearCurrent) "MMMM" else "MMMM yyyy"
         val simpleDateFormat = SimpleDateFormat(pattern, Locale("pt", "BR"))
@@ -48,12 +51,14 @@ class FormatUtils {
         val yearCureent = SimpleDateFormat("yyyy").format(Date());
         val formatter = SimpleDateFormat("MMMM", Locale("pt", "BR"))
         val date = formatter.parse(month)
-        val formatred = "${if(date.month < 10) "0${(date.month + 1)}" else (date.month + 1)}-${if(splitMonthOfYear.size > 1) splitMonthOfYear.get(1) else yearCureent}"
+        val month = if(date.month < 10) "0${(date.month + 1)}" else (date.month + 1)
+        val year = if(splitMonthOfYear.size > 1) splitMonthOfYear.get(1) else yearCureent
+        val formatred = "${year}-${month}"
         return formatred
     }
 
     fun getNameDay(dateFull: String): String {
-        val formatter = SimpleDateFormat(patternDate)
+        val formatter = SimpleDateFormat(patternReverseDate)
         val date = formatter.parse(dateFull)
         val dateCurrent = Calendar.getInstance().time
         val simpleDateFormat = SimpleDateFormat(patternNameDate, Locale("pt", "BR"))

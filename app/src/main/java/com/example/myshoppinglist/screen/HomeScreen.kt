@@ -54,9 +54,10 @@ fun HomeScreen(navController: NavController?) {
 
         LaunchedEffect(Unit){
 
-            purchaseViewModel.getPurchaseAll()
+//            purchaseViewModel.getPurchaseAll()
+            purchaseViewModel.getPurchasesWeek(1)
 
-            purchaseViewModel.sumPriceBMonth(1, "-${FormatUtils().getMonthAndYear()}")
+            purchaseViewModel.sumPriceBMonth(1, "${FormatUtils().getMonthAndYear()}-")
 
         }
 
@@ -66,7 +67,7 @@ fun HomeScreen(navController: NavController?) {
 
         purchaseViewModel.searchCollectionResults.observeForever {  purchases ->
             purchaseCollection.removeAll(purchaseCollection)
-            purchaseCollection.addAll(purchases.map { it }.sortedWith(compareBy {it.date}))
+            purchaseCollection.addAll(purchases)
 
         }
 
