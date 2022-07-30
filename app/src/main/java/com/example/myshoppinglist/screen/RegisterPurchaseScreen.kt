@@ -286,6 +286,7 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
     creditCardViewModel.getAll()
     val cardColleciton = getNameCard(cardCreditCollection)
+    val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
 
     Card(
         elevation = 2.dp,
@@ -320,12 +321,12 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                 }
                 IconButton(
                     modifier = Modifier.then(Modifier.size(24.dp)),
-                    onClick = { },
+                    onClick = { registerTextFieldViewModel.onChangeIsBlock(!isBlock.value!!) },
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_block_24),
                         contentDescription = null,
-                        tint = text_primary,
+                        tint = if(isBlock.value!!) text_title_secondary else text_primary,
                     )
                 }
 
@@ -349,16 +350,11 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(text = "Forma de Pagamento")
-                        IconButton(
-                            modifier = Modifier.then(Modifier.size(24.dp)),
-                            onClick = { },
-                        ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_baseline_credit_card_24),
                                 contentDescription = null,
                                 tint = text_primary,
                             )
-                        }
                     }
                     Divider(
                         color = text_primary,
