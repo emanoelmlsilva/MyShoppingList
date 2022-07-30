@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,10 +24,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.BoxDropdownCardCredit
+import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
@@ -38,12 +44,25 @@ fun SpendingScreen(navController: NavHostController?) {
     val context = LocalContext.current
     val purchaseViewModel = PurchaseViewModel(context)
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
+    val creditCardViewModel = CreditCardViewModel(context)
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
-    val price = remember { mutableStateOf<Double?>(null)}
+    val price = remember { mutableStateOf<Double>(0.0)}
     val monthsCollection = remember { mutableStateListOf<String>() }
+    val monthCurrent = remember {mutableStateOf<String>("")}
+    val creditCardCollection = remember { mutableListOf<CreditCard>()}
+    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
 
     LaunchedEffect(Unit){
-        purchaseViewModel.getMonthByIdCard(1)
+        creditCardViewModel.getAll()
+
+    }
+
+    creditCardViewModel.searchCollectionResult.observeForever {
+        creditCardCollection.removeAll(creditCardCollection)
+        creditCardCollection.addAll(it)
+        currentCreditCard.value = it[0]
+
+        purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
     }
 
     purchaseViewModel.searchPriceResult.observeForever {
@@ -53,7 +72,11 @@ fun SpendingScreen(navController: NavHostController?) {
     spendingTextFieldViewModel.monthCurrent.observeForever {
         if(it.isNotBlank()) {
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(it)
-            purchaseViewModel.getPurchaseByMonth(1, "$monthAndYearNumber-")
+            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
+
+            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
+
+            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
         }
     }
 
@@ -64,12 +87,14 @@ fun SpendingScreen(navController: NavHostController?) {
         }.map{ group -> FormatUtils().getMonth("${group.key}-01")}
 
         monthsCollection.addAll(convertedMonth)
-        if(convertedMonth.size > 0){
+        if(convertedMonth.isNotEmpty()){
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
 
-            purchaseViewModel.sumPriceBMonth(1, "$monthAndYearNumber")
+            monthCurrent.value = monthAndYearNumber
 
-            purchaseViewModel.getPurchaseByMonth(1, "$monthAndYearNumber")
+            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, monthCurrent.value)
+
+            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, monthCurrent.value)
         }
 
     }
@@ -97,7 +122,16 @@ fun SpendingScreen(navController: NavHostController?) {
                 Modifier
                     .height(35.dp))
 
-            if(monthsCollection.size > 0) BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, if(price.value == null) "" else price.value.toString())
+            BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, price.value, currentCreditCard.value, creditCardCollection, object :
+                CallbackCreditCard {
+                override fun onChangeValueCreditCard(creditCard: CreditCard) {
+                    currentCreditCard.value = creditCard
+
+                    purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, monthCurrent.value)
+
+                    purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, monthCurrent.value)
+                }
+            })
 
             Spacer(
                 Modifier
@@ -151,22 +185,26 @@ fun SpendingScreen(navController: NavHostController?) {
 }
 
 @Composable
-fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List<String>, value: String){
-    val monthCurrent = remember { mutableStateOf(months.get(0)) }
+fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List<String>, price: Double, currentCreditCard: CreditCard?,creditCards: List<CreditCard>, callbackCreditCard: CallbackCreditCard){
+    val hasMonths = months.isNotEmpty()
+    val monthCurrent = remember { mutableStateOf(if(hasMonths) months[0] else "") }
     spendingField.monthCurrent.observeForever {
-        if(it.isNotBlank()) monthCurrent.value = it
+        if(it.isNotBlank()) monthCurrent.value = it else if(hasMonths) monthCurrent.value = months[0]
     }
 
     Column(verticalArrangement = Arrangement.Center){
-        Text(text = "Gastos do mês", fontSize = 16.sp, color = text_title_secondary)
         Row(verticalAlignment = Alignment.Bottom){
-            Text(text = "R$ ${MaskUtils.maskValue(value)}", fontWeight = FontWeight.Bold, fontSize = 40.sp)
+            Text(text = "Gastos do mês", modifier = Modifier.padding(bottom = 16.dp), fontSize = 16.sp, color = text_title_secondary)
             CustomDropDownMonth(
                 object : CustomTextFieldOnClick {
                     override fun onChangeValue(newValue: String) {
                         spendingField.onChangeMonth(newValue)
                     }
                 }, months, monthCurrent.value)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically){
+            Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(price))}", fontWeight = FontWeight.Bold, fontSize = 40.sp)
+            if(currentCreditCard != null) BoxDropdownCardCredit(creditCards, currentCreditCard, callbackCreditCard)
         }
     }
 }
@@ -175,12 +213,12 @@ fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List
 fun CustomDropDownMonth(callback: CustomTextFieldOnClick, monthCollection: List<String>, monthCurrent: String){
     var expanded by remember {mutableStateOf(false)}
 
-    Card(elevation = 0.dp, backgroundColor = text_secondary, modifier = Modifier
-        .padding(0.dp, 16.dp, 16.dp, 16.dp)
+    Card(elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
+        .padding(6.dp, 16.dp, 16.dp, 16.dp)
         .clickable(onClick = { expanded = true })) {
 
         Row(horizontalArrangement = Arrangement.Center) {
-            Text(text = "- $monthCurrent", modifier = Modifier.padding(start = 16.dp), color = text_title_secondary)
+            Text(text = "- $monthCurrent", modifier = Modifier.padding(start = 8.dp, end = 8.dp), color = text_title_secondary)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             monthCollection.forEach { month ->

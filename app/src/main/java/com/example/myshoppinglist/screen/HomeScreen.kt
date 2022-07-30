@@ -20,14 +20,16 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
+import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
-import java.util.*
 
 @Composable
 fun HomeScreen(navController: NavController?) {
@@ -35,12 +37,12 @@ fun HomeScreen(navController: NavController?) {
     val homeFieldViewModel = HomeFieldViewModel()
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
+    val creditCardViewModel = CreditCardViewModel(context)
     val isVisibleValue by homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
     val purchaseCollection = remember { mutableStateListOf<Purchase>() }
     val price = remember { mutableStateOf<Double>(0.0)}
-    val dateCurrent = Date()
-    val monthCurrent = if(dateCurrent.month < 10) "0${dateCurrent.month + 1}" else dateCurrent.month + 1
-    val monthAndYearNumber = "${monthCurrent}-${dateCurrent.date}"
+    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
+    val creditCardCollection = remember { mutableListOf<CreditCard>()}
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -53,12 +55,7 @@ fun HomeScreen(navController: NavController?) {
         userViewModel.getUserCurrent()
 
         LaunchedEffect(Unit){
-
-//            purchaseViewModel.getPurchaseAll()
-            purchaseViewModel.getPurchasesWeek(1)
-
-            purchaseViewModel.sumPriceBMonth(1, "${FormatUtils().getMonthAndYear()}-")
-
+            creditCardViewModel.getAll()
         }
 
         purchaseViewModel.searchPriceResult.observeForever {
@@ -71,6 +68,17 @@ fun HomeScreen(navController: NavController?) {
 
         }
 
+        creditCardViewModel.searchCollectionResult.observeForever {
+            creditCardCollection.removeAll(creditCardCollection)
+            creditCardCollection.addAll(it)
+            currentCreditCard.value = it[0]
+
+//TODO(): colocar me um metodo
+            purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
+
+            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+            //////////////////
+        }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             HeaderComponent(userViewModel, object: Callback {
@@ -81,6 +89,16 @@ fun HomeScreen(navController: NavController?) {
             SpendingComponent(price.value, isVisibleValue, object : Callback{
                 override fun onClick() {
                     navController?.navigate("spending")
+                }
+            }, currentCreditCard.value,creditCardCollection, object :
+                CallbackCreditCard {
+                override fun onChangeValueCreditCard(creditCard: CreditCard) {
+                    currentCreditCard.value = creditCard
+//TODO(): colocar me um metodo
+                    purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
+
+                    purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+                    ////////////////
                 }
             })
             BoxCreditCard(object : Callback {

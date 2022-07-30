@@ -545,7 +545,7 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
     fun addPurchase(){
 
-        val purchase = Purchase(product.value!!, locale.value!!, idCard.value!!, quantOrKilo.value!!, typeProduct.value!!, FormatUtils().getDateString(isReverse = true), MaskUtils.convertValueStringToDouble(
+        val purchase = Purchase(product.value!!, locale.value!!, idCard.value!!, quantOrKilo.value!!, typeProduct.value!!, FormatUtils().getDateString(), MaskUtils.convertValueStringToDouble(
             price.value!!
         ),
             category.value!!
