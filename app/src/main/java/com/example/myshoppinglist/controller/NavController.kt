@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.controller
 
 import android.view.Window
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import com.example.myshoppinglist.ui.theme.secondary
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
@@ -37,26 +39,9 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
 
             window.statusBarColor = secondary.hashCode()
             if (hasToolbar) {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {},
-                            navigationIcon = {
-                                IconButton(onClick = {navHostController.popBackStack()}) {
-                                    Icon(
-                                        imageVector = Icons.Filled.ArrowBack,
-                                        contentDescription = "Menu Btn",
-                                        tint = secondary_dark
-                                    )
-                                }
-                            },
-                            backgroundColor = text_secondary,
-                            elevation = 0.dp
-                        )
-                    }
-                ) {
+                TopAppBarScreen(onClickIcon = { navHostController.popBackStack()},content = {
                     CreateCardScreen(navHostController, TypeCard.CREDIT)
-                }
+                })
             } else {
                 CreateCardScreen(navHostController,TypeCard.MONEY)
             }
@@ -70,6 +55,9 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
         }
         composable("register_purchase"){
             RegisterPurchaseScreen(navController = navHostController)
+        }
+        composable("spending"){
+            SpendingScreen(navHostController)
         }
     }
 }

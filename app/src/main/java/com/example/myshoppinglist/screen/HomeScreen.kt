@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,11 +20,16 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
+import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.FormatUtils
 
 @Composable
 fun HomeScreen(navController: NavController?) {
@@ -32,11 +37,12 @@ fun HomeScreen(navController: NavController?) {
     val homeFieldViewModel = HomeFieldViewModel()
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
-    val isVisibleValue = homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
-    val purchaseCollection = purchaseViewModel.searchCollectionResults.observeAsState(initial = listOf()).value
-
-    userViewModel.getUserCurrent()
-    purchaseViewModel.getPurchaseAll()
+    val creditCardViewModel = CreditCardViewModel(context)
+    val isVisibleValue by homeFieldViewModel.isVisibleValue.observeAsState(initial = true)
+    val purchaseCollection = remember { mutableStateListOf<Purchase>() }
+    val price = remember { mutableStateOf<Double>(0.0)}
+    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
+    val creditCardCollection = remember { mutableListOf<CreditCard>()}
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -45,15 +51,54 @@ fun HomeScreen(navController: NavController?) {
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
+
+        userViewModel.getUserCurrent()
+
+        LaunchedEffect(Unit){
+            creditCardViewModel.getAll()
+        }
+
+        purchaseViewModel.searchPriceResult.observeForever {
+            price.value =  String.format("%.2f", it).toDouble()
+        }
+
+        purchaseViewModel.searchCollectionResults.observeForever {  purchases ->
+            purchaseCollection.removeAll(purchaseCollection)
+            purchaseCollection.addAll(purchases)
+
+        }
+
+        creditCardViewModel.searchCollectionResult.observeForever {
+            creditCardCollection.removeAll(creditCardCollection)
+            creditCardCollection.addAll(it)
+            currentCreditCard.value = it[0]
+
+//TODO(): colocar me um metodo
+            purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
+
+            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+            //////////////////
+        }
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             HeaderComponent(userViewModel, object: Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
-            SpendingComponent(isVisibleValue.value, object : Callback{
+            SpendingComponent(price.value, isVisibleValue, object : Callback{
                 override fun onClick() {
-                    navController?.navigate("register_purchase")
+                    navController?.navigate("spending")
+                }
+            }, currentCreditCard.value,creditCardCollection, object :
+                CallbackCreditCard {
+                override fun onChangeValueCreditCard(creditCard: CreditCard) {
+                    currentCreditCard.value = creditCard
+//TODO(): colocar me um metodo
+                    purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
+
+                    purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+                    ////////////////
                 }
             })
             BoxCreditCard(object : Callback {
@@ -73,7 +118,9 @@ fun HomeScreen(navController: NavController?) {
 
             Spacer(Modifier.size(22.dp))
 
-            Text(text = "Histórico", modifier = Modifier.fillMaxWidth().padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text(text = "Histórico", modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
 
             Spacer(Modifier.size(24.dp))
 

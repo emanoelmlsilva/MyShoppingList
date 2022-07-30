@@ -32,7 +32,7 @@ fun BoxPurchaseHistoryComponent(purchaseColleciton: List<Purchase>) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceAround
+                        .padding(16.dp), horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Image(
                         painter = painterResource(id = purchase.category.imageCircle),
@@ -51,9 +51,9 @@ fun BoxPurchaseHistoryComponent(purchaseColleciton: List<Purchase>) {
                                 .fillMaxWidth(.6f)
                         )
                         Row(modifier = Modifier
-                            .padding(top = 6.dp)) {
+                            .padding(top = 12.dp)) {
                             Text(
-                                text = "R$ ${MaskUtils.maskValue(purchase.price.toString())}",
+                                text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
                                 textAlign = TextAlign.End
                             )
 
@@ -87,7 +87,7 @@ fun PreivewBoxPurchaseHistoryComponent() {
                 0,
                 "1",
                 TypeProduct.QUANTITY,
-                Date().time,
+                "24-07-2022",
                 "0.0".toDouble(),
                 TypeCategory.DRINKS
             ),
@@ -97,7 +97,7 @@ fun PreivewBoxPurchaseHistoryComponent() {
                 0,
                 "1",
                 TypeProduct.QUANTITY,
-                Date().time,
+                "24-07-2022",
                 "0.0".toDouble(),
                 TypeCategory.DRINKS
             )

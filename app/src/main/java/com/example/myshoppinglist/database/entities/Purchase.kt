@@ -26,7 +26,7 @@ class Purchase {
     @ColumnInfo(name = "typeProduct")
     var typeProduct: TypeProduct = TypeProduct.QUANTITY
     @ColumnInfo(name = "date")
-    var date: Long = Date().time
+    var date: String = "24-01-2022"
     @ColumnInfo(name = "price")
     var price: Double = 0.0
     @ColumnInfo(name = "category")
@@ -38,7 +38,7 @@ class Purchase {
         purchaseCardId: Long,
         quantiOrKilo: String,
         typeProduct: TypeProduct,
-        date: Long,
+        date: String,
         price: Double,
         category: TypeCategory
     ) {

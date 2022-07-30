@@ -17,13 +17,16 @@ class MaskUtilsTest{
 
     @Test
     fun mask_value_decimal(){
-        assertEquals("0,02", MaskUtils.maskValue("0,002"))
-        assertEquals("0,20", MaskUtils.maskValue("0,020"))
-        assertEquals("2,00", MaskUtils.maskValue("0,200"))
-        assertEquals("0,12", MaskUtils.maskValue("1,2"))
-        assertEquals("12,00", MaskUtils.maskValue("1,200"))
-        assertEquals("1,22", MaskUtils.maskValue("12,2"))
-        assertEquals("10,23", MaskUtils.maskValue("1,023"))
+        assertEquals("25,80", MaskUtils.maskValue("25,8"))
+//        assertEquals("02,00", MaskUtils.maskValue("2,0"))
+//        assertEquals("0,20", MaskUtils.maskValue("0,2"))
+//        assertEquals("0,02", MaskUtils.maskValue("0,002"))
+//        assertEquals("0,20", MaskUtils.maskValue("0,020"))
+//        assertEquals("2,00", MaskUtils.maskValue("0,200"))
+//        assertEquals("1,20", MaskUtils.maskValue("1,2"))
+//        assertEquals("12,00", MaskUtils.maskValue("1,200"))
+//        assertEquals("12,20", MaskUtils.maskValue("1,220"))
+//        assertEquals("10,23", MaskUtils.maskValue("1,023"))
     }
 
     @Test
