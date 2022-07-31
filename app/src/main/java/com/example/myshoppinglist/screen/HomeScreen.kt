@@ -65,7 +65,7 @@ fun HomeScreen(navController: NavController?) {
         }
 
         purchaseViewModel.searchPriceResult.observeForever {
-            price.value =  String.format("%.2f", it).toDouble()
+            price.value =  it
         }
 
         purchaseViewModel.searchCollectionResults.observeForever {  purchases ->

@@ -5,6 +5,7 @@ import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.utils.FormatUtils
 import kotlinx.coroutines.*
+import java.math.RoundingMode
 import java.util.*
 
 class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
@@ -53,13 +54,15 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     fun sumPriceById(nameUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchPrice.value = asyncSumPriceById(idCard, nameUser).await()
+            val value = asyncSumPriceById(idCard, nameUser).await()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
         }
     }
 
     fun sumPriceByMonth(nameUser: String, idCard: Long, date: String){
         coroutineScope.launch(Dispatchers.Main){
-            searchPrice.value = asyncSumPriceByMonth(idCard, nameUser, date).await()
+            val value = asyncSumPriceByMonth(idCard, nameUser, date).await()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
         }
     }
 
