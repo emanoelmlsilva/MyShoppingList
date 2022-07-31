@@ -2,9 +2,7 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -40,10 +38,8 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
-import com.example.myshoppinglist.ui.theme.primary
-import com.example.myshoppinglist.ui.theme.secondary
-import com.example.myshoppinglist.ui.theme.secondary_dark
-import com.example.myshoppinglist.ui.theme.text_primary
+import com.example.myshoppinglist.ui.theme.*
+
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
@@ -72,29 +68,42 @@ fun CreateUserScreen(navController: NavController?) {
             .fillMaxHeight()
             .background(secondary)
     ) {
-
-        Column(
-            Modifier
-                .fillMaxHeight()
-                .padding(16.dp), verticalArrangement = Arrangement.SpaceBetween
+        LazyColumn( modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .fillMaxHeight(.7f),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HeaderText()
-            HeaderImage(createUserViewModel)
-            ContentAvatares(createUserViewModel)
-            TextFieldContent(createUserViewModel, object : Callback {
-                override fun onClick() {
-                    saveUser()
-                }
-            })
-            ButtonsFooterContent(
-                btnTextAccept = "PROXIMO",
-                btnTextCancel = "CANCELAR",
-                Icons.Filled.ArrowForward, null,
-                onClickAccept = {
-                    saveUser()
-                }, onClickCancel = {
+            item {
+                HeaderText()
+            }
 
+            item{
+                HeaderImage(createUserViewModel)
+            }
+
+            item{
+                ContentAvatares(createUserViewModel)
+            }
+            item{
+                TextFieldContent(createUserViewModel, object : Callback {
+                    override fun onClick() {
+                        saveUser()
+                    }
                 })
+            }
+              item{
+                  ButtonsFooterContent(
+                      btnTextAccept = "PROXIMO",
+                      btnTextCancel = "CANCELAR",
+                      Icons.Filled.ArrowForward, null,
+                      onClickAccept = {
+                          saveUser()
+                      }, onClickCancel = {
+
+                      })
+
+              }
         }
     }
 }
@@ -167,8 +176,30 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
         R.drawable.default_avatar
     )
 
+    @Composable
+    fun itemImage(idAvatar: Int){
+        Image(
+            painterResource(idAvatar),
+            contentDescription = "",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .padding(3.dp)
+                .size(50.dp)
+                .clip(CircleShape)
+                .border(
+                    2.dp,
+                    (if (idAvatarCurrent == idAvatar) primary else text_primary),
+                    CircleShape
+                )
+                .clickable {
+                    createUserViewModel.onChangeIdAvatar(idAvatar)
+                }
+        )
+    }
+
     Box(
         Modifier
+            .padding(vertical = 16.dp)
             .shadow(1.dp, RoundedCornerShape(8.dp))
             .background(secondary)
     ) {
@@ -183,28 +214,16 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
                 Modifier.padding(4.dp, 0.dp, 0.dp, 4.dp),
                 fontWeight = FontWeight.Bold
             )
-            LazyVerticalGrid(
-                cells = GridCells.Fixed(6),
-                contentPadding = PaddingValues(3.dp)
-            ) {
-                items(idsAvatar) { idAvatar ->
-                    Image(
-                        painterResource(idAvatar),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .padding(3.dp)
-                            .size(54.dp)
-                            .clip(CircleShape)
-                            .border(
-                                2.dp,
-                                (if (idAvatarCurrent == idAvatar) primary else text_primary),
-                                CircleShape
-                            )
-                            .clickable {
-                                createUserViewModel.onChangeIdAvatar(idAvatar)
-                            }
-                    )
+            Column{
+                Row{
+                    idsAvatar.subList(0, 6).map { idAvatar ->
+                        itemImage(idAvatar)
+                    }
+                }
+                Row{
+                    idsAvatar.subList(6, idsAvatar.size).map { idAvatar ->
+                        itemImage(idAvatar)
+                    }
                 }
 
             }

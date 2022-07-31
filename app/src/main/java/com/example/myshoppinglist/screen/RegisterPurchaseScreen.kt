@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
 import android.os.Handler
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -48,21 +47,11 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
-import kotlin.streams.toList
-
-class PurchaseInfo{
-    var title: String
-    var purchaseCollection: MutableList<Purchase>
-
-    constructor(title: String, purchaseCollection: MutableList<Purchase>) {
-        this.title = title
-        this.purchaseCollection = purchaseCollection
-    }
-}
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -156,7 +145,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxHeight(.7f),
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item{
