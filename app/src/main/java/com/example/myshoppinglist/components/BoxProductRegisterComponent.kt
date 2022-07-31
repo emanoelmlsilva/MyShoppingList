@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.screen.PurchaseInfo
+import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.divider
 import com.example.myshoppinglist.ui.theme.secondary_light
 import com.example.myshoppinglist.ui.theme.text_primary

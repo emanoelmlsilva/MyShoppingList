@@ -3,8 +3,6 @@ package com.example.myshoppinglist.utils
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.random.Random
-import kotlin.random.nextInt
 
 
 class FormatUtils {

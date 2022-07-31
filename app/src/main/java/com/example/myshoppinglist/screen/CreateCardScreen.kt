@@ -1,25 +1,31 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
-import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
@@ -43,6 +49,30 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
 
     userViewModel.getUserCurrent()
 
+    fun saveCreditCard() {
+        userViewModel.searchResult.observeForever {
+            if (createCardCreditViewModel.checkFileds()) {
+                creditCardViewModel.insertCreditCard(
+                    CreditCard(
+                        name,
+                        nameCard,
+                        0F,
+                        colorCurrent.toArgb(),
+                        typeCard,
+                        it.name
+                    )
+                )
+                if (typeCard == TypeCard.MONEY) {
+                    navController?.navigate("home") {
+                        popUpTo(0)
+                    }
+                } else {
+                    navController?.popBackStack()
+                }
+            }
+        }
+    }
+
     Surface(
         color = MaterialTheme.colors.background,
         contentColor = contentColorFor(text_secondary),
@@ -51,70 +81,69 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
             .fillMaxHeight()
 
     ) {
-        Column(
-            Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 32.dp, bottom = 16.dp, end = 16.dp), verticalArrangement = Arrangement.SpaceBetween
-        ) {
 
-            CardCreditComponent(
-                isClicable = false,
-                isDefault = false,
-                typeCard = typeCard,
-                isChoiceColor = true,
-                cardCreditDTO = CreditCardDTO(colorCard = card_blue.toArgb(), value = 0F, cardName = nameCard, holderName = name),
-                createCardCreditViewModel = createCardCreditViewModel, modifier = null, callbackColor = object :
-                    CallbackColor() {
-                    override fun setColorCurrent(color: Color) {
-                        createCardCreditViewModel.onChangeColorCurrent(color)
+        LazyColumn(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                .fillMaxHeight(.7f),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                CardCreditComponent(
+                    isClicable = false,
+                    isDefault = false,
+                    typeCard = typeCard,
+                    isChoiceColor = true,
+                    cardCreditDTO = CreditCardDTO(
+                        colorCard = card_blue.toArgb(),
+                        value = 0F,
+                        cardName = nameCard,
+                        holderName = name
+                    ),
+                    createCardCreditViewModel = createCardCreditViewModel,
+                    modifier = null,
+                    callbackColor = object :
+                        CallbackColor() {
+                        override fun setColorCurrent(color: Color) {
+                            createCardCreditViewModel.onChangeColorCurrent(color)
+                        }
                     }
-                }
-            )
-            Column(modifier = Modifier.height(230.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                )
                 Column(
-                    modifier = Modifier.fillMaxHeight(0.14f),
+                    modifier = Modifier.padding(top = 16.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Dados do Cartão", fontWeight = FontWeight.Bold)
+                    Column(
+                        modifier = Modifier.fillMaxHeight(0.14f),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = "Dados do Cartão", fontWeight = FontWeight.Bold)
 
-                    Divider(
-                        color = secondary_dark,
+                        Divider(
+                            color = secondary_dark,
 
-                        )
+                            )
+                    }
+                    TextFieldContent(createCardCreditViewModel, object : Callback {
+                        override fun onClick() {
+                            saveCreditCard()
+                        }
+                    })
+
                 }
-                TextFieldContent(createCardCreditViewModel)
-
+            }
+            item {
+                ButtonsFooterContent(
+                    btnTextAccept = "SALVAR",
+                    btnTextCancel = "CANCELAR",
+                    onClickAccept = {
+                        saveCreditCard()
+                    },
+                    onClickCancel = {
+                    })
             }
 
-            ButtonsFooterContent(
-                btnTextAccept = "SALVAR",
-                btnTextCancel = "CANCELAR",
-                onClickAccept = {
-                    userViewModel.searchResult.observeForever {
-                            if (createCardCreditViewModel.checkFileds()) {
-                                creditCardViewModel.insertCreditCard(
-                                    CreditCard(
-                                        name,
-                                        nameCard,
-                                        0F,
-                                        colorCurrent.toArgb(),
-                                        typeCard,
-                                        it.name
-                                    )
-                                )
-                                if(typeCard == TypeCard.MONEY){
-                                    navController?.navigate("home"){
-                                        popUpTo(0)
-                                    }
-                                }else{
-                                    navController?.popBackStack()
-                                }
-                            }
-                    }
-                },
-                onClickCancel = {
-                })
         }
 
     }
@@ -123,12 +152,12 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
+fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, callback: Callback) {
     val name: String by cardCreditViewModel.name.observeAsState("")
     val nameCard: String by cardCreditViewModel.nameCard.observeAsState(initial = "")
     val isErrorName by cardCreditViewModel.isErrorName.observeAsState(initial = false)
     val isErrorNameCard by cardCreditViewModel.isErrorNameCard.observeAsState(initial = false)
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     Column(
         Modifier
@@ -145,12 +174,17 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = isErrorName,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }
 
-        Column{
+        Column {
             OutlinedTextField(
                 value = nameCard,
                 onValueChange = {
@@ -160,7 +194,12 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
                 label = { Text("Nome Cartão") },
                 singleLine = true,
                 isError = isErrorNameCard,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        callback.onClick()
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }

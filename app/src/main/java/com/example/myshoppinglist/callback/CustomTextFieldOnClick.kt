@@ -4,10 +4,10 @@ import android.util.Log
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 
-interface CustomTextFieldOnClick {
+interface CustomTextFieldOnClick : Callback{
     fun onChangeValue(newValue: String){}
     fun onChangeValueLong(newValue: Long){}
-    fun onClick(){
+    override fun onClick(){
 
     }
 
