@@ -55,6 +55,7 @@ fun SpendingScreen(navController: NavHostController?) {
 
     fun reset(){
         monthCurrent.value = ""
+        price.value = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
     }
@@ -76,7 +77,7 @@ fun SpendingScreen(navController: NavHostController?) {
     }
 
     purchaseViewModel.searchPriceResult.observeForever {
-        price.value = String.format("%.2f", it).toDouble()
+        price.value = it
     }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
