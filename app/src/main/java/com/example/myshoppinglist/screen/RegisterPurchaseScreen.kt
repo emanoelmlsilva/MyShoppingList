@@ -154,73 +154,76 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
             },
             sheetPeekHeight = 228.dp,
         ) { innerPadding ->
-            Column(
-                modifier = Modifier.padding(16.dp),
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxHeight(.7f),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                TextInputComponent(
-                    label = "Produto",
-                    reset = reset.value,
-                    customOnClick = object : CustomTextFieldOnClick {
-                        override fun onChangeValue(newValue: String) {
-                            registerTextFieldViewModel.onChangeProduct(newValue)
-                        }
-
-                        override fun onChangeTypeProduct(newProduct: TypeProduct) {
-                            TODO("Not yet implemented")
-                        }
-                    })
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NumberInputComponent(maxChar = 13,
-                        keyboardType = KeyboardType.Number,
+                item{
+                    TextInputComponent(
+                        label = "Produto",
                         reset = reset.value,
-                        modifier = Modifier
-                            .fillMaxWidth(0.45f)
-                            .padding(end = 16.dp),
-                        label = "Preço",
-                        customOnClick = object :
-                            CustomTextFieldOnClick {
+                        customOnClick = object : CustomTextFieldOnClick {
                             override fun onChangeValue(newValue: String) {
-                                registerTextFieldViewModel.onChangePrice(newValue)
+                                registerTextFieldViewModel.onChangeProduct(newValue)
                             }
+
                             override fun onChangeTypeProduct(newProduct: TypeProduct) {
-                                registerTextFieldViewModel.onChangeTypeProduct(newProduct)
+                                TODO("Not yet implemented")
                             }
                         })
-                    BoxChoiceValue(registerTextFieldViewModel)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        NumberInputComponent(maxChar = 13,
+                            keyboardType = KeyboardType.Number,
+                            reset = reset.value,
+                            modifier = Modifier
+                                .fillMaxWidth(0.45f)
+                                .padding(end = 16.dp),
+                            label = "Preço",
+                            customOnClick = object :
+                                CustomTextFieldOnClick {
+                                override fun onChangeValue(newValue: String) {
+                                    registerTextFieldViewModel.onChangePrice(newValue)
+                                }
+                                override fun onChangeTypeProduct(newProduct: TypeProduct) {
+                                    registerTextFieldViewModel.onChangeTypeProduct(newProduct)
+                                }
+                            })
+                        BoxChoiceValue(registerTextFieldViewModel)
+                    }
+
+                    CategoryProduct(registerTextFieldViewModel)
+
+                    PurchaseAndPaymentComponent(registerTextFieldViewModel)
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                        modifier = Modifier
+                            .padding(start = 16.dp, bottom = 16.dp, end = 16.dp, top = 16.dp),
+                        onClick = {
+                            if(registerTextFieldViewModel.checkFileds()) {
+                                registerTextFieldViewModel.addPurchase()
+                                registerTextFieldViewModel.onChangeResetDate()
+                            }
+                        }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = text_secondary
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text("ADICIONAR", color = text_secondary)
+                    }
                 }
 
-                CategoryProduct(registerTextFieldViewModel)
-
-                PurchaseAndPaymentComponent(registerTextFieldViewModel)
-
-                Button(
-                    colors = ButtonDefaults.buttonColors(backgroundColor = primary),
-                    modifier = Modifier
-                        .padding(start = 16.dp, bottom = 16.dp, end = 16.dp, top = 16.dp),
-                    onClick = {
-                        if(registerTextFieldViewModel.checkFileds()) {
-                            registerTextFieldViewModel.addPurchase()
-                            registerTextFieldViewModel.onChangeResetDate()
-                        }
-                    }) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = null,
-                        tint = text_secondary
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("ADICIONAR", color = text_secondary)
-                }
             }
-        }
+                       }
 
         Row(
             modifier = Modifier
@@ -253,23 +256,26 @@ fun CategoryProduct(registerTextFieldViewModel: RegisterTextFieldViewModel){
     var categoryCollections = listOf(TypeCategory.HYGIENE, TypeCategory.CLEARNING, TypeCategory.FOOD, TypeCategory.DRINKS, TypeCategory.OTHERS)
     var categoryChoice = registerTextFieldViewModel.category.observeAsState().value
 
-    LazyRow(modifier = Modifier.padding(top = 16.dp)){
-        items(categoryCollections){ category ->
-            Card(modifier = Modifier
-                .padding(2.dp)
-                .clip(CircleShape)
-                .clickable { registerTextFieldViewModel.onChangeCategory(category) }){
-                Row(modifier = Modifier
-                    .background(if (category == categoryChoice) primary_dark else background_card)
-                    .padding(horizontal = 6.dp, vertical = 3.dp), horizontalArrangement = Arrangement.Center){
-                    Image(
-                        painter = painterResource(id = category.idImage),
-                        contentDescription = null,
-                        Modifier
-                            .size(20.dp)
-                            .padding(top = 3.dp)
-                    )
-                    Text(text = category.category, modifier = Modifier.padding(start = 6.dp))
+    Column{
+        Text(text = "Categorias", modifier = Modifier.padding(top = 16.dp, bottom = 8.dp), fontWeight = FontWeight.Bold)
+        LazyRow(modifier = Modifier.padding(start = 8.dp)){
+            items(categoryCollections){ category ->
+                Card(modifier = Modifier
+                    .padding(2.dp)
+                    .clip(CircleShape)
+                    .clickable { registerTextFieldViewModel.onChangeCategory(category) }){
+                    Row(modifier = Modifier
+                        .background(if (category == categoryChoice) primary_dark else background_card)
+                        .padding(horizontal = 6.dp, vertical = 3.dp), horizontalArrangement = Arrangement.Center){
+                        Image(
+                            painter = painterResource(id = category.idImage),
+                            contentDescription = null,
+                            Modifier
+                                .size(20.dp)
+                                .padding(top = 3.dp)
+                        )
+                        Text(text = category.category, modifier = Modifier.padding(start = 6.dp))
+                    }
                 }
             }
         }

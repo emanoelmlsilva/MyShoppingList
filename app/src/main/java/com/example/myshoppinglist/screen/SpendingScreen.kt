@@ -1,8 +1,6 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +29,6 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
-import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
@@ -54,7 +50,20 @@ fun SpendingScreen(navController: NavHostController?) {
 
     LaunchedEffect(Unit){
         creditCardViewModel.getAll()
+    }
 
+    fun reset(){
+        monthCurrent.value = ""
+        purchaseInfoCollection.removeAll(purchaseInfoCollection)
+        monthsCollection.removeAll(monthsCollection)
+    }
+
+    fun getInforPurchaseByMonth(month: String){
+        val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(month)
+
+        purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
+
+        purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
     }
 
     creditCardViewModel.searchCollectionResult.observeForever {
@@ -71,36 +80,32 @@ fun SpendingScreen(navController: NavHostController?) {
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
         if(it.isNotBlank()) {
-            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(it)
-            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
-
-            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
-
-            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
+           getInforPurchaseByMonth(it)
         }
     }
 
     purchaseViewModel.searchResultMonths.observeForever { months ->
+
+        monthsCollection.removeAll(monthsCollection)
+
         val convertedMonth = months.groupBy {
             val separaterDate = it.split("-")
             "${separaterDate.get(0)}-${separaterDate.get(1)}"
         }.map{ group -> FormatUtils().getMonth("${group.key}-01")}
 
         monthsCollection.addAll(convertedMonth)
+
         if(convertedMonth.isNotEmpty()){
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
 
             monthCurrent.value = monthAndYearNumber
 
-            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, monthCurrent.value)
-
-            purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, monthCurrent.value)
+            getInforPurchaseByMonth(convertedMonth.get(0))
         }
 
     }
 
     spendingTextFieldViewModel.purchaseInfoCollection.observeForever {
-        it.forEach{ it.purchaseCollection.forEach { purchase -> Log.d("TESTANDO", "ppurchase $purchase") }}
         purchaseInfoCollection.addAll(it)
     }
 
@@ -113,6 +118,7 @@ fun SpendingScreen(navController: NavHostController?) {
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
 
         spendingTextFieldViewModel.onChangePurchaseInfoCollection(purchaseInfoFormattedCollection)
+
     }
 
     TopAppBarScreen(content = {
@@ -127,9 +133,10 @@ fun SpendingScreen(navController: NavHostController?) {
                 override fun onChangeValueCreditCard(creditCard: CreditCard) {
                     currentCreditCard.value = creditCard
 
-                    purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, monthCurrent.value)
+                    purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
 
-                    purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, monthCurrent.value)
+                    reset()
+
                 }
             })
 
@@ -218,7 +225,7 @@ fun CustomDropDownMonth(callback: CustomTextFieldOnClick, monthCollection: List<
         .clickable(onClick = { expanded = true })) {
 
         Row(horizontalArrangement = Arrangement.Center) {
-            Text(text = "- $monthCurrent", modifier = Modifier.padding(start = 8.dp, end = 8.dp), color = text_title_secondary)
+            Text(text = "- ${if (monthCollection.isNotEmpty()) monthCurrent else ""}", modifier = Modifier.padding(start = 8.dp, end = 8.dp), color = text_title_secondary)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             monthCollection.forEach { month ->
@@ -249,12 +256,16 @@ fun BoxPurchaseSpeding(purchase: Purchase){
             )
             Column{
                 Text(text = purchase.name, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(.7f))
-                Text(text = purchase.locale, modifier = Modifier.fillMaxWidth(.7f).padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary)
+                Text(text = purchase.locale, modifier = Modifier
+                    .fillMaxWidth(.7f)
+                    .padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary)
             }
             Column{
                 Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
                 Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
-                    color = text_title_secondary, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), fontSize = 14.sp, textAlign = TextAlign.Center)
+                    color = text_title_secondary, modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(), fontSize = 14.sp, textAlign = TextAlign.Center)
             }
 
         }
@@ -284,9 +295,8 @@ class SpendingTextFieldViewModel: BaseFieldViewModel(){
     }
 
     override fun checkFileds(): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
-
 }
 
 @ExperimentalMaterialApi

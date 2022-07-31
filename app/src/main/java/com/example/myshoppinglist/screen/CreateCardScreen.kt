@@ -2,21 +2,26 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.callback.CallbackColor
@@ -42,6 +47,30 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
 
     userViewModel.getUserCurrent()
+
+    fun saveCreditCard(){
+        userViewModel.searchResult.observeForever {
+            if (createCardCreditViewModel.checkFileds()) {
+                creditCardViewModel.insertCreditCard(
+                    CreditCard(
+                        name,
+                        nameCard,
+                        0F,
+                        colorCurrent.toArgb(),
+                        typeCard,
+                        it.name
+                    )
+                )
+                if(typeCard == TypeCard.MONEY){
+                    navController?.navigate("home"){
+                        popUpTo(0)
+                    }
+                }else{
+                    navController?.popBackStack()
+                }
+            }
+        }
+    }
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -83,7 +112,11 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
 
                         )
                 }
-                TextFieldContent(createCardCreditViewModel)
+                TextFieldContent(createCardCreditViewModel, object : Callback{
+                    override fun onClick() {
+                        saveCreditCard()
+                    }
+                })
 
             }
 
@@ -91,27 +124,7 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                 btnTextAccept = "SALVAR",
                 btnTextCancel = "CANCELAR",
                 onClickAccept = {
-                    userViewModel.searchResult.observeForever {
-                            if (createCardCreditViewModel.checkFileds()) {
-                                creditCardViewModel.insertCreditCard(
-                                    CreditCard(
-                                        name,
-                                        nameCard,
-                                        0F,
-                                        colorCurrent.toArgb(),
-                                        typeCard,
-                                        it.name
-                                    )
-                                )
-                                if(typeCard == TypeCard.MONEY){
-                                    navController?.navigate("home"){
-                                        popUpTo(0)
-                                    }
-                                }else{
-                                    navController?.popBackStack()
-                                }
-                            }
-                    }
+                    saveCreditCard()
                 },
                 onClickCancel = {
                 })
@@ -123,12 +136,12 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
+fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, callback: Callback) {
     val name: String by cardCreditViewModel.name.observeAsState("")
     val nameCard: String by cardCreditViewModel.nameCard.observeAsState(initial = "")
     val isErrorName by cardCreditViewModel.isErrorName.observeAsState(initial = false)
     val isErrorNameCard by cardCreditViewModel.isErrorNameCard.observeAsState(initial = false)
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     Column(
         Modifier
@@ -145,7 +158,12 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = isErrorName,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }
@@ -160,7 +178,12 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel) {
                 label = { Text("Nome Cartão") },
                 singleLine = true,
                 isError = isErrorNameCard,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        callback.onClick()
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }

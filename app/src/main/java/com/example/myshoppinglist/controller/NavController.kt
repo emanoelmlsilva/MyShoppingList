@@ -30,14 +30,11 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 fun NavController(navHostController: NavHostController, window: Window, routeInitial: String){
     NavHost(navController = navHostController, startDestination = routeInitial) {
         composable("createUser") {
-            window.statusBarColor = secondary.hashCode()
             CreateUserScreen(navHostController)
         }
         composable("createCards?hasToolbar={hasToolbar}", arguments = listOf(navArgument("hasToolbar") { defaultValue = "false" })
         ) { navBackStack ->
             val hasToolbar = navBackStack.arguments?.getString("hasToolbar").toBoolean()
-
-            window.statusBarColor = secondary.hashCode()
             if (hasToolbar) {
                 TopAppBarScreen(onClickIcon = { navHostController.popBackStack()},content = {
                     CreateCardScreen(navHostController, TypeCard.CREDIT)

@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -34,7 +35,7 @@ fun CardCreditComponent(navController: NavController? = null, isClicable: Boolea
     var colorCurrent: Color = createCardCreditViewModel.colorCurrent.observeAsState(card_blue).value
 
     if (isChoiceColor) {
-card_blue
+
         Column{
 
             CustomCardCredit(null, isDefault, isClicable, typeCard, colorCurrent,  cardCreditDTO, null)
@@ -210,7 +211,7 @@ fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
         border = if (isChoiced) BorderStroke(1.dp, text_primary) else null,
         modifier = Modifier
             .padding(start = 2.dp)
-            .fillMaxHeight(0.03f)
+            .height(18.dp)
             .width(20.dp)
             .padding(0.dp),
         onClick = onClickListener

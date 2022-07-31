@@ -8,29 +8,34 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
@@ -52,6 +57,13 @@ fun CreateUserScreen(navController: NavController?) {
     val context = LocalContext.current
     val userViewModel: UserViewModel = UserViewModel(context)
 
+    fun saveUser() {
+        if (createUserViewModel.checkFileds()) {
+            userViewModel.insertUser(User(name, nickName, idAvatar))
+            navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}")
+        }
+    }
+
     Surface(
         color = MaterialTheme.colors.background,
         contentColor = contentColorFor(secondary),
@@ -69,16 +81,17 @@ fun CreateUserScreen(navController: NavController?) {
             HeaderText()
             HeaderImage(createUserViewModel)
             ContentAvatares(createUserViewModel)
-            TextFieldContent(createUserViewModel)
+            TextFieldContent(createUserViewModel, object : Callback {
+                override fun onClick() {
+                    saveUser()
+                }
+            })
             ButtonsFooterContent(
                 btnTextAccept = "PROXIMO",
                 btnTextCancel = "CANCELAR",
                 Icons.Filled.ArrowForward, null,
                 onClickAccept = {
-                    if (createUserViewModel.checkFileds()) {
-                        userViewModel.insertUser(User(name, nickName, idAvatar))
-                        navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}")
-                    }
+                    saveUser()
                 }, onClickCancel = {
 
                 })
@@ -137,15 +150,28 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
 
 @ExperimentalFoundationApi
 @Composable
-fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel){
+fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
     val idAvatarCurrent: Int by createUserViewModel.idAvatar.observeAsState(R.drawable.default_avatar)
 
-    var idsAvatar: List<Int> = listOf(R.drawable.clover, R.drawable.docinho, R.drawable.flapjack, R.drawable.jack, R.drawable.kuki, R.drawable.mabel, R.drawable.marceline, R.drawable.patolino, R.drawable.san, R.drawable.snoopy, R.drawable.default_avatar)
+    var idsAvatar: List<Int> = listOf(
+        R.drawable.clover,
+        R.drawable.docinho,
+        R.drawable.flapjack,
+        R.drawable.jack,
+        R.drawable.kuki,
+        R.drawable.mabel,
+        R.drawable.marceline,
+        R.drawable.patolino,
+        R.drawable.san,
+        R.drawable.snoopy,
+        R.drawable.default_avatar
+    )
 
     Box(
         Modifier
             .shadow(1.dp, RoundedCornerShape(8.dp))
-            .background(secondary)) {
+            .background(secondary)
+    ) {
         Column(
             verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier
                 .fillMaxWidth()
@@ -188,42 +214,54 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel){
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel){
+fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Callback) {
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val isErrorName: Boolean by createUserViewModel.isErrorName.observeAsState(false)
     val isErrorNickName: Boolean by createUserViewModel.isErrorNickName.observeAsState(false)
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
-    Column (
+    Column(
         Modifier
             .height(180.dp)
-            .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween){
-        Column{
+            .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
             OutlinedTextField(
                 value = name,
                 onValueChange = {
-                    createUserViewModel.onChangeName(it) },
+                    createUserViewModel.onChangeName(it)
+                },
                 label = { Text("Nome") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = isErrorName,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }
 
-        Column{
+        Column {
             OutlinedTextField(
                 value = nickName,
                 onValueChange = {
                     createUserViewModel.onChangeNickName(it)
-                                },
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Apelido") },
                 singleLine = true,
                 isError = isErrorNickName,
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        callback.onClick()
+                    }
+                ),
             )
             Text(text = "Obrigatório", color = secondary_dark)
         }
@@ -231,15 +269,15 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel){
 
 }
 
-class CreateUserFieldViewModel: BaseFieldViewModel(){
+class CreateUserFieldViewModel : BaseFieldViewModel() {
 
     var name: MutableLiveData<String> = MutableLiveData("")
-    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar);
+    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar)
     var nickName: MutableLiveData<String> = MutableLiveData("")
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNickName: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    fun onChangeIdAvatar(newIdAvatar: Int){
+    fun onChangeIdAvatar(newIdAvatar: Int) {
         idAvatar.value = newIdAvatar
     }
 
@@ -253,23 +291,23 @@ class CreateUserFieldViewModel: BaseFieldViewModel(){
         nickName.value = newNickName
     }
 
-    fun onChangeIsErrorName(newIsErrorName: Boolean){
+    fun onChangeIsErrorName(newIsErrorName: Boolean) {
         isErrorName.value = newIsErrorName
     }
 
-    fun onChangeisErrorNickName(newIsErrorNickName: Boolean){
+    fun onChangeisErrorNickName(newIsErrorNickName: Boolean) {
         isErrorNickName.value = newIsErrorNickName
     }
 
     override fun checkFileds(): Boolean {
 
         if (name.value!!.isBlank()) {
-            onChangeIsErrorName(true);
+            onChangeIsErrorName(true)
             return false
         }
 
-        if(nickName.value!!.isBlank()){
-            onChangeisErrorNickName(true);
+        if (nickName.value!!.isBlank()) {
+            onChangeisErrorNickName(true)
             return false
         }
 

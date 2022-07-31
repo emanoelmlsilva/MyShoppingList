@@ -44,6 +44,12 @@ fun HomeScreen(navController: NavController?) {
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
     val creditCardCollection = remember { mutableListOf<CreditCard>()}
 
+    fun recoverDataPurchase(){
+        purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
+
+        purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+    }
+
     Surface(
         color = MaterialTheme.colors.background,
         contentColor = contentColorFor(text_secondary),
@@ -73,11 +79,7 @@ fun HomeScreen(navController: NavController?) {
             creditCardCollection.addAll(it)
             currentCreditCard.value = it[0]
 
-//TODO(): colocar me um metodo
-            purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
-
-            purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
-            //////////////////
+            recoverDataPurchase()
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -94,11 +96,7 @@ fun HomeScreen(navController: NavController?) {
                 CallbackCreditCard {
                 override fun onChangeValueCreditCard(creditCard: CreditCard) {
                     currentCreditCard.value = creditCard
-//TODO(): colocar me um metodo
-                    purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
-
-                    purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
-                    ////////////////
+                    recoverDataPurchase()
                 }
             })
             BoxCreditCard(object : Callback {

@@ -48,7 +48,7 @@ object MaskUtils {
         }
 
         if(valueFormat.length < 3){
-            valueFormat = valueFormat.padEnd(3, '0')
+            valueFormat = valueFormat.padStart(3, '0')
         }
 
         var sizeValue = valueFormat.length
