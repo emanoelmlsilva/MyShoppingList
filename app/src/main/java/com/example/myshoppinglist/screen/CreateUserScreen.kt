@@ -95,14 +95,10 @@ fun CreateUserScreen(navController: NavController?) {
               item{
                   ButtonsFooterContent(
                       btnTextAccept = "PROXIMO",
-                      btnTextCancel = "CANCELAR",
-                      Icons.Filled.ArrowForward, null,
+                      iconAccept = Icons.Filled.ArrowForward,
                       onClickAccept = {
                           saveUser()
-                      }, onClickCancel = {
-
                       })
-
               }
         }
     }
