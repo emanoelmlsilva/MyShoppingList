@@ -16,12 +16,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.components.ButtonsFooterContent
@@ -90,6 +93,13 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
+                if (typeCard == TypeCard.MONEY) {
+                    Column(modifier = Modifier.padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally){
+                        Text(text = stringResource(R.string.message_info), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Divider(color = secondary_dark,)
+                    }
+                }
+
                 CardCreditComponent(
                     isClicable = false,
                     isDefault = false,
@@ -136,11 +146,8 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
             item {
                 ButtonsFooterContent(
                     btnTextAccept = "SALVAR",
-                    btnTextCancel = "CANCELAR",
                     onClickAccept = {
                         saveCreditCard()
-                    },
-                    onClickCancel = {
                     })
             }
 

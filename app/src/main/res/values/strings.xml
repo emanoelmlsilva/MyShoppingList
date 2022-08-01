@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Lista de Compras</string>
+    <string name="message_info">Esse cartão serve para compras de débito por cédulas</string>
 </resources>
