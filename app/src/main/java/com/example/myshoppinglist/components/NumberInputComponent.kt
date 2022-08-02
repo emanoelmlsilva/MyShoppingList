@@ -13,6 +13,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.enums.TypeProduct
@@ -22,7 +24,7 @@ import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalComposeUiApi
 @Composable
-fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false,  reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
+fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, error: Boolean? = false, keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false,  reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
     var isKilogram by remember { mutableStateOf(false)}
     val keyboardController = LocalSoftwareKeyboardController.current
     var isErrorNickName by remember { mutableStateOf(false) }
@@ -107,7 +109,6 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
                 maxLines = 1,
                 label = { Text(label) },
                 singleLine = true,
-                isError = isErrorNickName,
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent
                 ),
@@ -135,10 +136,10 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
                 label = { Text(label) },
                 singleLine = true,
                 maxLines = 1,
-                isError = isErrorNickName,
+                isError = error ?: isErrorNickName,
                 keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
             )
         }
-        if(isMandatory!!) Text(text = "Obrigatório", color = secondary_dark)
+        if(isMandatory!!) Text(text = "Obrigatório", color = secondary_dark, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
     }
 }

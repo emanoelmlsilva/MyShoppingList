@@ -10,12 +10,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.ui.theme.secondary_dark
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
+fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick){
     val keyboardController = LocalSoftwareKeyboardController.current
     var isErrorNickName by remember { mutableStateOf(false) }
     var customModifier = modifier?:Modifier.fillMaxWidth()
@@ -40,9 +42,9 @@ fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: 
                 label = { Text(label) },
                 singleLine = true,
                 maxLines = 1,
-                isError = isErrorNickName,
+                isError = error ?: isErrorNickName,
                 keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
             )
-        if(isMandatory!!) Text(text = "Obrigatório", color = secondary_dark)
+        if(isMandatory!!) Text(text = "Obrigatório", color = secondary_dark, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
     }
 }

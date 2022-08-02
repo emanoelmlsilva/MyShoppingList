@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -14,12 +15,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.ui.theme.message_error
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
 import java.util.HashMap
 
 @Composable
-fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, callback: CustomTextFieldOnClick, reset: Boolean = false){
+fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, error: Boolean? = false, callback: CustomTextFieldOnClick, reset: Boolean = false){
     var expanded by remember {mutableStateOf(false)}
     var selectedValue by remember { mutableStateOf(-1L) }
     var items = valueCollection
@@ -27,7 +29,7 @@ fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, callback: CustomT
     if(reset){
         selectedValue = -1L
     }
-        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp ).clickable(onClick = { expanded = true })){
+        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary), modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp ).clickable(onClick = { expanded = true })){
             Row(horizontalArrangement = Arrangement.Center){
                 Text(items.entries.find { it.value == selectedValue }!!.key,modifier = Modifier.padding(16.dp))
                 Icon(
