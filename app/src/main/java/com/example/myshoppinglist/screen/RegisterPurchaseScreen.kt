@@ -14,10 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -144,7 +141,9 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
             sheetPeekHeight = 228.dp,
         ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxHeight(.7f),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxHeight(.7f),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -152,6 +151,8 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                     TextInputComponent(
                         label = "Produto",
                         reset = reset.value,
+                        isMandatory = true,
+                        error =  registerTextFieldViewModel.productError.observeAsState().value,
                         customOnClick = object : CustomTextFieldOnClick {
                             override fun onChangeValue(newValue: String) {
                                 registerTextFieldViewModel.onChangeProduct(newValue)
@@ -175,6 +176,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                                 .fillMaxWidth(0.45f)
                                 .padding(end = 16.dp),
                             label = "Preço",
+                            error = registerTextFieldViewModel.priceError.observeAsState().value,
                             customOnClick = object :
                                 CustomTextFieldOnClick {
                                 override fun onChangeValue(newValue: String) {
@@ -187,9 +189,9 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                         BoxChoiceValue(registerTextFieldViewModel)
                     }
 
-                    CategoryProduct(registerTextFieldViewModel)
+                    CategoryProduct(registerTextFieldViewModel, registerTextFieldViewModel.typeCategoryError.observeAsState().value)
 
-                    PurchaseAndPaymentComponent(registerTextFieldViewModel)
+                    PurchaseAndPaymentComponent(registerTextFieldViewModel, registerTextFieldViewModel.idCardError.observeAsState().value)
 
                     Button(
                         colors = ButtonDefaults.buttonColors(backgroundColor = primary),
@@ -241,12 +243,15 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
 }
 
 @Composable
-fun CategoryProduct(registerTextFieldViewModel: RegisterTextFieldViewModel){
+fun CategoryProduct(registerTextFieldViewModel: RegisterTextFieldViewModel, error: Boolean? = false){
     var categoryCollections = listOf(TypeCategory.HYGIENE, TypeCategory.CLEARNING, TypeCategory.FOOD, TypeCategory.DRINKS, TypeCategory.OTHERS)
     var categoryChoice = registerTextFieldViewModel.category.observeAsState().value
 
     Column{
-        Text(text = "Categorias", modifier = Modifier.padding(top = 16.dp, bottom = 8.dp), fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically){
+            Text(text = "Categorias", modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, end = 4.dp), fontWeight = FontWeight.Bold)
+            if(error!!) Icon(painter = painterResource(id = R.drawable.ic_baseline_error_24), modifier = Modifier.size(16.dp), contentDescription = null, tint = message_error)
+        }
         LazyRow(modifier = Modifier.padding(start = 8.dp)){
             items(categoryCollections){ category ->
                 Card(modifier = Modifier
@@ -273,7 +278,7 @@ fun CategoryProduct(registerTextFieldViewModel: RegisterTextFieldViewModel){
 
 @ExperimentalComposeUiApi
 @Composable
-fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldViewModel) {
+fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldViewModel, error: Boolean? = false) {
     var expanded by remember { mutableStateOf(true) }
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModel(context)
@@ -331,6 +336,7 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
                 TextInputComponent(
                     label = "Local",
                     reset = reset,
+                    error = registerTextFieldViewModel.localeError.observeAsState().value,
                     customOnClick = object : CustomTextFieldOnClick {
                         override fun onChangeValue(newValue: String) {
                             registerTextFieldViewModel.onChangeLocale(newValue)
@@ -360,6 +366,7 @@ fun PurchaseAndPaymentComponent(registerTextFieldViewModel: RegisterTextFieldVie
 
                     CustomDropdownMenu(
                         cardColleciton,
+                        error = error,
                         object : CustomTextFieldOnClick {
                             override fun onChangeValueLong(newValue: Long) {
                                 registerTextFieldViewModel.onChangeIdCard(newValue)
@@ -416,7 +423,7 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
 
     registerTextFieldViewModel.resetDate.observeForever {
         if(it){
-            value = "0"
+            value = "1"
         }
     }
 
@@ -493,7 +500,24 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
     var typeProduct: MutableLiveData<TypeProduct> = MutableLiveData(TypeProduct.QUANTITY)
     val purchaseCollection: MutableLiveData<MutableList<PurchaseInfo>> = MutableLiveData<MutableList<PurchaseInfo>>(mutableListOf())
 
+    //variavel de error
+    val productError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val priceError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val localeError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val idCardError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val typeCategoryError: MutableLiveData<Boolean> = MutableLiveData(false)
+
     override fun checkFileds(): Boolean {
+
+        productError.value = product.value!!.isBlank()
+
+        priceError.value = price.value!!.isBlank()
+
+        localeError.value = locale.value!!.isBlank()
+
+        idCardError.value = idCard.value == -1L
+
+        typeCategoryError.value = category.value == null
 
         if(product.value!!.isBlank()) return false
 
@@ -528,6 +552,8 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
     fun onChangeCategory(newCategoty: TypeCategory){
         category.value = newCategoty
+        typeCategoryError.value = false
+
     }
 
     fun onChangeTypeProduct(newTypeProduct: TypeProduct){
@@ -560,6 +586,7 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
     fun onChangeProduct(newProduct: String){
         product.value = newProduct
+        productError.value = newProduct.isBlank()
     }
 
     fun onChangePrice(newPrice : String){
@@ -572,10 +599,12 @@ class RegisterTextFieldViewModel: BaseFieldViewModel(){
 
     fun onChangeLocale(newLocale : String){
         locale.value = newLocale
+        localeError.value = newLocale.isBlank()
     }
 
     fun onChangeIdCard(newIdCard : Long?){
         idCard.value = newIdCard
+        idCardError.value = newIdCard == -1L
     }
 
     fun onChangeIsBlock(newIsBlock : Boolean){
