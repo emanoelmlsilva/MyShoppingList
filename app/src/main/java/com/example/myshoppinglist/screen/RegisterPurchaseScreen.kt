@@ -52,6 +52,7 @@ import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -492,6 +493,8 @@ fun DatePickerCustom(
         month,
         dayOfMonth
     )
+
+    datePickerDialog.datePicker.maxDate = calendar.time.time
 
     LaunchedEffect(Unit){
         registerTextFieldViewModel.onChangeDateCurrent("$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}")
