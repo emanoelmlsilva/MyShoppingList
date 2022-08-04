@@ -55,6 +55,10 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String = "", maxChar
     }
 
     if(reset){
+        if(!isKilogram){
+            customOnClick.onChangeValue("1")
+        }
+
         numberFieldValueState =  TextFieldValue(
             text = if(hasIcon!!) {
                 if(isKilogram) MaskUtils.maskKiloGram("") else MaskUtils.maskQuantity(
