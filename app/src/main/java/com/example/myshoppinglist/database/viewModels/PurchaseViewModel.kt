@@ -80,7 +80,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         }
     }
 
-    fun sumPriceBMonth(idCard: Long, date: String){
+    fun sumPriceByMonth(idCard: Long, date: String){
         var nameUser = ""
         userViewModel.searchResult.observeForever {
             nameUser = it.name
