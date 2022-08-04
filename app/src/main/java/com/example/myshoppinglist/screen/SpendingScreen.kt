@@ -65,7 +65,7 @@ fun SpendingScreen(navController: NavHostController?) {
 
         purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
 
-        purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
+        purchaseViewModel.sumPriceByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
     }
 
     creditCardViewModel.searchCollectionResult.observeForever {

@@ -39,6 +39,6 @@ interface PurchaseDAO {
     @Query("SELECT SUM(price * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
 
-    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND 7 >= CAST(strftime('%J','2022-06-28') - strftime('%J',date) AS INTEGER) ORDER BY date DESC")
-    fun getPurchasesWeek(nameUser: String, idCard: Long): List<Purchase>
+    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date DESC")
+    fun getPurchasesWeek(week: String, nameUser: String, idCard: Long): List<Purchase>
 }
