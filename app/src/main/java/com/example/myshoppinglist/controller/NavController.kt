@@ -51,6 +51,7 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             HomeScreen(navHostController)
         }
         composable("credit_collection"){
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
             CreditCollectionScreen(navHostController)
         }
         composable("register_purchase"){

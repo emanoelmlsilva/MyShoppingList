@@ -47,7 +47,7 @@ fun HomeScreen(navController: NavController?) {
     fun recoverDataPurchase(){
         purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
 
-        purchaseViewModel.sumPriceBMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
+        purchaseViewModel.sumPriceByMonth(currentCreditCard.value!!.id, "${FormatUtils().getMonthAndYear()}-")
     }
 
     Surface(
@@ -116,7 +116,7 @@ fun HomeScreen(navController: NavController?) {
 
             Spacer(Modifier.size(22.dp))
 
-            Text(text = "Histórico", modifier = Modifier
+            Text(text = "Histórico Semanal", modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp), fontWeight = FontWeight.Bold, fontSize = 24.sp)
 

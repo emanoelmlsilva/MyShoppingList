@@ -69,9 +69,9 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     fun getPurchasesWeek(nameUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
             val calendar = Calendar.getInstance()
-//            calendar.add(Calendar.DAY_OF_YEAR, -1)
-            val initWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonResult.value = asyncGetPurchsesWeek(idCard, nameUser, initWeek).await()
+            calendar.add(Calendar.DAY_OF_YEAR, -7)
+            val limitWeek = FormatUtils().getDateString(calendar.time)
+            searchCollecitonResult.value = asyncGetPurchsesWeek(idCard, nameUser, limitWeek).await()
         }
     }
 
@@ -103,7 +103,7 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
     }
 
-    private fun asyncGetPurchsesWeek(idCard: Long, nameUser: String, from: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchasesWeek(nameUser, idCard)
+    private fun asyncGetPurchsesWeek(idCard: Long, nameUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesWeek(week, nameUser, idCard)
     }
 }
