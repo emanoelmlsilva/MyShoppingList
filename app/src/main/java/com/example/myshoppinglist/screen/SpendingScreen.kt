@@ -34,6 +34,7 @@ import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import java.util.*
 
 @ExperimentalMaterialApi
 @Composable
@@ -114,7 +115,7 @@ fun SpendingScreen(navController: NavHostController?) {
     purchaseViewModel.searchCollectionResults.observeForever { purchases ->
 
         val purchaseInfoFormattedCollection: MutableList<PurchaseInfo> = purchases.groupBy { it.date }.map{ group -> PurchaseInfo(group.key,
-            group.value as MutableList<Purchase>
+            group.value.reversed() as MutableList<Purchase>
         )} as MutableList<PurchaseInfo>
 
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
