@@ -49,9 +49,9 @@ fun SpendingScreen(navController: NavHostController?) {
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
     val creditCardViewModel = CreditCardViewModel(context)
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
-    val price = remember { mutableStateOf<Double>(0.0)}
+    val price = remember { mutableStateOf(0.0)}
     val monthsCollection = remember { mutableStateListOf<String>() }
-    val monthCurrent = remember {mutableStateOf<String>("")}
+    val monthCurrent = remember {mutableStateOf("")}
     val creditCardCollection = remember { mutableListOf<CreditCard>()}
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
     val visibleAnimation = remember { mutableStateOf(true)}
@@ -105,11 +105,11 @@ fun SpendingScreen(navController: NavHostController?) {
         monthsCollection.addAll(convertedMonth)
 
         if(convertedMonth.isNotEmpty()){
-            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
+            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
 
             monthCurrent.value = monthAndYearNumber
 
-            getInforPurchaseByMonth(convertedMonth.get(0))
+            getInforPurchaseByMonth(convertedMonth[0])
         }
 
     }
@@ -133,9 +133,14 @@ fun SpendingScreen(navController: NavHostController?) {
     TopAppBarScreen(content = {
 
         Column(modifier = Modifier.padding(16.dp)){
-            Spacer(
-                Modifier
-                    .height(35.dp))
+            BaseAnimationComponent(
+                visibleAnimation = visibleAnimation.value,
+                contentBase = {
+                    Spacer(
+                        Modifier
+                            .height(35.dp)
+                    )
+                })
 
             BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, price.value, currentCreditCard.value, creditCardCollection, object :
                 CallbackCreditCard {
