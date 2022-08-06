@@ -1,5 +1,8 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +12,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,6 +25,7 @@ import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.components.SpendingComponent
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackCreditCard
+import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -31,6 +36,7 @@ import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 
+@ExperimentalAnimationApi
 @Composable
 fun HomeScreen(navController: NavController?) {
     val context = LocalContext.current
@@ -43,6 +49,7 @@ fun HomeScreen(navController: NavController?) {
     val price = remember { mutableStateOf<Double>(0.0)}
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
     val creditCardCollection = remember { mutableListOf<CreditCard>()}
+    val visibleAnimation = remember { mutableStateOf(true)}
 
     fun recoverDataPurchase(){
         purchaseViewModel.getPurchasesWeek(currentCreditCard.value!!.id)
@@ -83,7 +90,7 @@ fun HomeScreen(navController: NavController?) {
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, object: Callback {
+            HeaderComponent(userViewModel, visibleAnimation.value, object: Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
@@ -122,7 +129,13 @@ fun HomeScreen(navController: NavController?) {
 
             Spacer(Modifier.size(24.dp))
 
-            BoxPurchaseHistoryComponent(purchaseCollection)
+            BoxPurchaseHistoryComponent(visibleAnimation.value, purchaseCollection, object : VisibleCallback(){
+                override fun onChangeVisible(visible: Boolean) {
+                    if(visibleAnimation.value != visible) {
+                        visibleAnimation.value = visible
+                    }
+                }
+            })
         }
     }
 
@@ -162,5 +175,5 @@ class HomeFieldViewModel: BaseFieldViewModel(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {
-    HomeScreen(navController = null)
+//    HomeScreen(navController = null)
 }

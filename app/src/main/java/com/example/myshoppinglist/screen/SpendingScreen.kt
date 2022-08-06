@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,9 @@ import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.callback.VisibleCallback
+import com.example.myshoppinglist.components.BaseAnimationComponent
+import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.BoxDropdownCardCredit
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -36,6 +40,7 @@ import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun SpendingScreen(navController: NavHostController?) {
@@ -44,11 +49,12 @@ fun SpendingScreen(navController: NavHostController?) {
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
     val creditCardViewModel = CreditCardViewModel(context)
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
-    val price = remember { mutableStateOf<Double>(0.0)}
+    val price = remember { mutableStateOf(0.0)}
     val monthsCollection = remember { mutableStateListOf<String>() }
-    val monthCurrent = remember {mutableStateOf<String>("")}
+    val monthCurrent = remember {mutableStateOf("")}
     val creditCardCollection = remember { mutableListOf<CreditCard>()}
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
+    val visibleAnimation = remember { mutableStateOf(true)}
 
     LaunchedEffect(Unit){
         creditCardViewModel.getAll()
@@ -99,11 +105,11 @@ fun SpendingScreen(navController: NavHostController?) {
         monthsCollection.addAll(convertedMonth)
 
         if(convertedMonth.isNotEmpty()){
-            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth.get(0))
+            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
 
             monthCurrent.value = monthAndYearNumber
 
-            getInforPurchaseByMonth(convertedMonth.get(0))
+            getInforPurchaseByMonth(convertedMonth[0])
         }
 
     }
@@ -127,9 +133,14 @@ fun SpendingScreen(navController: NavHostController?) {
     TopAppBarScreen(content = {
 
         Column(modifier = Modifier.padding(16.dp)){
-            Spacer(
-                Modifier
-                    .height(35.dp))
+            BaseAnimationComponent(
+                visibleAnimation = visibleAnimation.value,
+                contentBase = {
+                    Spacer(
+                        Modifier
+                            .height(35.dp)
+                    )
+                })
 
             BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, price.value, currentCreditCard.value, creditCardCollection, object :
                 CallbackCreditCard {
@@ -147,20 +158,24 @@ fun SpendingScreen(navController: NavHostController?) {
                 Modifier
                     .height(35.dp))
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally){
-                Card(modifier = Modifier
-                    .size(62.dp)
-                    .clip(CircleShape), backgroundColor = background_card, onClick = { navController!!.navigate("register_purchase")}){
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(ButtonDefaults.IconSize)
-                            .padding(18.dp),
-                    )
-                }
-                Text(text = "Comprar", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
-            }
+            BaseAnimationComponent(
+                visibleAnimation = visibleAnimation.value,
+                contentBase = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                        Card(modifier = Modifier
+                            .size(62.dp)
+                            .clip(CircleShape), backgroundColor = background_card, onClick = { navController!!.navigate("register_purchase")}){
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(ButtonDefaults.IconSize)
+                                    .padding(18.dp),
+                            )
+                        }
+                        Text(text = "Comprar", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                    }
+                })
 
             Spacer(
                 Modifier
@@ -173,12 +188,19 @@ fun SpendingScreen(navController: NavHostController?) {
                     .height(1.dp)
             )
 
-            if(purchaseInfoCollection!!.isNotEmpty()){
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
+            if(purchaseInfoCollection.isNotEmpty()){
+                BaseLazyColumnScroll(
+                    visibleAnimation = visibleAnimation.value,
+                    modifier = Modifier.fillMaxWidth(),
+                    callback =  object : VisibleCallback(){
+                        override fun onChangeVisible(visible: Boolean) {
+                            if(visibleAnimation.value != visible) {
+                                visibleAnimation.value = visible
+                            }
+                        }
+                    }
                 ){
-                    purchaseInfoCollection!!.map{ purchaseInfo ->
+                    purchaseInfoCollection.map{ purchaseInfo ->
                         item {
                             Text(text = FormatUtils().getNameDay(purchaseInfo.title), modifier = Modifier.padding(start = 8.dp, top = 24.dp), color = text_title_secondary)
                         }
@@ -302,6 +324,7 @@ class SpendingTextFieldViewModel: BaseFieldViewModel(){
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
