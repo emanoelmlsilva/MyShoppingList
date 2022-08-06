@@ -27,7 +27,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "MyShopList.db"
+                        "TestMyShopList.db"
                     ).allowMainThreadQueries().build()
                 }
                 return this.instance!!
