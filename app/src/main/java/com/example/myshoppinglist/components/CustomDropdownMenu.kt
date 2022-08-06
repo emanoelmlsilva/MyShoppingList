@@ -21,7 +21,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 import java.util.HashMap
 
 @Composable
-fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, error: Boolean? = false, callback: CustomTextFieldOnClick, reset: Boolean = false){
+fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, error: Boolean? = false, isEnableClick: Boolean? = true, callback: CustomTextFieldOnClick, reset: Boolean = false){
     var expanded by remember {mutableStateOf(false)}
     var selectedValue by remember { mutableStateOf(-1L) }
     var items = valueCollection
@@ -29,7 +29,10 @@ fun CustomDropdownMenu(valueCollection: HashMap<String, Long>, error: Boolean? =
     if(reset){
         selectedValue = -1L
     }
-        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary), modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp ).clickable(onClick = { expanded = true })){
+        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = text_secondary, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary),
+            modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp )
+            .clickable(enabled = isEnableClick!!,onClick = { expanded = true
+        })){
             Row(horizontalArrangement = Arrangement.Center){
                 Text(items.entries.find { it.value == selectedValue }!!.key,modifier = Modifier.padding(16.dp))
                 Icon(

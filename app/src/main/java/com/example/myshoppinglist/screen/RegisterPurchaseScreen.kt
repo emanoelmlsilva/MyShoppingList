@@ -6,9 +6,7 @@ import android.os.Handler
 import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -25,6 +23,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -379,7 +379,8 @@ fun PurchaseAndPaymentComponent(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
                         label = "Local",
-                        reset = reset,
+                        reset = reset && !isBlock.value!!,
+                        isEnableClick = isBlock.value!!,
                         modifier = Modifier.fillMaxWidth(.63f),
                         maxChar = 30,
                         isCountChar = true,
@@ -390,7 +391,7 @@ fun PurchaseAndPaymentComponent(
                             }
 
                         })
-                    DatePickerCustom(registerTextFieldViewModel, reset, context)
+                    DatePickerCustom(registerTextFieldViewModel, reset && !isBlock.value!!, isBlock.value!!, context)
                 }
 
                 Column(
@@ -416,11 +417,12 @@ fun PurchaseAndPaymentComponent(
                     CustomDropdownMenu(
                         cardColleciton,
                         error = error,
+                        isEnableClick = !isBlock.value!!,
                         object : CustomTextFieldOnClick {
                             override fun onChangeValueLong(newValue: Long) {
                                 registerTextFieldViewModel.onChangeIdCard(newValue)
                             }
-                        }, reset
+                        }, reset && !isBlock.value!!
                     )
 
                 }
@@ -470,6 +472,7 @@ fun CustomButton(callback: Callback, icon: Int) {
 fun DatePickerCustom(
     registerTextFieldViewModel: RegisterTextFieldViewModel,
     reset: Boolean,
+    isEnableClick: Boolean? = false,
     context: Context
 ) {
 
@@ -509,9 +512,11 @@ fun DatePickerCustom(
         modifier = Modifier.fillMaxWidth(.91f),
         customOnClick = object : CustomTextFieldOnClick {
             override fun onClick() {
-                val splitedDate = date.value.split("/")
-                datePickerDialog.updateDate(splitedDate[2].toInt(), splitedDate[1].toInt()-1, splitedDate[0].toInt())
-                datePickerDialog.show()
+                if(!isEnableClick!!){
+                    val splitedDate = date.value.split("/")
+                    datePickerDialog.updateDate(splitedDate[2].toInt(), splitedDate[1].toInt()-1, splitedDate[0].toInt())
+                    datePickerDialog.show()
+                }
             }
         })
 }
@@ -646,11 +651,14 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         product.value = ""
         price.value = ""
-//        quantOrKilo.value = ""
-        locale.value = ""
-        idCard.value = -1L
         category.value = null
         typeProduct.value = TypeProduct.QUANTITY
+
+        if(!isBlock.value!!){
+            locale.value = ""
+            dateCurrent.value = ""
+            idCard.value = -1L
+        }
 
         Handler().postDelayed({
             kotlin.run {
