@@ -27,7 +27,7 @@ object MaskUtils {
 
     @JvmStatic
     fun maskQuantity(value: String): String{
-        if(value.isBlank() || value.equals("0")) return "1"
+        if(value.isBlank()) return "0"
         return replaceAll(value).toInt().toString()
     }
 

@@ -2,10 +2,9 @@ package com.example.myshoppinglist.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -20,31 +19,31 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.divider
 import com.example.myshoppinglist.ui.theme.secondary_light
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.MaskUtils
-import java.util.*
 
 @ExperimentalAnimationApi
 @Composable
-fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo>) {
+fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo>, callbackPurchase: CallbackPurchase) {
     val expandeds = remember { mutableStateListOf<Int>() }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        purchaseInfoCollection.mapIndexed { index, purchaseInfo ->
+        purchaseInfoCollection.mapIndexed { indexInfo, purchaseInfo ->
             item {
                 Column {
                     Row(
@@ -56,11 +55,11 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                             , onClick = {
                             val auxExpandeds = expandeds.toMutableList()
                             expandeds.removeAll(expandeds)
-                            expandeds.addAll(changeVisibility(index, auxExpandeds))
+                            expandeds.addAll(changeVisibility(indexInfo, auxExpandeds))
                         }) {
                             Icon(
                                 imageVector = if (isExpanded(
-                                        index,
+                                        indexInfo,
                                         expandeds
                                     )
                                 ) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -78,7 +77,7 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                     )
                 }
             }
-            if (isExpanded(index, expandeds)) items(purchaseInfo.purchaseCollection) { purchase ->
+            if (isExpanded(indexInfo, expandeds)) itemsIndexed(purchaseInfo.purchaseCollection) {index,  purchase ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
@@ -113,7 +112,9 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                                     .fillMaxWidth()
                                     .padding(top = 18.dp), horizontalArrangement = Arrangement.End
                             ) {
-                                IconButton(onClick = {})
+                                IconButton(onClick = {
+                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
+                                })
                                     {
                                         Icon(
                                             imageVector = Icons.Outlined.Edit,
@@ -121,7 +122,9 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                                             tint = text_primary,
                                         )
                                     }
-                                IconButton(onClick = {})
+                                IconButton(onClick = {
+                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.DELETE)
+                                })
                                 {
                                     Icon(
                                         imageVector = Icons.Outlined.Delete,
@@ -193,6 +196,10 @@ fun PreviewBoxProductRegisterComponent() {
                     )
                 )
             )
-        )
+        ), object : CallbackPurchase(){
+            override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
+                TODO("Not yet implemented")
+            }
+        }
     )
 }

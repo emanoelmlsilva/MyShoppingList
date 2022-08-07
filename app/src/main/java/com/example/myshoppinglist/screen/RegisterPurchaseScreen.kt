@@ -3,7 +3,6 @@ package com.example.myshoppinglist.screen
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Handler
-import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
@@ -23,22 +22,25 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color.Companion.Green
-import androidx.compose.ui.graphics.Color.Companion.Yellow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -47,12 +49,12 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
-import kotlin.time.Duration.Companion.milliseconds
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -66,16 +68,18 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
     val countProduct = remember { mutableStateOf(0)}
+    val price = remember { mutableStateOf("")}
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
 
-    registerTextFieldViewModel.purchaseCollection.observeForever {
+    registerTextFieldViewModel.purchaseCollection.observe(lifecycleOwner.value, {
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         purchaseInfoCollection.addAll(it)
         countProduct.value = purchaseInfoCollection.map{purchase -> purchase.purchaseCollection.map { item ->  item}.count()}.sum()
-    }
+    })
 
-    registerTextFieldViewModel.resetDate.observeForever {
+    registerTextFieldViewModel.resetDate.observe(lifecycleOwner.value, {
         reset.value = it
-    }
+    })
 
     Box {
 
@@ -127,7 +131,16 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                             .height(1.dp)
                     )
                     Spacer(Modifier.height(20.dp))
-                    BoxProductRegisterComponent(purchaseInfoCollection)
+                    BoxProductRegisterComponent(purchaseInfoCollection, object : CallbackPurchase(){
+                        override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
+                            if(typeState == TypeState.EDIT) {
+                                val purchaseEdit = purchaseInfoCollection[indexInfo].purchaseCollection[index]
+                                registerTextFieldViewModel.updateData(purchaseEdit, index, indexInfo)
+                            }else{
+                                registerTextFieldViewModel.removerPurchase(indexInfo, index)
+                            }
+                        }
+                    })
                 }
             },
             scaffoldState = scaffoldState,
@@ -159,6 +172,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 item {
                     TextInputComponent(
                         label = "Produto",
+                        value = registerTextFieldViewModel.product.observeAsState().value!!,
                         reset = reset.value,
                         maxChar = 45,
                         isCountChar = true,
@@ -167,10 +181,6 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                         customOnClick = object : CustomTextFieldOnClick {
                             override fun onChangeValue(newValue: String) {
                                 registerTextFieldViewModel.onChangeProduct(newValue)
-                            }
-
-                            override fun onChangeTypeProduct(newProduct: TypeProduct) {
-                                TODO("Not yet implemented")
                             }
                         })
                     Row(
@@ -182,6 +192,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                     ) {
                         NumberInputComponent(maxChar = 13,
                             keyboardType = KeyboardType.Number,
+                            value = registerTextFieldViewModel.price.observeAsState()!!.value,
                             reset = reset.value,
                             modifier = Modifier
                                 .fillMaxWidth(0.45f)
@@ -379,6 +390,7 @@ fun PurchaseAndPaymentComponent(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
                         label = "Local",
+                        value = registerTextFieldViewModel.locale.observeAsState().value!!,
                         reset = reset && !isBlock.value!!,
                         isEnableClick = isBlock.value!!,
                         modifier = Modifier.fillMaxWidth(.63f),
@@ -415,6 +427,7 @@ fun PurchaseAndPaymentComponent(
                     )
 
                     CustomDropdownMenu(
+                        registerTextFieldViewModel.idCard.observeAsState().value,
                         cardColleciton,
                         error = error,
                         isEnableClick = !isBlock.value!!,
@@ -483,14 +496,15 @@ fun DatePickerCustom(
     val month = calendar.get(Calendar.MONTH)
     val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
-    val formatedDate = "${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}/${if (month < 10) "0${month + 1}" else (month+1)}/$year"
+    val formatedDate = FormatUtils().getDateFormatted(formatPtBR = true)
+
     val date = remember { mutableStateOf(formatedDate) }
 
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            date.value = "${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}/${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}/$year"
-            registerTextFieldViewModel.onChangeDateCurrent("$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}")
+            date.value = FormatUtils().getDateFormatted(dayOfMonth, month, year, true)
+            registerTextFieldViewModel.onChangeDateCurrent(FormatUtils().getDateFormatted(dayOfMonth, month, year))
         },
         year,
         month,
@@ -500,7 +514,13 @@ fun DatePickerCustom(
     datePickerDialog.datePicker.maxDate = calendar.time.time
 
     LaunchedEffect(Unit){
-        registerTextFieldViewModel.onChangeDateCurrent("$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}")
+        registerTextFieldViewModel.onChangeDateCurrent(FormatUtils().getDateFormatted(dayOfMonth, month, year,))
+    }
+
+    registerTextFieldViewModel.dateCurrent.observeForever {
+        if(it.isNotBlank()){
+            date.value = FormatUtils().getDateFromatted(Date(it.toString().replace("-", "/")))
+        }
     }
 
     TextInputComponent(
@@ -525,14 +545,22 @@ fun DatePickerCustom(
 @Composable
 fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
     var isMoney by remember { mutableStateOf(true) }
-    var value by remember { mutableStateOf("0") }
+    var value by remember { mutableStateOf("") }
     var convertedValue = 0
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    var focusRequester by remember { mutableStateOf(FocusRequester()) }
 
-    registerTextFieldViewModel.resetDate.observeForever {
+    registerTextFieldViewModel.resetDate.observe(lifecycleOwner.value, {
         if (it) {
-            value = "1"
+            value = ""
         }
-    }
+    })
+
+    registerTextFieldViewModel.quantOrKilo.observe(lifecycleOwner.value, {
+        if(it != null){
+            value = it
+        }
+    })
 
     var customOnClick = object : CustomTextFieldOnClick {
         override fun onChangeValue(newValue: String) {
@@ -549,10 +577,6 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
         }
     }
 
-    LaunchedEffect(Unit){
-        customOnClick.onChangeValue("1")
-    }
-
     Card(
         elevation = 2.dp,
         shape = RoundedCornerShape(8.dp),
@@ -566,7 +590,8 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
         ) {
             CustomButton(callback = object : Callback {
                 override fun onClick() {
-                    convertedValue = MaskUtils.replaceAll(value).toInt()
+                    focusRequester.requestFocus()
+                    convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
                     if (convertedValue > 0) {
                         convertedValue -= 1
                         value = convertedValue.toString()
@@ -578,6 +603,8 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
                 maxChar = 11,
                 hasIcon = true,
                 value = value,
+                focusRequester = focusRequester,
+                error = registerTextFieldViewModel.quantOrKiloError.observeAsState().value,
                 isMandatory = false,
                 modifier = Modifier
                     .padding(vertical = 1.dp)
@@ -587,7 +614,8 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
             )
             CustomButton(callback = object : Callback {
                 override fun onClick() {
-                    convertedValue = MaskUtils.replaceAll(value).toInt()
+                    focusRequester.requestFocus()
+                    convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
                     convertedValue += 1
                     value = convertedValue.toString()
                     registerTextFieldViewModel.onChangeQuantOrKilo(value)
@@ -618,6 +646,24 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val localeError: MutableLiveData<Boolean> = MutableLiveData(false)
     val idCardError: MutableLiveData<Boolean> = MutableLiveData(false)
     val typeCategoryError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val quantOrKiloError:  MutableLiveData<Boolean> = MutableLiveData(false)
+
+    val index:  MutableLiveData<Int> = MutableLiveData(-1)
+    val indexInfo:  MutableLiveData<Int> = MutableLiveData(-1)
+
+    fun updateData(purchase: Purchase, newIndex: Int, newIndexInfo: Int){
+        product.value = purchase.name
+        price.value = purchase.price.toString()
+        category.value = purchase.category
+        typeProduct.value = purchase.typeProduct
+        locale.value = purchase.locale
+        dateCurrent.value = purchase.date
+        idCard.value = purchase.purchaseCardId
+        quantOrKilo.value = purchase.quantiOrKilo
+
+        index.value = newIndex
+        indexInfo.value = newIndexInfo
+    }
 
     override fun checkFileds(): Boolean {
 
@@ -631,6 +677,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         typeCategoryError.value = category.value == null
 
+        quantOrKiloError.value = quantOrKilo.value!!.isBlank() || MaskUtils.replaceAll(quantOrKilo.value!!).toInt() == 0
+
         if (product.value!!.isBlank()) return false
 
         if (price.value!!.isBlank()) return false
@@ -643,7 +691,16 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         if (category.value == null) return false
 
+        if(quantOrKilo.value!!.isBlank() || MaskUtils.replaceAll(quantOrKilo.value!!).toInt() == 0) return false
+
         return true
+    }
+
+    fun removerPurchase(indexInfo: Int, index: Int){
+        purchaseCollection.value?.get(indexInfo)?.purchaseCollection?.removeAt(index)
+        if(purchaseCollection.value?.get(indexInfo)?.purchaseCollection?.size == 0){
+            purchaseCollection.value?.removeAt(indexInfo)
+        }
     }
 
     fun onChangeResetDate() {
@@ -653,10 +710,13 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         price.value = ""
         category.value = null
         typeProduct.value = TypeProduct.QUANTITY
+        index.value = -1
+        indexInfo.value = -1
+        quantOrKilo.value = ""
 
         if(!isBlock.value!!){
             locale.value = ""
-            dateCurrent.value = ""
+            dateCurrent.value = FormatUtils().getDateFormatted(formatPtBR = false)
             idCard.value = -1L
         }
 
@@ -692,21 +752,29 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             category.value!!
         )
 
-        if (purchaseCollection.value != null && !purchaseCollection.value!!.isEmpty()) {
-            val indexCurrent =
-                purchaseCollection.value!!.indexOfFirst { it.title.equals(locale.value!!) }
-            if (indexCurrent != -1) {
-                purchaseCollection.value!!.get(indexCurrent).purchaseCollection.add(purchase)
-            } else {
-                var newPurchaseCollection = purchaseCollection.value
-                newPurchaseCollection!!.add(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
-                purchaseCollection.value = newPurchaseCollection
-            }
+        if(index.value != -1 && indexInfo.value != -1 && purchaseCollection.value!!.size > 0){
+            purchaseCollection.value!![indexInfo.value!!].purchaseCollection[index.value!!] =
+                purchase
 
-        } else {
-            purchaseCollection.value =
-                mutableListOf(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
+        }else{
+            if (purchaseCollection.value != null && purchaseCollection.value!!.isNotEmpty() && purchaseCollection.value!!.size > 0) {
+                val indexCurrent =
+                    purchaseCollection.value!!.indexOfFirst { it.title.equals(locale.value!!) }
+                if (indexCurrent != -1) {
+                    purchaseCollection.value!!.get(indexCurrent).purchaseCollection.add(purchase)
+                } else {
+                    var newPurchaseCollection = purchaseCollection.value
+                    newPurchaseCollection!!.add(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
+                    purchaseCollection.value = newPurchaseCollection
+                }
+
+            } else {
+                purchaseCollection.value =
+                    mutableListOf(PurchaseInfo(purchase.locale, mutableListOf(purchase)))
+            }
         }
+
+
 
     }
 
@@ -721,6 +789,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
     fun onChangeQuantOrKilo(newQuantOrKilo: String) {
         quantOrKilo.value = newQuantOrKilo
+        quantOrKiloError.value = newQuantOrKilo.isBlank() || MaskUtils.replaceAll(newQuantOrKilo).toInt() == 0
     }
 
     fun onChangeLocale(newLocale: String) {

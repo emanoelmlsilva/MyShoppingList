@@ -11,6 +11,32 @@ class FormatUtils {
     private val dayOfWeek = 3
     private val localeBr = Locale("pt", "BR")
 
+    fun getDateFromatted(date: Date): String{
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
+
+        return getDateFormatted(dayOfMonth, month, year, true)
+    }
+
+    fun getDateFormatted(currentDayOfMonth: Int? = null, currentMonth: Int? = null, currentYear: Int? = null, formatPtBR: Boolean? = false): String{
+        val calendar = Calendar.getInstance()
+        calendar.time = Date()
+
+        val year = currentYear?:calendar.get(Calendar.YEAR)
+        val month = currentMonth?:calendar.get(Calendar.MONTH)
+        val dayOfMonth = currentDayOfMonth?:calendar.get(Calendar.DAY_OF_MONTH)
+
+        return if(formatPtBR!!) {
+            "${if (dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}/${if (month < 10) "0${month + 1}" else (month + 1)}/$year"
+        }else{
+            "$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}"
+        }
+    }
+
     fun getDateString(date: Date? = Date()): String{
         val dateFormat1 = SimpleDateFormat(patternReverseDate);
         return dateFormat1.format(date)
