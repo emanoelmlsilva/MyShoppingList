@@ -44,7 +44,7 @@ fun TextInputComponent(modifier: Modifier? = null, value: String = "", maxChar: 
                 },
                 enabled = !isEnableClick!!,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth().clickable(enabled = isEnableClick!!, onClick = {
+                modifier = Modifier.fillMaxWidth().clickable(enabled = isEnableClick, onClick = {
                     customOnClick.onClick()
                 }),
                 label = { Text(label) },
