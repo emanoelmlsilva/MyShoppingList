@@ -7,7 +7,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
@@ -34,7 +37,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
+import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -68,38 +73,30 @@ fun CreateUserScreen(navController: NavController?) {
             .fillMaxHeight()
             .background(secondary)
     ) {
-        LazyColumn( modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            .fillMaxHeight(.7f),
+        LazyColumn(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 26.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 HeaderText()
-            }
-
-            item{
                 HeaderImage(createUserViewModel)
-            }
-
-            item{
                 ContentAvatares(createUserViewModel)
-            }
-            item{
                 TextFieldContent(createUserViewModel, object : Callback {
                     override fun onClick() {
                         saveUser()
                     }
                 })
             }
-              item{
-                  ButtonsFooterContent(
-                      btnTextAccept = "PROXIMO",
-                      iconAccept = Icons.Filled.ArrowForward,
-                      onClickAccept = {
-                          saveUser()
-                      })
-              }
+            item {
+                ButtonsFooterContent(
+                    btnTextAccept = "PROXIMO",
+                    iconAccept = Icons.Filled.ArrowForward,
+                    onClickAccept = {
+                        saveUser()
+                    })
+            }
         }
     }
 }
@@ -117,7 +114,7 @@ fun HeaderText() {
             text = textWelcome,
             spanStyle = SpanStyle(text_primary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         ).plus(
-            AnnotatedString(text = textBody, spanStyle = SpanStyle(text_primary, fontSize = 12.sp))
+            AnnotatedString(text = textBody, spanStyle = SpanStyle(text_primary, fontSize = 14.sp))
         )
     )
 
@@ -134,20 +131,20 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp, 0.dp, 0.dp, 0.dp)
+            .padding(4.dp, 26.dp, 0.dp, 0.dp)
     ) {
         Image(
             painterResource(idAvatar),
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(68.dp)
+                .size(78.dp)
                 .clip(CircleShape)
                 .border(2.dp, text_primary, CircleShape)
         )
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.Center) {
-            Text(text = name, Modifier.padding(0.dp, 8.dp))
-            Text(text = nickName)
+            Text(text = if (name.isBlank()) "Nome" else name, Modifier.padding(0.dp, 8.dp), color = if(name.isBlank()) secondary_dark else text_primary)
+            Text(text = if (nickName.isBlank()) "Apelido" else nickName, color = if(nickName.isBlank()) secondary_dark else text_primary)
         }
     }
 
@@ -156,7 +153,7 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
 @ExperimentalFoundationApi
 @Composable
 fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
-    val idAvatarCurrent: Int by createUserViewModel.idAvatar.observeAsState(R.drawable.default_avatar)
+    val idAvatarCurrent: Int by createUserViewModel.idAvatar.observeAsState(R.drawable.clover)
 
     var idsAvatar: List<Int> = listOf(
         R.drawable.clover,
@@ -168,12 +165,11 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
         R.drawable.marceline,
         R.drawable.patolino,
         R.drawable.san,
-        R.drawable.snoopy,
-        R.drawable.default_avatar
+        R.drawable.snoopy
     )
 
     @Composable
-    fun itemImage(idAvatar: Int){
+    fun itemImage(idAvatar: Int) {
         Image(
             painterResource(idAvatar),
             contentDescription = "",
@@ -195,7 +191,7 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
 
     Box(
         Modifier
-            .padding(vertical = 16.dp)
+            .padding(vertical = 26.dp)
             .shadow(1.dp, RoundedCornerShape(8.dp))
             .background(secondary)
     ) {
@@ -210,13 +206,13 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
                 Modifier.padding(4.dp, 0.dp, 0.dp, 4.dp),
                 fontWeight = FontWeight.Bold
             )
-            Column{
-                Row{
+            Column {
+                Row {
                     idsAvatar.subList(0, 6).map { idAvatar ->
                         itemImage(idAvatar)
                     }
                 }
-                Row{
+                Row(modifier = Modifier.padding(bottom = 6.dp)) {
                     idsAvatar.subList(6, idsAvatar.size).map { idAvatar ->
                         itemImage(idAvatar)
                     }
@@ -238,48 +234,43 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
 
     Column(
         Modifier
-            .height(180.dp)
             .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            OutlinedTextField(
-                value = name,
-                onValueChange = {
-                    createUserViewModel.onChangeName(it)
-                },
-                label = { Text("Nome") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = isErrorName,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier.fillMaxWidth(),
+            value = name,
+            label = "Nome",
+            isMandatory = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                }
+            ),
+            error = isErrorName,
+            customOnClick = object : CustomTextFieldOnClick {
+                override fun onChangeValue(newValue: String) {
+                    createUserViewModel.onChangeName(newValue)
+                }
+            })
 
-        Column {
-            OutlinedTextField(
-                value = nickName,
-                onValueChange = {
-                    createUserViewModel.onChangeNickName(it)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Apelido") },
-                singleLine = true,
-                isError = isErrorNickName,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        callback.onClick()
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+            value = nickName,
+            label = "Apelido",
+            isMandatory = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                }
+            ),
+            error = isErrorNickName,
+            customOnClick = object : CustomTextFieldOnClick {
+                override fun onChangeValue(newValue: String) {
+                    createUserViewModel.onChangeNickName(newValue)
+                }
+            })
     }
 
 }

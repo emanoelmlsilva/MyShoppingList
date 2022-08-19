@@ -27,8 +27,10 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
+import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
+import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
@@ -82,7 +84,6 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-
     ) {
 
         LazyColumn(
@@ -171,45 +172,25 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, callba
             .height(190.dp)
             .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            OutlinedTextField(
-                value = name,
-                onValueChange = {
-                    cardCreditViewModel.onChangeName(it)
-                },
-                label = { Text("Titular") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = isErrorName,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier.fillMaxWidth(), value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
+            onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            }
+        ), error = isErrorName, customOnClick = object : CustomTextFieldOnClick {
+            override fun onChangeValue(newValue: String) {
+                cardCreditViewModel.onChangeName(newValue)
+            }
+        })
 
-        Column {
-            OutlinedTextField(
-                value = nameCard,
-                onValueChange = {
-                    cardCreditViewModel.onChangeNameCard(it)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Nome Cartão") },
-                singleLine = true,
-                isError = isErrorNameCard,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        callback.onClick()
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier.fillMaxWidth(), value = nameCard, label = "Nome Cartão", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(
+            onNext = {
+                callback.onClick()
+            }
+        ), error = isErrorNameCard, customOnClick = object : CustomTextFieldOnClick {
+            override fun onChangeValue(newValue: String) {
+                cardCreditViewModel.onChangeNameCard(newValue)
+            }
+        })
     }
 
 }

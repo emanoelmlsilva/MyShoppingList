@@ -16,7 +16,7 @@ fun ButtonsFooterContent(btnTextAccept: String, btnTextCancel: String? = null, i
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(0.dp, 12.dp), horizontalArrangement = if(btnTextCancel != null) Arrangement.SpaceBetween else Arrangement.End){
+            .padding(0.dp, 12.dp), horizontalArrangement = if(btnTextCancel != null) Arrangement.SpaceBetween else Arrangement.Center){
         if(btnTextCancel != null){
             TextButton(
                 modifier = Modifier
