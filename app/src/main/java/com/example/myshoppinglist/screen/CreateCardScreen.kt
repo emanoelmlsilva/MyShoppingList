@@ -70,7 +70,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
                         0F,
                         colorCurrent.toArgb(),
                         typeCard,
-                        it.name
+                        it.name,
+                        flagCurrent
                     )
                 )
                 if (typeCard == TypeCard.MONEY) {

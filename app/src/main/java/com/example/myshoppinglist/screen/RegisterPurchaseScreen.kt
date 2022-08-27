@@ -259,6 +259,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 .background(text_secondary),
         ) {
             ButtonsFooterContent(
+                isClickable = countProduct.value > 0,
                 btnTextCancel = "CANCELAR",
                 btnTextAccept = "SALVAR",
                 onClickCancel = {},
@@ -378,6 +379,7 @@ fun PurchaseAndPaymentComponent(
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
+                        backgroundColor = text_secondary_light,
                         label = "Local",
                         value = registerTextFieldViewModel.locale.observeAsState().value!!,
                         reset = reset && !isBlock.value!!,
@@ -489,6 +491,7 @@ fun DatePickerCustom(
     }
 
     TextInputComponent(
+        backgroundColor = text_secondary_light,
         label = "Data da Compra",
         reset = reset,
         value = date.value,

@@ -58,7 +58,7 @@ fun CardCreditComponent(
                 isDefault,
                 isClicable,
                 typeCard,
-                CardCreditFlag.MONEY.flag,
+                flagCardCredit,
                 colorCurrent,
                 cardCreditDTO,
                 null
