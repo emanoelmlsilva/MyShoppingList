@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.ui.theme.background_text_field
 import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.MaskUtils
@@ -77,7 +78,10 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String? = "", maxCha
 
     Column{
         if(hasIcon) {
-            TextField(
+                TextField(
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = background_text_field
+                ),
                 leadingIcon = {
                     IconButton(
                         onClick = {
@@ -115,13 +119,13 @@ fun NumberInputComponent(modifier: Modifier? = null, value: String? = "", maxCha
                 isError = error?:isErrorQuantOrKilo,
                 label = { Text(label) },
                 singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent
-                ),
                 keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
             )
         }else{
-            OutlinedTextField(
+            TextField(
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = background_text_field
+                ),
                 value = numberFieldValueState,
                 onValueChange = {
                     if(it.text.length < maxChar!!){

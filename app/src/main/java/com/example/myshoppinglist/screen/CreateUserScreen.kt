@@ -2,15 +2,11 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
@@ -25,6 +21,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -65,40 +62,32 @@ fun CreateUserScreen(navController: NavController?) {
         }
     }
 
-    Surface(
-        color = MaterialTheme.colors.background,
-        contentColor = contentColorFor(secondary),
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .background(secondary)
-    ) {
-        LazyColumn(
+    TopAppBarScreen(isScrollable = true, content = {
+        Column(
             modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 26.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                HeaderText()
-                HeaderImage(createUserViewModel)
-                ContentAvatares(createUserViewModel)
-                TextFieldContent(createUserViewModel, object : Callback {
-                    override fun onClick() {
-                        saveUser()
-                    }
+
+           Column{
+               HeaderText()
+               HeaderImage(createUserViewModel)
+               ContentAvatares(createUserViewModel)
+               TextFieldContent(createUserViewModel, object : Callback {
+                   override fun onClick() {
+                       saveUser()
+                   }
+               })
+           }
+            ButtonsFooterContent(
+                btnTextAccept = "PROXIMO",
+                iconAccept = Icons.Filled.ArrowForward,
+                onClickAccept = {
+                    saveUser()
                 })
-            }
-            item {
-                ButtonsFooterContent(
-                    btnTextAccept = "PROXIMO",
-                    iconAccept = Icons.Filled.ArrowForward,
-                    onClickAccept = {
-                        saveUser()
-                    })
-            }
         }
-    }
+    })
 }
 
 @Composable
@@ -143,8 +132,15 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
                 .border(2.dp, text_primary, CircleShape)
         )
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.Center) {
-            Text(text = if (name.isBlank()) "Nome" else name, Modifier.padding(0.dp, 8.dp), color = if(name.isBlank()) secondary_dark else text_primary)
-            Text(text = if (nickName.isBlank()) "Apelido" else nickName, color = if(nickName.isBlank()) secondary_dark else text_primary)
+            Text(
+                text = if (name.isBlank()) "Nome" else name,
+                Modifier.padding(0.dp, 8.dp),
+                color = if (name.isBlank()) secondary_dark else text_primary
+            )
+            Text(
+                text = if (nickName.isBlank()) "Apelido" else nickName,
+                color = if (nickName.isBlank()) secondary_dark else text_primary
+            )
         }
     }
 
@@ -231,6 +227,7 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
     val isErrorName: Boolean by createUserViewModel.isErrorName.observeAsState(false)
     val isErrorNickName: Boolean by createUserViewModel.isErrorNickName.observeAsState(false)
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         Modifier
@@ -263,6 +260,8 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
             keyboardActions = KeyboardActions(
                 onNext = {
                     focusManager.moveFocus(FocusDirection.Down)
+                    keyboardController?.hide()
+                    callback.onClick()
                 }
             ),
             error = isErrorNickName,
@@ -278,7 +277,7 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
 class CreateUserFieldViewModel : BaseFieldViewModel() {
 
     var name: MutableLiveData<String> = MutableLiveData("")
-    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.default_avatar)
+    var idAvatar: MutableLiveData<Int> = MutableLiveData(R.drawable.clover)
     var nickName: MutableLiveData<String> = MutableLiveData("")
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNickName: MutableLiveData<Boolean> = MutableLiveData(false)

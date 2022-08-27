@@ -31,27 +31,18 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 fun NavController(navHostController: NavHostController, window: Window, routeInitial: String){
     NavHost(navController = navHostController, startDestination = routeInitial) {
         composable("createUser") {
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-
             CreateUserScreen(navHostController)
         }
         composable("createCards?hasToolbar={hasToolbar}", arguments = listOf(navArgument("hasToolbar") { defaultValue = "false" })
         ) { navBackStack ->
             val hasToolbar = navBackStack.arguments?.getString("hasToolbar").toBoolean()
-            if (hasToolbar) {
-                TopAppBarScreen(onClickIcon = { navHostController.popBackStack()},content = {
-                    CreateCardScreen(navHostController, TypeCard.CREDIT)
-                })
-            } else {
-                CreateCardScreen(navHostController,TypeCard.MONEY)
-            }
+            CreateCardScreen(navHostController, hasToolbar)
         }
         composable("home"){
             window.statusBarColor = primary_dark.hashCode()
             HomeScreen(navHostController)
         }
         composable("credit_collection"){
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
             CreditCollectionScreen(navHostController)
         }
         composable("register_purchase"){

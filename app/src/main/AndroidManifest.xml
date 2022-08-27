@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.activity.MainActivity" android:theme="@style/Theme.MyShoppingList" android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".ui.activity.MainActivity" android:theme="@style/Theme.MyShoppingList"/>
     </application>
 
 </manifest>

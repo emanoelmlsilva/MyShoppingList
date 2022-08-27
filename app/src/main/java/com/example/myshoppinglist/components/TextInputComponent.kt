@@ -1,7 +1,5 @@
 package com.example.myshoppinglist.components
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,14 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.ui.theme.background_text_field
-import com.example.myshoppinglist.ui.theme.card_blue
-import com.example.myshoppinglist.ui.theme.card_orange
 import com.example.myshoppinglist.ui.theme.secondary_dark
 
 @ExperimentalComposeUiApi
