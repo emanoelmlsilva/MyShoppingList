@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -258,6 +259,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 .background(text_secondary),
         ) {
             ButtonsFooterContent(
+                isClickable = countProduct.value > 0,
                 btnTextCancel = "CANCELAR",
                 btnTextAccept = "SALVAR",
                 onClickCancel = {},
@@ -332,7 +334,6 @@ fun PurchaseAndPaymentComponent(
     registerTextFieldViewModel: RegisterTextFieldViewModel,
     error: Boolean? = false
 ) {
-    var expanded by remember { mutableStateOf(true) }
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModel(context)
     val cardCreditCollection =
@@ -341,11 +342,12 @@ fun PurchaseAndPaymentComponent(
     creditCardViewModel.getAll()
     val cardColleciton = getNameCard(cardCreditCollection)
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
+    val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
 
     Card(
-        elevation = 2.dp,
+        elevation = 0.dp,
         shape = RoundedCornerShape(6.dp),
-        backgroundColor = text_secondary,
+        backgroundColor = colorBackground,
         modifier = Modifier.padding(top = 16.dp)
     ) {
         Column(
@@ -357,22 +359,11 @@ fun PurchaseAndPaymentComponent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row {
-                    IconButton(
-                        modifier = Modifier.then(Modifier.size(24.dp)),
-                        onClick = { expanded = !expanded },
-                    ) {
-                        Icon(
-                            imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = text_primary,
-                        )
-                    }
-                    Text(
-                        text = "Local da Compra & Pagamento",
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
+                Text(
+                    text = "Local da Compra & Pagamento",
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+
                 IconButton(
                     modifier = Modifier.then(Modifier.size(24.dp)),
                     onClick = { registerTextFieldViewModel.onChangeIsBlock(!isBlock.value!!) },
@@ -385,10 +376,10 @@ fun PurchaseAndPaymentComponent(
                 }
 
             }
-            if (expanded) {
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
+                        backgroundColor = text_secondary_light,
                         label = "Local",
                         value = registerTextFieldViewModel.locale.observeAsState().value!!,
                         reset = reset && !isBlock.value!!,
@@ -405,42 +396,18 @@ fun PurchaseAndPaymentComponent(
                         })
                     DatePickerCustom(registerTextFieldViewModel, reset && !isBlock.value!!, isBlock.value!!, context)
                 }
-
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Forma de Pagamento")
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_baseline_credit_card_24),
-                            contentDescription = null,
-                            tint = text_primary,
-                        )
+            CustomDropdownMenu(
+                backgroundColor = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else background_text_field,
+                idCardEditable = registerTextFieldViewModel.idCard.observeAsState().value,
+                valueCollection = cardColleciton,
+                error = error,
+                isEnableClick = !isBlock.value!!,
+                callback = object : CustomTextFieldOnClick {
+                    override fun onChangeValueLong(newValue: Long) {
+                        registerTextFieldViewModel.onChangeIdCard(newValue)
                     }
-                    Divider(
-                        color = text_primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    )
-
-                    CustomDropdownMenu(
-                        registerTextFieldViewModel.idCard.observeAsState().value,
-                        cardColleciton,
-                        error = error,
-                        isEnableClick = !isBlock.value!!,
-                        object : CustomTextFieldOnClick {
-                            override fun onChangeValueLong(newValue: Long) {
-                                registerTextFieldViewModel.onChangeIdCard(newValue)
-                            }
-                        }, reset && !isBlock.value!!
-                    )
-
-                }
-            }
-
+                }, reset = reset && !isBlock.value!!
+            )
         }
     }
 
@@ -464,8 +431,8 @@ fun getNameCard(creditCardColelction: List<CreditCard>): HashMap<String, Long> {
 }
 
 @Composable
-fun CustomButton(callback: Callback, icon: Int) {
-    Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_card) {
+fun CustomButton(callback: Callback, icon: Int, modifier: Modifier = Modifier) {
+    Card(modifier = modifier,elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_card) {
         IconButton(
             modifier = Modifier.then(Modifier.size(24.dp)),
             onClick = { callback.onClick() },
@@ -524,12 +491,13 @@ fun DatePickerCustom(
     }
 
     TextInputComponent(
+        backgroundColor = text_secondary_light,
         label = "Data da Compra",
         reset = reset,
         value = date.value,
         maxChar = 30,
         isEnableClick = true,
-        modifier = Modifier.fillMaxWidth(.91f),
+        modifier = Modifier.fillMaxWidth(.97f),
         customOnClick = object : CustomTextFieldOnClick {
             override fun onClick() {
                 if(!isEnableClick!!){
@@ -578,9 +546,9 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
     }
 
     Card(
-        elevation = 2.dp,
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.padding(top = 6.dp)
+        elevation = 0.dp,
+        modifier = Modifier.padding(top = 6.dp),
+        backgroundColor = text_secondary
     ) {
         Row(
             modifier = Modifier
@@ -588,17 +556,6 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CustomButton(callback = object : Callback {
-                override fun onClick() {
-                    focusRequester.requestFocus()
-                    convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
-                    if (convertedValue > 0) {
-                        convertedValue -= 1
-                        value = convertedValue.toString()
-                        registerTextFieldViewModel.onChangeQuantOrKilo(value)
-                    }
-                }
-            }, icon = R.drawable.ic_baseline_remove_24)
             NumberInputComponent(
                 maxChar = 11,
                 hasIcon = true,
@@ -612,15 +569,31 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
                 label = if (isMoney) "Quantidade" else "Quilograma",
                 customOnClick = customOnClick
             )
-            CustomButton(callback = object : Callback {
-                override fun onClick() {
-                    focusRequester.requestFocus()
-                    convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
-                    convertedValue += 1
-                    value = convertedValue.toString()
-                    registerTextFieldViewModel.onChangeQuantOrKilo(value)
-                }
-            }, icon = R.drawable.ic_baseline_add_24)
+
+            Column(modifier = Modifier.fillMaxHeight().padding(start = 4.dp), verticalArrangement = Arrangement.SpaceBetween){
+                CustomButton(modifier = Modifier.padding(bottom = 4.dp),callback = object : Callback {
+                    override fun onClick() {
+                        focusRequester.requestFocus()
+                        convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
+                        convertedValue += 1
+                        value = convertedValue.toString()
+                        registerTextFieldViewModel.onChangeQuantOrKilo(value)
+                    }
+                }, icon = R.drawable.ic_baseline_add_24)
+
+                CustomButton(callback = object : Callback {
+                    override fun onClick() {
+                        focusRequester.requestFocus()
+                        convertedValue = if(value.isBlank()) 0 else MaskUtils.replaceAll(value).toInt()
+                        if (convertedValue > 0) {
+                            convertedValue -= 1
+                            value = convertedValue.toString()
+                            registerTextFieldViewModel.onChangeQuantOrKilo(value)
+                        }
+                    }
+                }, icon = R.drawable.ic_baseline_remove_24)
+            }
+
         }
     }
 

@@ -5,5 +5,5 @@
         <color android:color="@color/secondary"/>
     </item>
 
-    <item android:drawable="@drawable/my_shop_list" android:width="110dp" android:height="110dp" android:gravity="center"/>
+    <item android:drawable="@drawable/my_shopping" android:width="170dp" android:height="145dp" android:gravity="center"/>
 </layer-list>

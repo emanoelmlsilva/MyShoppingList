@@ -59,6 +59,7 @@ fun CreditCollectionScreen(navController: NavController?){
                         isClicable = card.holderName.isBlank(),
                         isDefault = card.holderName.isBlank(),
                         typeCard = card.typeCard,
+                        flagCardCredit = card.flag,
                         isChoiceColor = false,
                         cardCreditDTO = card,
                         createCardCreditViewModel = createCardCreditViewModel,
@@ -74,7 +75,7 @@ fun CreditCollectionScreen(navController: NavController?){
 
 fun generateCardCredit(creditCardCollection: List<CreditCard>): List<CreditCardDTO>{
     var creditCardDTOCollection: MutableList<CreditCardDTO> =
-        creditCardCollection.map { CreditCardDTO(it.cardName, it.holderName, it.value, it.colorCard, it.typeCard) }.toMutableList()
+        creditCardCollection.map { CreditCardDTO(it.cardName, it.holderName, it.value, it.colorCard, it.typeCard, it.flag) }.toMutableList()
     creditCardDTOCollection.add(0, CreditCardDTO("", "", 0F ))
     return creditCardDTOCollection;
 }
