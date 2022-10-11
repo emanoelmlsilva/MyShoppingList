@@ -3,6 +3,7 @@ package com.example.myshoppinglist.screen
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Handler
+import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
@@ -61,16 +62,19 @@ import java.util.*
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
-fun RegisterPurchaseScreen(navController: NavHostController?) {
+fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long) {
     val context = LocalContext.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
     val purchaseViewModel = PurchaseViewModel(context)
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
     val countProduct = remember { mutableStateOf(0)}
-    val price = remember { mutableStateOf("")}
-    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+
+    LaunchedEffect(key1 = idCardCurrent){
+        registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
+    }
 
     registerTextFieldViewModel.purchaseCollection.observe(lifecycleOwner.value, {
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
@@ -262,7 +266,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?) {
                 isClickable = countProduct.value > 0,
                 btnTextCancel = "CANCELAR",
                 btnTextAccept = "SALVAR",
-                onClickCancel = {},
+                onClickCancel = {navController?.popBackStack()},
                 onClickAccept = {
                     purchaseInfoCollection.forEach { purchaseInfo ->
                         purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection)
@@ -335,12 +339,12 @@ fun PurchaseAndPaymentComponent(
     error: Boolean? = false
 ) {
     val context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context)
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val cardCreditCollection =
         creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
     creditCardViewModel.getAll()
-    val cardColleciton = getNameCard(cardCreditCollection)
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
 
@@ -379,11 +383,11 @@ fun PurchaseAndPaymentComponent(
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
+                        isEnableClick = !isBlock.value!!,
                         backgroundColor = text_secondary_light,
                         label = "Local",
                         value = registerTextFieldViewModel.locale.observeAsState().value!!,
                         reset = reset && !isBlock.value!!,
-                        isEnableClick = isBlock.value!!,
                         modifier = Modifier.fillMaxWidth(.63f),
                         maxChar = 30,
                         isCountChar = true,
@@ -399,7 +403,7 @@ fun PurchaseAndPaymentComponent(
             CustomDropdownMenu(
                 backgroundColor = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else background_text_field,
                 idCardEditable = registerTextFieldViewModel.idCard.observeAsState().value,
-                valueCollection = cardColleciton,
+                valueCollection = getNameCard(cardCreditCollection),
                 error = error,
                 isEnableClick = !isBlock.value!!,
                 callback = object : CustomTextFieldOnClick {
@@ -415,8 +419,6 @@ fun PurchaseAndPaymentComponent(
 
 fun getNameCard(creditCardColelction: List<CreditCard>): HashMap<String, Long> {
     val cardCreditFormated: HashMap<String, Long> = HashMap<String, Long>()
-
-    cardCreditFormated.put("Cartões", -1)
 
     creditCardColelction.forEachIndexed { index, creditCard ->
         cardCreditFormated.put(
@@ -496,8 +498,8 @@ fun DatePickerCustom(
         reset = reset,
         value = date.value,
         maxChar = 30,
-        isEnableClick = true,
-        modifier = Modifier.fillMaxWidth(.97f),
+        isEnableClick = false,
+        modifier = Modifier.fillMaxWidth(.98f),
         customOnClick = object : CustomTextFieldOnClick {
             override fun onClick() {
                 if(!isEnableClick!!){

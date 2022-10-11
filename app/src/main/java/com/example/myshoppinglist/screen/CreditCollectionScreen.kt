@@ -16,8 +16,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,8 +35,9 @@ import com.example.myshoppinglist.ui.theme.*
 @Composable
 fun CreditCollectionScreen(navController: NavController?){
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
-    var context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context)
+    val context = LocalContext.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val listState = rememberLazyListState()
     val creditCardCollectionFieldViewModel = CreditCollectionFieldViewModel()
     val creditCardDTOCollection = creditCardCollectionFieldViewModel.creditCardCollection.observeAsState(initial = listOf<CreditCardDTO>()).value
@@ -75,8 +78,8 @@ fun CreditCollectionScreen(navController: NavController?){
 
 fun generateCardCredit(creditCardCollection: List<CreditCard>): List<CreditCardDTO>{
     var creditCardDTOCollection: MutableList<CreditCardDTO> =
-        creditCardCollection.map { CreditCardDTO(it.cardName, it.holderName, it.value, it.colorCard, it.typeCard, it.flag) }.toMutableList()
-    creditCardDTOCollection.add(0, CreditCardDTO("", "", 0F ))
+        creditCardCollection.map { CreditCardDTO(it.id, it.cardName, it.holderName, it.value, it.colorCard, it.typeCard, it.flag) }.toMutableList()
+    creditCardDTOCollection.add(0, CreditCardDTO(0L, "", "", 0F ))
     return creditCardDTOCollection;
 }
 

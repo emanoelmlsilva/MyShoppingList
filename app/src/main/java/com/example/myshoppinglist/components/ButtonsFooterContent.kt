@@ -15,7 +15,7 @@ import com.example.myshoppinglist.ui.theme.text_primary
 
 
 @Composable
-fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, btnTextCancel: String? = null, iconAccept: ImageVector? = null, iconCancel: ImageVector? = null, onClickAccept: () -> Unit, onClickCancel: (() -> Unit)? = null){
+fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, btnTextCancel: String? = null, iconAccept: ImageVector? = null, iconCancel: ImageVector? = null, onClickAccept: (() -> Unit)? = null, onClickCancel: (() -> Unit)? = null){
     Row(
         Modifier
             .fillMaxWidth()
@@ -45,7 +45,11 @@ fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, bt
         Button(colors = ButtonDefaults.buttonColors(backgroundColor = if(isClickable!!) primary else secondary_light),
             modifier = Modifier
                 .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
-                .clickable(enabled = isClickable!!, onClick = { onClickAccept() }), onClick = {  }) {
+                .clickable(onClick = {
+                }), onClick = {                     if(onClickAccept != null){
+                onClickAccept()
+            }
+            }) {
             Text(btnTextAccept)
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             if (iconAccept != null) {

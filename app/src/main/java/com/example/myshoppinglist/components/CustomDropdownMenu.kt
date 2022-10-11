@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,22 +17,31 @@ import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.ui.theme.*
-import java.util.HashMap
+import java.util.*
 
 @Composable
 fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: Long?, valueCollection: HashMap<String, Long>, error: Boolean? = false, isEnableClick: Boolean? = true, callback: CustomTextFieldOnClick, reset: Boolean = false){
     var expanded by remember {mutableStateOf(false)}
     var selectedValue by remember { mutableStateOf(-1L) }
     var items = valueCollection
-    val nameCard = items.entries.find { it.value == idCardEditable?:selectedValue }!!.key
+    var nameCard by remember { mutableStateOf("") }
+
+    LaunchedEffect(key1 = valueCollection, key2 = idCardEditable){
+        val itemCard = items.entries.find { it.value == idCardEditable?:selectedValue }
+        if(itemCard != null) {
+            nameCard = itemCard.key
+        }
+    }
 
     if(reset){
         selectedValue = -1L
     }
         Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_text_field_dardk, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary),
-            modifier = Modifier.padding(0.dp, 16.dp, 16.dp, 16.dp)
-            .clickable(enabled = isEnableClick!!,onClick = { expanded = true
-        })){
+            modifier = Modifier
+                .padding(0.dp, 16.dp, 16.dp, 16.dp)
+                .clickable(enabled = isEnableClick!!, onClick = {
+                    expanded = true
+                })){
             Row(modifier = Modifier.background(backgroundColor), horizontalArrangement = Arrangement.Center){
                 Text(nameCard,modifier = Modifier.padding(16.dp), fontFamily = LatoRegular, color = text_primary)
                 Icon(

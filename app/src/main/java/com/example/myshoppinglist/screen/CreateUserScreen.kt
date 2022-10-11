@@ -47,7 +47,6 @@ import com.example.myshoppinglist.ui.theme.*
 @ExperimentalFoundationApi
 @Composable
 fun CreateUserScreen(navController: NavController?) {
-    val hasToobar: String = "false"
     var createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
@@ -58,7 +57,7 @@ fun CreateUserScreen(navController: NavController?) {
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
             userViewModel.insertUser(User(name, nickName, idAvatar))
-            navController?.navigate("createCards?hasToolbar=${hasToobar.toBoolean()}")
+            navController?.navigate("createCards?hasToolbar=${false}")
         }
     }
 
