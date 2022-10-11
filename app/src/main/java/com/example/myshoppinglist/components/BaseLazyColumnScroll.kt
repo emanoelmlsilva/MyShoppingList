@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -18,13 +17,15 @@ import com.example.myshoppinglist.callback.VisibleCallback
 
 @Composable
 fun BaseLazyColumnScroll(
-    visibleAnimation: Boolean, callback: VisibleCallback?, modifier: Modifier? = null, content: LazyListScope.() -> Unit
+    visibleAnimation: Boolean,
+    callback: VisibleCallback?,
+    modifier: Modifier? = null,
+    content: LazyListScope.() -> Unit
 ) {
     val listState = rememberLazyListState()
-    val modifierDefault = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-    val limitedIndexScroll = 2
-    val limitedVisibleOffset = 5
-    val indexInitial = 0
+    val modifierDefault = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -34,11 +35,13 @@ fun BaseLazyColumnScroll(
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                if (listState.isScrollInProgress && listState.firstVisibleItemIndex < limitedIndexScroll) {
-                    if (listState.firstVisibleItemIndex == indexInitial && listState.firstVisibleItemScrollOffset <= limitedVisibleOffset) {
-                        callback?.onChangeVisible(true)
-                    } else if (visibleAnimation && listState.firstVisibleItemScrollOffset >= limitedVisibleOffset) {
+
+                if (listState.isScrollInProgress) {
+                    val positionScroll = available.y
+                    if (positionScroll <= 0) {
                         callback?.onChangeVisible(false)
+                    } else if (positionScroll >= 30) {
+                        callback?.onChangeVisible(true)
                     }
                 }
                 return super.onPostScroll(consumed, available, source)
@@ -46,15 +49,9 @@ fun BaseLazyColumnScroll(
         }
     }
 
-    LaunchedEffect(Unit) {
-        if (listState.firstVisibleItemIndex > indexInitial && visibleAnimation) {
-            callback?.onChangeVisible(false)
-        }
-    }
-
     LazyColumn(
         state = listState,
-        modifier = (modifier?:modifierDefault).nestedScroll(nestedScrollConnection)
+        modifier = (modifier ?: modifierDefault).nestedScroll(nestedScrollConnection)
     ) {
         content()
     }

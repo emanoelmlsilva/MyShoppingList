@@ -12,8 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myshoppinglist.controller.NavController
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
+import com.google.accompanist.pager.ExperimentalPagerApi
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalPagerApi
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @ExperimentalComposeUiApi

@@ -22,9 +22,9 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
-    fun getPurchaseAll(){
+    fun getPurchaseAll(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncFindAll().await()
+            searchCollecitonResult.value = asyncFindAll(nameUser).await()
         }
     }
 
@@ -52,6 +52,13 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun sumPriceAllCard(nameUser: String){
+        coroutineScope.launch(Dispatchers.Main){
+            val value = asyncSumPriceAllCard(nameUser).await()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
+        }
+    }
+
     fun sumPriceById(nameUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
             val value = asyncSumPriceById(idCard, nameUser).await()
@@ -66,17 +73,17 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
-    fun getPurchasesWeek(nameUser: String, idCard: Long){
+    fun getPurchasesWeek(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.DAY_OF_YEAR, -7)
             val limitWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonResult.value = asyncGetPurchsesWeek(idCard, nameUser, limitWeek).await()
+            searchCollecitonResult.value = asyncGetPurchsesWeek(nameUser, limitWeek).await()
         }
     }
 
-    private fun asyncFindAll(): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchaseAll()
+    private fun asyncFindAll(nameUser: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchaseAll(nameUser)
     }
 
     private fun asyncFindAllByUserAndIdCard(name: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
@@ -99,11 +106,15 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         return@async purchaseDAO.sumPriceById(nameUser, idCard)
     }
 
+    private fun asyncSumPriceAllCard(nameUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceAllCard(nameUser)
+    }
+
     private fun asyncSumPriceByMonth(idCard: Long, nameUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
     }
 
-    private fun asyncGetPurchsesWeek(idCard: Long, nameUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchasesWeek(week, nameUser, idCard)
+    private fun asyncGetPurchsesWeek(nameUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesWeek(week, nameUser)
     }
 }

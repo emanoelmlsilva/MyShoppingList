@@ -21,7 +21,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
 
 @ExperimentalComposeUiApi
 @Composable
-    fun TextInputComponent(backgroundColor: Color = background_text_field, modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = false, isCountChar: Boolean? = false, reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, keyboardActions: KeyboardActions = KeyboardActions()){
+    fun TextInputComponent(textColor: Color? = text_primary,backgroundColor: Color = background_text_field, modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = true, isCountChar: Boolean? = false, reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, keyboardActions: KeyboardActions = KeyboardActions()){
     var isErrorNickName by remember { mutableStateOf(false) }
     var customModifier = modifier ?: Modifier.fillMaxWidth()
     var textValue by remember {mutableStateOf(value)}
@@ -34,6 +34,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
             TextField(
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = backgroundColor,
+                    disabledTextColor = textColor!!
                 ),
                 keyboardActions = keyboardActions,
                 keyboardOptions = keyboardOptions,
@@ -45,8 +46,8 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
                         isErrorNickName = it.isBlank()
                     }
                 },
-                enabled = !isEnableClick!!,
-                modifier = Modifier.fillMaxWidth().clickable(enabled = isEnableClick, onClick = {
+                enabled = isEnableClick!!,
+                modifier = Modifier.fillMaxWidth().clickable(enabled = !isEnableClick, onClick = {
                     customOnClick.onClick()
                 }),
                 label = { Text(label) },
@@ -61,7 +62,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
                 style = MaterialTheme.typography.caption,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 16.dp)
+                    .padding(end = 6.dp)
             )
         }
         if(isMandatory!!) Text(text = "Obrigatório", color = secondary_dark, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))

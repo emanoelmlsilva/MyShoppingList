@@ -94,7 +94,6 @@ fun CustomCardCredit(
     cardCreditDTO: CreditCardDTO,
     modifier: Modifier?
 ) {
-    val hasToobar = true
 
     Card(
         backgroundColor = ((if (isDefault) background_card else cardColor)),
@@ -102,7 +101,7 @@ fun CustomCardCredit(
             .fillMaxWidth(.85f)
             .fillMaxHeight(.9f)
             .clickable(isClicable) {
-                navController?.navigate("createCards?hasToolbar=${hasToobar}")
+                navController?.navigate("createCards?hasToolbar=${true}")
             },
         elevation = 2.dp, shape = RoundedCornerShape(28.dp)
     ) {

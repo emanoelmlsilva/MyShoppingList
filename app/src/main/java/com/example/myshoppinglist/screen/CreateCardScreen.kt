@@ -11,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +51,8 @@ import com.example.myshoppinglist.ui.theme.*
 fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context)
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val userViewModel = UserViewModel(context)
     val name: String by createCardCreditViewModel.name.observeAsState("")
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")

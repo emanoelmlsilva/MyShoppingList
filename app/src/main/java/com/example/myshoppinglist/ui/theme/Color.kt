@@ -4,10 +4,13 @@ import androidx.compose.ui.graphics.Color
 
 val primary = Color(0xFF3CEB54)
 val primary_dark = Color(0xFF199E2B)
+val primary_light = Color(0xFF5CFF72)
 val secondary = Color(0xFFFFFFFF)
 val secondary_dark = Color(0xFF7D7D7D)
 val secondary_light = Color(0xFFC4C4C4)
 var background_card = Color(0xFFEFEFEF)
+val text_money = Color(0xFF0099DF)
+var background_divider = Color(0xFFE5E5E5)
 val message_error = Color(0xFF9E1E40)
 val text_primary = Color(0xFF000000)
 val text_secondary = Color(0xFFFFFFFF)
