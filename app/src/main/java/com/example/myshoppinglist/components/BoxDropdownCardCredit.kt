@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
@@ -67,7 +68,8 @@ fun PreviewBoxDropdownCardCredit() {
                 0.0F,
                 card_blue_dark.toArgb(),
                 TypeCard.CREDIT,
-                "emanoel"
+                "emanoel",
+                CardCreditFlag.MONEY.flag
             )
         ),
         CreditCard(
@@ -76,7 +78,8 @@ fun PreviewBoxDropdownCardCredit() {
             0.0F,
             card_blue_dark.toArgb(),
             TypeCard.CREDIT,
-            "emanoel"
+            "emanoel",
+            CardCreditFlag.MONEY.flag
         ),
         object : CallbackCreditCard {
         })

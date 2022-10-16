@@ -1,13 +1,17 @@
 package com.example.myshoppinglist.screen
 
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -16,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -27,30 +33,36 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
+import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
+import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.enums.CardCreditFlag
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
-import com.example.myshoppinglist.ui.theme.card_blue
-import com.example.myshoppinglist.ui.theme.secondary_dark
-import com.example.myshoppinglist.ui.theme.text_secondary
+import com.example.myshoppinglist.ui.theme.*
 
 @ExperimentalComposeUiApi
 @Composable
-fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
+fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context)
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val userViewModel = UserViewModel(context)
     val name: String by createCardCreditViewModel.name.observeAsState("")
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
+    val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
 
     userViewModel.getUserCurrent()
+
+    val typeCard = if(hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
 
     fun saveCreditCard() {
         userViewModel.searchResult.observeForever {
@@ -62,11 +74,12 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                         0F,
                         colorCurrent.toArgb(),
                         typeCard,
-                        it.name
+                        it.name,
+                        flagCurrent
                     )
                 )
                 if (typeCard == TypeCard.MONEY) {
-                    navController?.navigate("home") {
+                    navController?.navigate(Screen.Home.name) {
                         popUpTo(0)
                     }
                 } else {
@@ -76,27 +89,26 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
         }
     }
 
-    Surface(
-        color = MaterialTheme.colors.background,
-        contentColor = contentColorFor(text_secondary),
+    TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, hasToolbar = hasToolbar, isScrollable = true, content = {
+        Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        LazyColumn(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                .fillMaxHeight(.7f),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
+            Column{
                 if (typeCard == TypeCard.MONEY) {
-                    Column(modifier = Modifier.padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally){
-                        Text(text = stringResource(R.string.message_info), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Divider(color = secondary_dark,)
+                    Column(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.message_info),
+                            fontSize = 13.sp,
+                            fontFamily = LatoRegular,
+                        )
+                        Divider(color = secondary_dark,modifier = Modifier.padding(horizontal = 34.dp).background(card_pink),)
                     }
                 }
 
@@ -111,8 +123,9 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                         cardName = nameCard,
                         holderName = name
                     ),
+                    flagCardCredit = flagCurrent,
                     createCardCreditViewModel = createCardCreditViewModel,
-                    modifier = null,
+                    modifier = Modifier.padding(vertical = 16.dp).background(card_pink),
                     callbackColor = object :
                         CallbackColor() {
                         override fun setColorCurrent(color: Color) {
@@ -121,41 +134,82 @@ fun CreateCardScreen(navController: NavController?, typeCard: TypeCard) {
                     }
                 )
                 Column(
-                    modifier = Modifier.padding(top = 16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.padding(top = 32.dp),
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxHeight(0.14f),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "Dados do Cartão", fontWeight = FontWeight.Bold)
-
-                        Divider(
-                            color = secondary_dark,
-
-                            )
+                        Text(text = "Dados do Cartão", fontFamily = LatoBold)
+                        Divider(color = divider, modifier = Modifier.padding(top = 8.dp))
                     }
                     TextFieldContent(createCardCreditViewModel, object : Callback {
                         override fun onClick() {
                             saveCreditCard()
                         }
                     })
+                    if (typeCard != TypeCard.MONEY) { ChoiceFlag(flagCurrent ,object : Callback{
+                        override fun onClick() {
 
+                        }
+
+                        override fun onChangeValueId(value: Int) {
+                            createCardCreditViewModel.onChangeFlagCurrent(value)
+                        }
+                    }) }
                 }
             }
-            item {
-                ButtonsFooterContent(
-                    btnTextAccept = "SALVAR",
-                    onClickAccept = {
-                        saveCreditCard()
-                    })
-            }
 
+        ButtonsFooterContent(
+            btnTextAccept = "SALVAR",
+            onClickAccept = {
+                saveCreditCard()
+            })
         }
 
     }
+)
+
 }
 
+@Composable
+fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
+    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag, CardCreditFlag.APPLE.flag, CardCreditFlag.DINERS.flag, CardCreditFlag.GOOGLE.flag,
+        CardCreditFlag.INTERAC.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.STRIPE.flag, CardCreditFlag.VERIFONE.flag, CardCreditFlag.VISA.flag)
+
+    Column(modifier = Modifier.fillMaxSize().padding(top = 18.dp)){
+        Text(text = "Bandeiras", fontFamily = LatoBold)
+        Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)){
+            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly){
+                flagCollection.slice(0..(flagCollection.size/2)).map{ flag ->
+                    ItemFlag(flagIdCurrent, flag, callback)
+                }
+            }
+            Row(modifier = Modifier.fillMaxSize().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly){
+                flagCollection.slice(((flagCollection.size/2)+1) until flagCollection.size).map{ flag ->
+                    ItemFlag(flagIdCurrent, flag, callback)
+                }
+            }
+        }
+
+    }
+
+}
+
+@Composable
+fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback){
+    var isFlagChoice = flagId == flagIdCurrent
+
+    Card(elevation = 2.dp, shape = RoundedCornerShape(8.dp), backgroundColor = if(isFlagChoice) primary_dark else secondary_light,
+        modifier = Modifier.width(45.dp).height(30.dp).clickable {
+            isFlagChoice = true
+            callback.onChangeValueId(flagId) }){
+        Image(
+            painter = painterResource(id = flagId),
+            contentDescription = null,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}
 
 @ExperimentalComposeUiApi
 @Composable
@@ -168,48 +222,28 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, callba
 
     Column(
         Modifier
-            .height(190.dp)
-            .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
+            .fillMaxHeight()
+            .fillMaxWidth().padding(top = 28.dp), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            OutlinedTextField(
-                value = name,
-                onValueChange = {
-                    cardCreditViewModel.onChangeName(it)
-                },
-                label = { Text("Titular") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = isErrorName,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier.fillMaxWidth(), value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
+            onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            }
+        ), error = isErrorName, customOnClick = object : CustomTextFieldOnClick {
+            override fun onChangeValue(newValue: String) {
+                cardCreditViewModel.onChangeName(newValue)
+            }
+        })
 
-        Column {
-            OutlinedTextField(
-                value = nameCard,
-                onValueChange = {
-                    cardCreditViewModel.onChangeNameCard(it)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Nome Cartão") },
-                singleLine = true,
-                isError = isErrorNameCard,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        callback.onClick()
-                    }
-                ),
-            )
-            Text(text = "Obrigatório", color = secondary_dark)
-        }
+        TextInputComponent(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), value = nameCard, label = "Nome Cartão", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(
+            onNext = {
+                callback.onClick()
+            }
+        ), error = isErrorNameCard, customOnClick = object : CustomTextFieldOnClick {
+            override fun onChangeValue(newValue: String) {
+                cardCreditViewModel.onChangeNameCard(newValue)
+            }
+        })
     }
 
 }
@@ -220,6 +254,11 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var colorCurrent: MutableLiveData<Color> = MutableLiveData(card_blue)
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
+    var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
+
+    fun onChangeFlagCurrent(newFlagCurrent: Int) {
+        flagCurrent.value = newFlagCurrent
+    }
 
     fun onChangeColorCurrent(newColorCurrent: Color) {
         colorCurrent.value = newColorCurrent

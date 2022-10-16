@@ -4,7 +4,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -13,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,21 +33,24 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.PurchaseInfo
-import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.theme.background_card
+import com.example.myshoppinglist.ui.theme.divider
+import com.example.myshoppinglist.ui.theme.text_title_secondary
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
-import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun SpendingScreen(navController: NavHostController?) {
+fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val context = LocalContext.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val purchaseViewModel = PurchaseViewModel(context)
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
-    val creditCardViewModel = CreditCardViewModel(context)
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
     val price = remember { mutableStateOf(0.0)}
     val monthsCollection = remember { mutableStateListOf<String>() }
@@ -56,8 +59,9 @@ fun SpendingScreen(navController: NavHostController?) {
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
     val visibleAnimation = remember { mutableStateOf(true)}
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(key1 = idCard){
         creditCardViewModel.getAll()
+        creditCardViewModel.findCreditCardById(idCard)
     }
 
     fun reset(){
@@ -78,12 +82,15 @@ fun SpendingScreen(navController: NavHostController?) {
     creditCardViewModel.searchCollectionResult.observeForever {
         creditCardCollection.removeAll(creditCardCollection)
         creditCardCollection.addAll(it)
-        currentCreditCard.value = it[0]
+    }
+
+    creditCardViewModel.searchResult.observeForever {
+        currentCreditCard.value = it
 
         purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
     }
 
-    purchaseViewModel.searchPriceResult.observeForever {
+    purchaseViewModel.searchSumPriceResult.observeForever {
         price.value = it
     }
 
@@ -161,10 +168,13 @@ fun SpendingScreen(navController: NavHostController?) {
             BaseAnimationComponent(
                 visibleAnimation = visibleAnimation.value,
                 contentBase = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Card(modifier = Modifier
                             .size(62.dp)
-                            .clip(CircleShape), backgroundColor = background_card, onClick = { navController!!.navigate("register_purchase")}){
+                            .clip(CircleShape),
+                            backgroundColor = background_card,
+                            onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                 contentDescription = null,
@@ -173,20 +183,25 @@ fun SpendingScreen(navController: NavHostController?) {
                                     .padding(18.dp),
                             )
                         }
-                        Text(text = "Comprar", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = "Comprar",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
+                    Spacer(
+                        Modifier
+                            .height(15.dp)
+                    )
+
+                    Divider(
+                        color = divider,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    )
+                }
                 })
-
-            Spacer(
-                Modifier
-                    .height(15.dp))
-
-            Divider(
-                color = divider,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-            )
 
             if(purchaseInfoCollection.isNotEmpty()){
                 BaseLazyColumnScroll(
@@ -329,5 +344,5 @@ class SpendingTextFieldViewModel: BaseFieldViewModel(){
 @Preview(showBackground = true)
 @Composable
 fun PreviewSpendingScreen(){
-    SpendingScreen(null)
+    SpendingScreen(null, 0L)
 }

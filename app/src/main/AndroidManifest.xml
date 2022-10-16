@@ -4,9 +4,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/my_shop_list"
+        android:icon="@drawable/my_shopping"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/my_shop_list"
+        android:roundIcon="@drawable/my_shopping"
         android:supportsRtl="true">
         <activity
             android:name=".ui.activity.SplashScreenActivity"
@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.activity.MainActivity" android:theme="@style/Theme.MyShoppingList" android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".ui.activity.MainActivity" android:theme="@style/Theme.MyShoppingList"/>
     </application>
 
 </manifest>

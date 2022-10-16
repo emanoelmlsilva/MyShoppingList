@@ -33,6 +33,8 @@ import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.primary_dark
+import com.example.myshoppinglist.ui.theme.primary_light
+import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.ui.theme.text_secondary
 
 @ExperimentalAnimationApi
@@ -61,8 +63,8 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
         contentBase = {
             Box(
                 Modifier
-                    .background(primary_dark)
-                    .height(125.dp)
+                    .background(primary_light)
+                    .height(100.dp)
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 16.dp, bottom = 3.dp, end = 8.dp)
             ) {
@@ -73,7 +75,7 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
                     Column(
                         Modifier
                             .fillMaxHeight()
-                            .fillMaxWidth(.75f), verticalArrangement = Arrangement.SpaceBetween
+                            .fillMaxWidth(0.9f), verticalArrangement = Arrangement.SpaceBetween
                     ) {
 
                         Image(
@@ -81,32 +83,22 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .size(55.dp)
+                                .size(45.dp)
                                 .clip(CircleShape)
-                                .border(1.dp, text_secondary, CircleShape)
+                                .border(1.dp, text_primary, CircleShape)
 
                         )
                         Text(
-                            text = "Ola, ${name}",
-                            Modifier.padding(0.dp, 16.dp),
-                            color = text_secondary
-                        )
-                    }
-                    IconButton(onClick = {
-                        createHeaderFieldViewModel.onChangeIsVisibleValue()
-                        callBack.onClick()
-                    }) {
-                        Icon(
-                            painter = painterResource(id = if (isVisibleValue.value) R.drawable.ic_baseline_visibility_24 else R.drawable.ic_baseline_visibility_off_24),
-                            contentDescription = "Visible Values",
-                            tint = text_secondary
+                            text = "Ola, $name",
+                            Modifier.padding(0.dp, 4.dp),
+                            color = text_primary
                         )
                     }
                     IconButton(onClick = { }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_baseline_help_outline_24),
+                            painter = painterResource(id = R.drawable.ic_baseline_miscellaneous_services_24),
                             contentDescription = "help",
-                            tint = text_secondary
+                            tint = text_primary,
                         )
                     }
                 }
@@ -127,16 +119,4 @@ class CreateHeaderFieldViewModel : BaseFieldViewModel() {
     override fun checkFileds(): Boolean {
         TODO("Not yet implemented")
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewHeaderComponent() {
-    val context = LocalContext.current
-    val userViewModel = UserViewModel(context)
-//    HeaderComponent(userViewModel, object : Callback {
-//        override fun onClick() {
-//            TODO("Not yet implemented")
-//        }
-//    })
 }

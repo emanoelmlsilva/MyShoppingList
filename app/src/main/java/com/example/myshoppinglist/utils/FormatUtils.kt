@@ -72,7 +72,7 @@ class FormatUtils {
         val yearCureent = SimpleDateFormat("yyyy").format(Date());
         val formatter = SimpleDateFormat("MMMM", localeBr)
         val date = formatter.parse(month)
-        val month = if(date.month < 10) "0${(date.month + 1)}" else (date.month + 1)
+        val month = if(date.month < 9) "0${(date.month + 1)}" else (date.month + 1)
         val year = if(splitMonthOfYear.size > 1) splitMonthOfYear.get(1) else yearCureent
         val formatred = "${year}-${month}"
         return formatred

@@ -1,64 +1,70 @@
 package com.example.myshoppinglist.controller
 
 import android.view.Window
-import android.view.WindowManager
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.activity
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.myshoppinglist.enums.TypeCard
+import com.example.myshoppinglist.callback.VisibleCallback
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.screen.*
-import com.example.myshoppinglist.ui.theme.primary_dark
-import com.example.myshoppinglist.ui.theme.secondary
-import com.example.myshoppinglist.ui.theme.secondary_dark
-import com.example.myshoppinglist.ui.theme.text_secondary
+import com.example.myshoppinglist.ui.theme.primary_light
+import com.google.accompanist.pager.ExperimentalPagerApi
 
+@ExperimentalPagerApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @Composable
-fun NavController(navHostController: NavHostController, window: Window, routeInitial: String){
+fun NavController(navHostController: NavHostController, window: Window, routeInitial: String, callback: VisibleCallback){
     NavHost(navController = navHostController, startDestination = routeInitial) {
-        composable("createUser") {
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-
+        composable(Screen.CreateUser.name) {
+            callback.onChangeVisible(false)
             CreateUserScreen(navHostController)
         }
-        composable("createCards?hasToolbar={hasToolbar}", arguments = listOf(navArgument("hasToolbar") { defaultValue = "false" })
+        composable("${Screen.CreateCards.name}?hasToolbar={hasToolbar}", arguments = listOf(navArgument("hasToolbar") { type = NavType.BoolType })
         ) { navBackStack ->
-            val hasToolbar = navBackStack.arguments?.getString("hasToolbar").toBoolean()
-            if (hasToolbar) {
-                TopAppBarScreen(onClickIcon = { navHostController.popBackStack()},content = {
-                    CreateCardScreen(navHostController, TypeCard.CREDIT)
-                })
-            } else {
-                CreateCardScreen(navHostController,TypeCard.MONEY)
-            }
+            callback.onChangeVisible(false)
+            val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
+            CreateCardScreen(navHostController, hasToolbar ?: false)
         }
-        composable("home"){
-            window.statusBarColor = primary_dark.hashCode()
+        composable(Screen.Home.name){
+            callback.onChangeVisible(true)
+            window.statusBarColor = primary_light.hashCode()
             HomeScreen(navHostController)
         }
-        composable("credit_collection"){
-            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        composable(Screen.CreditCollection.name){
+            callback.onChangeVisible(true)
             CreditCollectionScreen(navHostController)
         }
-        composable("register_purchase"){
-            RegisterPurchaseScreen(navController = navHostController)
+        composable("${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}", arguments = listOf(navArgument("idCardCurrent"){ type = NavType.LongType})){
+            navBackStack ->
+            callback.onChangeVisible(false)
+            val idCardCurrent = navBackStack.arguments?.getLong("idCardCurrent")
+            RegisterPurchaseScreen(navController = navHostController, idCardCurrent!!)
         }
-        composable("spending"){
-            SpendingScreen(navHostController)
+        composable("${Screen.Spending.name}?idCard={idCard}", arguments = listOf(navArgument("idCard") { type = NavType.LongType })
+        ){ navBackStack ->
+            callback.onChangeVisible(false)
+            val idCard = navBackStack.arguments?.getLong("idCard")
+            if (idCard != null) {
+                SpendingScreen(navHostController, idCard)
+            }
+        }
+        composable(Screen.Products.name) {
+            callback.onChangeVisible(true)
+            ProductsScreen(navHostController)
+        }
+        composable(Screen.Finance.name) {
+            callback.onChangeVisible(true)
+            FinanceScreen(navHostController)
         }
     }
 }

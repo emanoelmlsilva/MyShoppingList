@@ -1,21 +1,17 @@
 package com.example.myshoppinglist.components
 
-import android.util.Log
-import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,19 +20,21 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: List<Purchase>, callback: VisibleCallback) {
-        BaseLazyColumnScroll(visibleAnimation = visibleAnimation, callback = callback) {
-            items(purchaseColleciton) { purchase ->
-                Column(modifier = Modifier.fillMaxWidth()) {
+    if(purchaseColleciton.isNotEmpty()){
+        BaseLazyColumnScroll(modifier = Modifier.padding(bottom = 0.dp, start = 16.dp, end = 16.dp), visibleAnimation = visibleAnimation, callback = callback) {
+            itemsIndexed(purchaseColleciton) { index, purchase ->
+                Column(modifier = Modifier.fillMaxWidth().padding(bottom = if(index == (purchaseColleciton.size - 1)) 56.dp else 0.dp)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp), horizontalArrangement = Arrangement.SpaceAround
+                            .padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceAround
                     ) {
                         Image(
                             painter = painterResource(id = purchase.category.imageCircle),
@@ -46,14 +44,20 @@ fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: L
                                 .padding(top = 3.dp)
                         )
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth(.7f)
-                                .padding(start = 12.dp)
+                            modifier = Modifier.padding(start = 12.dp)
                         ) {
                             Text(
-                                text = purchase.name, modifier = Modifier
-                                    .fillMaxWidth(.6f)
+                                text = purchase.name, fontFamily = LatoBold
+
                             )
+                            Text(
+                                text = purchase.locale, modifier = Modifier.padding(top = 12.dp), fontFamily = LatoRegular
+                            )
+                        }
+
+                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End){
+                            Text(text = FormatUtils().getNameDay(purchase.date))
+
                             Row(modifier = Modifier
                                 .padding(top = 12.dp)) {
                                 Text(
@@ -67,7 +71,7 @@ fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: L
                                 )
                             }
                         }
-                        Text(text = FormatUtils().getDate(purchase.date))
+
                     }
                     Divider(
                         color = Color(0x46C4C4C4),
@@ -76,8 +80,10 @@ fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: L
                             .height(1.dp)
                     )
                 }
+            }
         }
-        }
+    }
+
 }
 
 @Preview(showBackground = true)
@@ -93,7 +99,7 @@ fun PreivewBoxPurchaseHistoryComponent() {
                 "1",
                 TypeProduct.QUANTITY,
                 "24-07-2022",
-                "0.0".toDouble(),
+                "1323.23".toDouble(),
                 TypeCategory.DRINKS
             ),
             Purchase(
@@ -103,7 +109,7 @@ fun PreivewBoxPurchaseHistoryComponent() {
                 "1",
                 TypeProduct.QUANTITY,
                 "24-07-2022",
-                "0.0".toDouble(),
+                "23423.43".toDouble(),
                 TypeCategory.DRINKS
             )
         ),

@@ -30,5 +30,7 @@
         <item name="windowSplashScreenBackground">@color/secondary</item>
         <item name="windowSplashScreenAnimationDuration">0</item>
         <item name="postSplashScreenTheme">@style/Theme.MyShoppingList</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 </resources>
