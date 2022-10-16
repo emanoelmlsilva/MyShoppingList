@@ -22,7 +22,7 @@ import java.util.*
 @Composable
 fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: Long?, valueCollection: HashMap<String, Long>, error: Boolean? = false, isEnableClick: Boolean? = true, callback: CustomTextFieldOnClick, reset: Boolean = false){
     var expanded by remember {mutableStateOf(false)}
-    var selectedValue by remember { mutableStateOf(-1L) }
+    var selectedValue by remember { mutableStateOf(idCardEditable) }
     var items = valueCollection
     var nameCard by remember { mutableStateOf("") }
 
@@ -33,9 +33,6 @@ fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: 
         }
     }
 
-    if(reset){
-        selectedValue = -1L
-    }
         Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_text_field_dardk, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary),
             modifier = Modifier
                 .padding(0.dp, 16.dp, 16.dp, 16.dp)

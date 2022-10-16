@@ -170,7 +170,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
             LazyColumn(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .fillMaxHeight(.8f),
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -230,7 +230,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     Button(
                         colors = ButtonDefaults.buttonColors(backgroundColor = primary),
                         modifier = Modifier
-                            .padding(start = 16.dp, bottom = 16.dp, end = 16.dp, top = 16.dp),
+                            .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
                         onClick = {
                             if (registerTextFieldViewModel.checkFileds()) {
                                 registerTextFieldViewModel.addPurchase()
@@ -383,6 +383,7 @@ fun PurchaseAndPaymentComponent(
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextInputComponent(
+                        textColor = text_primary,
                         isEnableClick = !isBlock.value!!,
                         backgroundColor = text_secondary_light,
                         label = "Local",
@@ -692,7 +693,6 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         if(!isBlock.value!!){
             locale.value = ""
             dateCurrent.value = FormatUtils().getDateFormatted(formatPtBR = false)
-            idCard.value = -1L
         }
 
         Handler().postDelayed({

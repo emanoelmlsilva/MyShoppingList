@@ -33,6 +33,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.background_card
@@ -167,10 +168,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
             BaseAnimationComponent(
                 visibleAnimation = visibleAnimation.value,
                 contentBase = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Card(modifier = Modifier
                             .size(62.dp)
-                            .clip(CircleShape), backgroundColor = background_card, onClick = { navController!!.navigate("register_purchase?idCardCurrent=${currentCreditCard.value?.id}")}){
+                            .clip(CircleShape),
+                            backgroundColor = background_card,
+                            onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                 contentDescription = null,
@@ -179,20 +183,25 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     .padding(18.dp),
                             )
                         }
-                        Text(text = "Comprar", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = "Comprar",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
+                    Spacer(
+                        Modifier
+                            .height(15.dp)
+                    )
+
+                    Divider(
+                        color = divider,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    )
+                }
                 })
-
-            Spacer(
-                Modifier
-                    .height(15.dp))
-
-            Divider(
-                color = divider,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-            )
 
             if(purchaseInfoCollection.isNotEmpty()){
                 BaseLazyColumnScroll(

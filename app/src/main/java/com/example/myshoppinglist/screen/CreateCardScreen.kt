@@ -43,6 +43,7 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.*
 
@@ -78,7 +79,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
                     )
                 )
                 if (typeCard == TypeCard.MONEY) {
-                    navController?.navigate("home") {
+                    navController?.navigate(Screen.Home.name) {
                         popUpTo(0)
                     }
                 } else {
@@ -88,7 +89,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
         }
     }
 
-    TopAppBarScreen(hasToolbar = hasToolbar, isScrollable = true, content = {
+    TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, hasToolbar = hasToolbar, isScrollable = true, content = {
         Column(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, top = 16.dp)
@@ -172,8 +173,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
 
 @Composable
 fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
-    val flagCollection = arrayOf(CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag, CardCreditFlag.APPLE.flag, CardCreditFlag.DINERS.flag, CardCreditFlag.GOOGLE.flag,
-        CardCreditFlag.INTERAC.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.STRIPE.flag, CardCreditFlag.VERIFONE.flag, CardCreditFlag.VISA.flag, CardCreditFlag.MONEY.flag)
+    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag, CardCreditFlag.APPLE.flag, CardCreditFlag.DINERS.flag, CardCreditFlag.GOOGLE.flag,
+        CardCreditFlag.INTERAC.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.STRIPE.flag, CardCreditFlag.VERIFONE.flag, CardCreditFlag.VISA.flag)
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 18.dp)){
         Text(text = "Bandeiras", fontFamily = LatoBold)
@@ -184,7 +185,7 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
                 }
             }
             Row(modifier = Modifier.fillMaxSize().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly){
-                flagCollection.slice(((flagCollection.size/2)+1)..(flagCollection.size-1)).map{ flag ->
+                flagCollection.slice(((flagCollection.size/2)+1) until flagCollection.size).map{ flag ->
                     ItemFlag(flagIdCurrent, flag, callback)
                 }
             }
