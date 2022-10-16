@@ -3,6 +3,8 @@ package com.example.myshoppinglist.screen
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -11,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -129,9 +131,11 @@ fun MySpending(
     itemSpedingCollection: List<List<CreditCardDTO>>, navController: NavController?
 ) {
     val pagerState = rememberPagerState()
-    val heightBoxCard = arrayOf(
-        0.2f,0.35f,0.45f
-    )
+
+    val configuration = LocalConfiguration.current
+
+    val screenHeight = configuration.screenHeightDp.dp
+
     Card(
         elevation = 2.dp,
         shape = RoundedCornerShape(6.dp),
@@ -163,7 +167,7 @@ fun MySpending(
                         Text(text = "Saldo geral", fontFamily = LatoRegular)
                         Spacer(Modifier.size(12.dp))
                         Text(
-                            text = "R$ ${MaskUtils.maskValue(priceTotal.toString())}",
+                            text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(priceTotal))}",
                             fontFamily = LatoBold
                         )
                     }
@@ -192,22 +196,23 @@ fun MySpending(
                         )
 
                         if (itemSpedingCollection.isNotEmpty()) {
-                            HorizontalPager(state = pagerState, count = itemSpedingCollection.size,  modifier = Modifier
-                                .fillMaxHeight(heightBoxCard[itemSpedingCollection[0].size-1]), verticalAlignment = Alignment.Top) { page ->
+                            HorizontalPager(state = pagerState, count = itemSpedingCollection.size,  modifier = Modifier.height(((screenHeight / if(screenHeight < 570.dp) 2.6.dp else 3.4.dp).dp))) { page ->
+
                                 val creditCardCollection = itemSpedingCollection[page]
+
                                 Column(modifier = Modifier
                                     .fillMaxHeight(), verticalArrangement = Arrangement.Top) {
-                                    repeat(creditCardCollection.size) { index ->
-                                        var creditCardDTO: CreditCardDTO =
-                                            creditCardCollection[index]
-
-                                        ItemSpending(creditCardDTO, object : Callback {
-                                            override fun onChangeIdCard(idCard: Long) {
-                                                navController?.navigate("spending?idCard=${idCard}")
-                                            }
-                                        })
+                                    LazyColumn{
+                                        items(creditCardCollection){ creditCardDTO ->
+                                            ItemSpending(creditCardDTO, object : Callback {
+                                                override fun onChangeIdCard(idCard: Long) {
+                                                    navController?.navigate("spending?idCard=${idCard}")
+                                                }
+                                            })
+                                        }
                                     }
                                 }
+
                             }
                             Row {
                                 repeat(itemSpedingCollection.size) { index ->
@@ -259,7 +264,8 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
                 Image(
                     painter = painterResource(id = creditCardDTO.flag),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(23.dp)
                 )
             }
             Column(
@@ -274,7 +280,7 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
                 Text(text = creditCardDTO.holderName, fontFamily = LatoRegular)
             }
             Text(
-                text = "R$ ${MaskUtils.maskValue(creditCardDTO.value.toString())}",
+                text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(creditCardDTO.value.toDouble()))}",
                 modifier = Modifier.fillMaxWidth(),
                 fontFamily = LatoBold,
                 fontSize = 18.sp,

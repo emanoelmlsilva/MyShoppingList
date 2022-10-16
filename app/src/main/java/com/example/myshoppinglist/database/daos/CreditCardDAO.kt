@@ -22,7 +22,7 @@ interface CreditCardDAO {
     @Query("SELECT * FROM credit_cards, users WHERE cardUserId = :nameUser")
     fun getAll(nameUser: String): List<CreditCard>
 
-    @Query("SELECT *, COALESCE(SUM(price * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END), 0) as value FROM credit_cards LEFT JOIN purchases ON credit_cards.idCard = purchases.purchaseCardId WHERE cardUserId = :nameUser GROUP BY idCard")
-    fun getAllWithSum(nameUser: String, typeProduct: TypeProduct? = TypeProduct.QUANTITY): List<CreditCard>
+    @Query("SELECT *, COALESCE(SUM(CAST(price AS NUMBER) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM credit_cards LEFT JOIN purchases ON credit_cards.idCard = purchases.purchaseCardId AND cardUserId = :nameUser AND purchases.date LIKE '%' || :date || '%' GROUP BY idCard")
+    fun getAllWithSum(nameUser: String, date: String, typeProduct: TypeProduct? = TypeProduct.QUANTITY): List<CreditCard>
 
 }

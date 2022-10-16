@@ -2,8 +2,10 @@ package com.example.myshoppinglist.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
@@ -25,9 +28,9 @@ import com.example.myshoppinglist.utils.MaskUtils
 @Composable
 fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: List<Purchase>, callback: VisibleCallback) {
     if(purchaseColleciton.isNotEmpty()){
-        BaseLazyColumnScroll(visibleAnimation = visibleAnimation, callback = callback) {
-            items(purchaseColleciton) { purchase ->
-                Column(modifier = Modifier.fillMaxWidth()) {
+        BaseLazyColumnScroll(modifier = Modifier.padding(bottom = 0.dp, start = 16.dp, end = 16.dp), visibleAnimation = visibleAnimation, callback = callback) {
+            itemsIndexed(purchaseColleciton) { index, purchase ->
+                Column(modifier = Modifier.fillMaxWidth().padding(bottom = if(index == (purchaseColleciton.size - 1)) 56.dp else 0.dp)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -44,11 +47,11 @@ fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: L
                             modifier = Modifier.padding(start = 12.dp)
                         ) {
                             Text(
-                                text = purchase.name, modifier = Modifier
+                                text = purchase.name, fontFamily = LatoBold
 
                             )
                             Text(
-                                text = purchase.locale, modifier = Modifier
+                                text = purchase.locale, modifier = Modifier.padding(top = 12.dp), fontFamily = LatoRegular
                             )
                         }
 

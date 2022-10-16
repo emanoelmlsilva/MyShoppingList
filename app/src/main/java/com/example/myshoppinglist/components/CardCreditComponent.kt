@@ -76,7 +76,7 @@ fun CardCreditComponent(
             flagCardCredit,
             colorCurrent,
             cardCreditDTO,
-            null
+            modifier
         )
 
     }
@@ -131,7 +131,7 @@ fun CustomCardCredit(
                     }
                     Text(
                         FormatUtils().getFormatValue(cardCreditDTO.value), modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth().fillMaxHeight(.5f)
                             .padding(bottom = 16.dp), color = text_secondary, fontSize = 40.sp, fontFamily = LatoBold
                     )
                     Text(if(cardCreditDTO.holderName.isBlank()) "Titular" else cardCreditDTO.holderName, modifier = Modifier.fillMaxWidth(.8f).padding(top = 8.dp, bottom = 38.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = text_secondary)

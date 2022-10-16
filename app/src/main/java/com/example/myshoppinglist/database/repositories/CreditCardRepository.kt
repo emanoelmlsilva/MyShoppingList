@@ -4,7 +4,9 @@ import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.daos.CreditCardDAO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.utils.FormatUtils
 import kotlinx.coroutines.*
+import java.util.*
 
 class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
 
@@ -51,6 +53,7 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
     }
 
     private fun ansyFindAllWithSum(name: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
-        return@async cardCreditCardDAO.getAllWithSum(name)
+        val dateMonth = FormatUtils().getMonthAndYear()
+        return@async cardCreditCardDAO.getAllWithSum(name, dateMonth)
     }
 }
