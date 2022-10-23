@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.utils.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,8 +37,8 @@ interface PurchaseDAO {
     @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId")
     fun sumPriceById(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
-    @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE purchaseCardId = idCard AND cardUserId = :nameUser")
-    fun sumPriceAllCard(nameUser: String, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
+    @Query("SELECT COALESCE(SUM(CASE :typeProduct WHEN typeProduct THEN price * CAST(quantiOrKilo AS NUMBER) ELSE price END), 0.0) FROM credit_cards LEFT JOIN purchases ON credit_cards.idCard = purchases.purchaseCardId AND cardUserId = :nameUser AND purchases.date LIKE '%' || :date || '%'")
+    fun sumPriceAllCard(nameUser: String, date : String = FormatUtils().getMonthAndYear(), typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
     @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double

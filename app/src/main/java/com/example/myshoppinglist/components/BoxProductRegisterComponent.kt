@@ -2,6 +2,8 @@ package com.example.myshoppinglist.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,21 +25,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
-import com.example.myshoppinglist.ui.theme.divider
-import com.example.myshoppinglist.ui.theme.secondary_light
-import com.example.myshoppinglist.ui.theme.text_primary
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
 @Composable
-fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo>, callbackPurchase: CallbackPurchase) {
+fun BoxProductRegisterComponent(
+    purchaseInfoCollection: MutableList<PurchaseInfo>,
+    callbackPurchase: CallbackPurchase
+) {
     val expandeds = remember { mutableStateListOf<Int>() }
+
+    fun expandableContainer(index: Int){
+        val auxExpandeds = expandeds.toMutableList()
+        expandeds.removeAll(expandeds)
+        expandeds.addAll(changeVisibility(index, auxExpandeds))
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -48,15 +58,10 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                 Column {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth().height(30.dp).clickable { expandableContainer(indexInfo)  }, verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(modifier = Modifier
-                            .padding(4.dp)
-                            , onClick = {
-                            val auxExpandeds = expandeds.toMutableList()
-                            expandeds.removeAll(expandeds)
-                            expandeds.addAll(changeVisibility(indexInfo, auxExpandeds))
-                        }) {
+                            .padding(4.dp), onClick = { expandableContainer(indexInfo) }) {
                             Icon(
                                 imageVector = if (isExpanded(
                                         indexInfo,
@@ -67,7 +72,7 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                                 tint = text_primary,
                             )
                         }
-                        Text(text = purchaseInfo.title, modifier = Modifier.padding(start = 8.dp))
+                        Text(text = purchaseInfo.title, modifier = Modifier.padding(start = 8.dp), fontFamily = LatoBold)
                     }
                     Divider(
                         color = secondary_light,
@@ -77,7 +82,11 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                     )
                 }
             }
-            if (isExpanded(indexInfo, expandeds)) itemsIndexed(purchaseInfo.purchaseCollection) {index,  purchase ->
+            if (isExpanded(
+                    indexInfo,
+                    expandeds
+                )
+            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
@@ -92,20 +101,29 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                                 .padding(top = 3.dp)
                         )
                         Column {
-                            Row(horizontalArrangement = Arrangement.End) {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text(
+                                    fontFamily = LatoRegular,
                                     text = purchase.name, modifier = Modifier
-                                        .padding(start = 12.dp)
-                                        .fillMaxWidth(.6f)
+                                        .padding(start = 12.dp),
+                                    textAlign = TextAlign.Start
                                 )
-                                Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}")
-                                Text(
-                                    text = "R$ ${MaskUtils.maskValue(purchase.price.toString())}",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 3.dp),
-                                    textAlign = TextAlign.End
-                                )
+                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                    )
+                                    Text(
+                                        fontFamily = LatoBold,
+                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
+                                        modifier = Modifier
+                                            .padding(start = 12.dp),
+                                    )
+                                }
                             }
                             Row(
                                 modifier = Modifier
@@ -115,15 +133,19 @@ fun BoxProductRegisterComponent(purchaseInfoCollection: MutableList<PurchaseInfo
                                 IconButton(onClick = {
                                     callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
                                 })
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Edit,
-                                            contentDescription = null,
-                                            tint = text_primary,
-                                        )
-                                    }
+                                {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = null,
+                                        tint = text_primary,
+                                    )
+                                }
                                 IconButton(onClick = {
-                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.DELETE)
+                                    callbackPurchase.onChangeIndex(
+                                        indexInfo,
+                                        index,
+                                        TypeState.DELETE
+                                    )
                                 })
                                 {
                                     Icon(
@@ -196,7 +218,7 @@ fun PreviewBoxProductRegisterComponent() {
                     )
                 )
             )
-        ), object : CallbackPurchase(){
+        ), object : CallbackPurchase() {
             override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
                 TODO("Not yet implemented")
             }
