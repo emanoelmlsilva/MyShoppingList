@@ -3,7 +3,7 @@ package com.example.myshoppinglist.enums
 import com.example.myshoppinglist.R
 
 enum class CardCreditFlag(val flag: Int) {
-//adicionar imagens com fundo branco
+
     MASTER(R.drawable.master),
     AMEX(R.drawable.amex),
     APPLE(R.drawable.apple_pay),

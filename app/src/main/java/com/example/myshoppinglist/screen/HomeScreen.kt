@@ -11,8 +11,11 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -254,19 +257,25 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
         ) {
             Column(
                 modifier = Modifier
-                    .padding(end = 4.dp)
+
                     .size(55.dp)
                     .clip(CircleShape)
                     .background(Color(creditCardDTO.colorCard)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = creditCardDTO.flag),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(23.dp)
-                )
+                Card(elevation = 2.dp, shape = RoundedCornerShape(4.5.dp), backgroundColor = background_card, border = BorderStroke(1.dp, border),
+                    modifier = Modifier.fillMaxWidth(.6f).fillMaxHeight(.4f)){
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                        Image(
+                            painter = painterResource(id = creditCardDTO.flag),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .shadow(12.dp, CircleShape).size(24.dp)
+                        )
+                    }
+                }
+
             }
             Column(
                 Modifier
