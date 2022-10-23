@@ -8,9 +8,9 @@ object MaskUtils {
 
     @JvmStatic
     fun convertValueStringToDouble(value: String): Double{
-        var valueFormated: String = replaceAll(value)
+        var valueFormated: String = value.replace(",", ".")
 
-        return (valueFormated.substring(0, valueFormated.length - 2) +"."+ valueFormated.substring(valueFormated.length - 2, valueFormated.length)).toDouble()
+        return valueFormated.toDouble()//(valueFormated.substring(0, valueFormated.length - 1) +"."+ valueFormated.substring(valueFormated.length - 1, valueFormated.length)).toDouble()
     }
 
     @JvmStatic

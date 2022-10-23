@@ -56,6 +56,10 @@ import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.util.*
 
 @ExperimentalAnimationApi
@@ -71,6 +75,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
     val countProduct = remember { mutableStateOf(0)}
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     LaunchedEffect(key1 = idCardCurrent){
         registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
@@ -85,6 +90,15 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     registerTextFieldViewModel.resetDate.observe(lifecycleOwner.value, {
         reset.value = it
     })
+
+    suspend fun savePurchases(){
+
+        val purcharseSaveCoroutine = coroutineScope.async {purchaseInfoCollection.map{ purchaseInfo ->
+            purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection)
+        }}
+
+        purcharseSaveCoroutine.await()
+    }
 
     Box {
 
@@ -268,13 +282,14 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                 btnTextAccept = "SALVAR",
                 onClickCancel = {navController?.popBackStack()},
                 onClickAccept = {
-                    purchaseInfoCollection.forEach { purchaseInfo ->
-                        purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection)
+                    coroutineScope.launch{
+                        savePurchases()
+                        navController!!.popBackStack()
                     }
-                    navController!!.popBackStack()
                 })
         }
     }
+
 }
 
 @Composable
@@ -685,7 +700,6 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         product.value = ""
         price.value = ""
         category.value = null
-        typeProduct.value = TypeProduct.QUANTITY
         index.value = -1
         indexInfo.value = -1
         quantOrKilo.value = ""
