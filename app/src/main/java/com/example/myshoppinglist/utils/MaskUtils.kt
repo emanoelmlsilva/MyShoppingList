@@ -10,7 +10,7 @@ object MaskUtils {
     fun convertValueStringToDouble(value: String): Double{
         var valueFormated: String = value.replace(",", ".")
 
-        return valueFormated.toDouble()//(valueFormated.substring(0, valueFormated.length - 1) +"."+ valueFormated.substring(valueFormated.length - 1, valueFormated.length)).toDouble()
+        return valueFormated.toDouble()
     }
 
     @JvmStatic
