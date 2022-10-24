@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -15,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
@@ -122,12 +125,13 @@ fun CustomCardCredit(
                 ) {
                     Row (modifier = Modifier.fillMaxWidth().padding(top = 28.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
                         Text(if(cardCreditDTO.cardName.isBlank()) "Nome Cartão" else cardCreditDTO.cardName, modifier = Modifier.fillMaxWidth(.9f), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = text_secondary)
-                        Image(
-                            painter = painterResource(id = flagCardCredit),
-                            contentDescription = "tipo de cartao",
-                            modifier = Modifier
-                                .size( if (typeCard == TypeCard.MONEY) 20.dp else 35.dp)
-                        )
+                            Image(
+                                painter = painterResource(id = flagCardCredit),
+                                contentDescription = "tipo de cartao",
+                                modifier = Modifier
+                                    .shadow(21.dp, CircleShape).size(if (typeCard == TypeCard.MONEY) 20.dp else 35.dp)
+                            )
+
                     }
                     Text(
                         FormatUtils().getFormatValue(cardCreditDTO.value), modifier = Modifier
@@ -213,8 +217,8 @@ fun PreviewCardCredit() {
         isClicable = false,
         isDefault = false,
         typeCard = TypeCard.CREDIT,
-        flagCardCredit = CardCreditFlag.MASTER.flag,
-        cardColor = card_blue,
+        flagCardCredit = CardCreditFlag.MONEY.flag,
+        cardColor = card_green_dark,
         cardCreditDTO = CreditCardDTO(
             colorCard = card_purple.toArgb(),
             value = 123.4F,

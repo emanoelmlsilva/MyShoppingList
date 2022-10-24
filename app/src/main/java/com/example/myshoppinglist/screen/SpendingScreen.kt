@@ -2,6 +2,7 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,9 +38,7 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.PurchaseInfo
-import com.example.myshoppinglist.ui.theme.background_card
-import com.example.myshoppinglist.ui.theme.divider
-import com.example.myshoppinglist.ui.theme.text_title_secondary
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
@@ -217,7 +217,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 ){
                     purchaseInfoCollection.map{ purchaseInfo ->
                         item {
-                            Text(text = FormatUtils().getNameDay(purchaseInfo.title), modifier = Modifier.padding(start = 8.dp, top = 24.dp), color = text_title_secondary)
+                            Text(text = FormatUtils().getNameDay(purchaseInfo.title).capitalize(), modifier = Modifier.padding(start = 8.dp, top = 24.dp), color = text_title_secondary)
                         }
 
                         items(purchaseInfo.purchaseCollection){ purchase ->
@@ -241,7 +241,7 @@ fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List
 
     Column(verticalArrangement = Arrangement.Center){
         Row(verticalAlignment = Alignment.Bottom){
-            Text(text = "Gastos do mês", modifier = Modifier.padding(bottom = 16.dp), fontSize = 16.sp, color = text_title_secondary)
+            Text(text = "Gastos do mês", modifier = Modifier.padding(bottom = 16.dp), fontSize = 16.sp, fontFamily = LatoBlack , color = text_primary_light)
             CustomDropDownMonth(
                 object : CustomTextFieldOnClick {
                     override fun onChangeValue(newValue: String) {
@@ -294,18 +294,19 @@ fun BoxPurchaseSpeding(purchase: Purchase){
                     .size(46.dp)
                     .padding(top = 3.dp, end = 8.dp)
             )
-            Column{
-                Text(text = purchase.name, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(.7f))
-                Text(text = purchase.locale, modifier = Modifier
-                    .fillMaxWidth(.7f)
-                    .padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary)
-            }
-            Column{
-                Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontWeight = FontWeight.Bold)
-                Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
-                    color = text_title_secondary, modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(), fontSize = 14.sp, textAlign = TextAlign.Center)
+            Row(modifier = Modifier
+                .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                Column(horizontalAlignment = Alignment.Start){
+                    Text(text = purchase.name.capitalize(), fontFamily = LatoBlack, color = text_primary_light, fontSize = 14.sp, textAlign = TextAlign.Start)
+                    Text(text = purchase.locale, modifier = Modifier
+                        .padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary, textAlign = TextAlign.Start)
+                }
+                Column(horizontalAlignment = Alignment.End){
+                    Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontFamily = LatoBlack, color = text_primary_light, fontSize = 14.sp, textAlign = TextAlign.End)
+                    Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                        color = text_title_secondary, modifier = Modifier
+                            .padding(top = 8.dp), fontSize = 14.sp, textAlign = TextAlign.End)
+                }
             }
 
         }

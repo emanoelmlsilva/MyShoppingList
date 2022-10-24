@@ -11,12 +11,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
@@ -164,11 +168,12 @@ fun MySpending(
                             .padding(start = 50.dp)
                     ) {}
                     Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(text = "Saldo geral", fontFamily = LatoRegular)
+                        Text(text = "Saldo geral", fontFamily = LatoRegular, color = text_primary_light)
                         Spacer(Modifier.size(12.dp))
                         Text(
                             text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(priceTotal))}",
-                            fontFamily = LatoBold
+                            fontFamily = LatoBlack,
+                            color = text_primary_light
                         )
                     }
                 }
@@ -254,23 +259,28 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
         ) {
             Column(
                 modifier = Modifier
-                    .padding(end = 4.dp)
                     .size(55.dp)
                     .clip(CircleShape)
                     .background(Color(creditCardDTO.colorCard)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = creditCardDTO.flag),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(23.dp)
-                )
+                Card(elevation = 2.dp, shape = RoundedCornerShape(4.5.dp), backgroundColor = background_card, border = BorderStroke(1.dp, border),
+                    modifier = Modifier.fillMaxWidth(.6f).fillMaxHeight(.4f)){
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                        Image(
+                            painter = painterResource(id = creditCardDTO.flag),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .shadow(12.dp, CircleShape).size(24.dp)
+                        )
+                    }
+                }
+
             }
             Column(
                 Modifier
-                    .fillMaxWidth(.6f)
+                    .fillMaxWidth(.6f).padding(start = 8.dp)
             ) {
                 Text(
                     text = creditCardDTO.cardName,
@@ -281,10 +291,11 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
             }
             Text(
                 text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(creditCardDTO.value.toDouble()))}",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(end = 4.dp),
                 fontFamily = LatoBold,
                 fontSize = 18.sp,
-                color = text_money
+                color = text_money,
+                textAlign = TextAlign.End
             )
         }
 
