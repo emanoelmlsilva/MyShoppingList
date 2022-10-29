@@ -8,27 +8,20 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.BlendMode.Companion.Screen
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.controller.NavController
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -57,7 +50,7 @@ class MainActivity : ComponentActivity() {
                     com.example.myshoppinglist.enums.Screen.Home,
                     com.example.myshoppinglist.enums.Screen.CreditCollection,
                     com.example.myshoppinglist.enums.Screen.Finance,
-                    com.example.myshoppinglist.enums.Screen.Products
+                    com.example.myshoppinglist.enums.Screen.ProductsManager
                 )
 
                 Scaffold(

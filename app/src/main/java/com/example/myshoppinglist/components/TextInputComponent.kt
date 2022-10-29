@@ -21,7 +21,11 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
 
 @ExperimentalComposeUiApi
 @Composable
-    fun TextInputComponent(textColor: Color? = text_primary,disabledTextColor: Color? = text_primary, backgroundColor: Color = background_text_field, modifier: Modifier? = null, value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = true, isCountChar: Boolean? = false, reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, keyboardActions: KeyboardActions = KeyboardActions()){
+    fun TextInputComponent(textColor: Color? = text_primary,disabledTextColor: Color? = text_primary, backgroundColor: Color = background_text_field, modifier: Modifier? = null,
+                           value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = true, isCountChar: Boolean? = false,
+                           reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+                           keyboardActions: KeyboardActions = KeyboardActions(), leadingIcon:  @Composable (() -> Unit)? = null, trailingIcon: @Composable (() -> Unit)? = null){
+
     var isErrorNickName by remember { mutableStateOf(false) }
     var customModifier = modifier ?: Modifier.fillMaxWidth()
     var textValue by remember {mutableStateOf(value)}
@@ -32,6 +36,8 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
 
     Column(modifier = customModifier){
             TextField(
+                leadingIcon = leadingIcon,
+                trailingIcon = trailingIcon,
                 colors = TextFieldDefaults.textFieldColors(
                     textColor = textColor!!,
                     backgroundColor = backgroundColor,
