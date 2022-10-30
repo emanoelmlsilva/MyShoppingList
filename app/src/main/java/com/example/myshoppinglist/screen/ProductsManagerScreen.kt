@@ -1,8 +1,9 @@
 package com.example.myshoppinglist.screen
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,13 +12,13 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -26,11 +27,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.CustomerChip
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.ui.theme.card_red_dark
+import com.example.myshoppinglist.ui.theme.background_card_gray_light
+import com.example.myshoppinglist.ui.theme.background_card_light
+import com.example.myshoppinglist.ui.theme.text_primary
 
 @ExperimentalComposeUiApi
 @Composable
@@ -50,8 +54,18 @@ fun ProductsManagerScreen(navController: NavController?) {
 @Composable
 fun SearchProduct(context: Context, productManagerFieldViewModel :ProductManagerFieldViewModel) {
     val focusManager = LocalFocusManager.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
     val keyboardController = LocalSoftwareKeyboardController.current
-    val product: String = productManagerFieldViewModel.product.observeAsState(initial = "").value
+    var product = remember { mutableStateOf("") }
+    val listProductText = remember { mutableStateListOf<String>() }
+    val reset = remember { mutableStateOf(false) }
+
+    productManagerFieldViewModel.product.observe(lifecycleOwner.value){
+        if(it.isNotBlank() && reset.value){
+            reset.value = false
+        }
+        product.value = it
+    }
 
     Card(backgroundColor = background_card_gray_light, modifier = Modifier
         .fillMaxWidth()
@@ -71,7 +85,8 @@ fun SearchProduct(context: Context, productManagerFieldViewModel :ProductManager
                     TextInputComponent(modifier = Modifier
                         .fillMaxWidth(.85f)
                         .fillMaxHeight(),
-                        value = product,
+                        value = product.value,
+                        reset = reset.value,
                         label = "Produto",
                         leadingIcon = {
                             Icon(
@@ -83,9 +98,9 @@ fun SearchProduct(context: Context, productManagerFieldViewModel :ProductManager
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
                             onDone = {
-                                keyboardController?.hide()
-                                focusManager.clearFocus(true)
-                                Toast.makeText(context, "Clicado para pesquisar: $product", Toast.LENGTH_LONG).show()
+                                listProductText.add(product.value)
+                                reset.value = true
+                                productManagerFieldViewModel.onChangeProduct("")
                             }
                         ),
                         error = false,
@@ -105,6 +120,16 @@ fun SearchProduct(context: Context, productManagerFieldViewModel :ProductManager
                             tint = text_primary,
                         )
                     }
+                }
+            }
+
+            LazyRow(modifier = Modifier.padding(top = 4.dp)){
+                items(listProductText){ productItem ->
+                    CustomerChip(label  = productItem, callback = object: Callback {
+                        override fun onClick() {
+                            listProductText.remove(productItem)
+                        }
+                    })
                 }
             }
         }
