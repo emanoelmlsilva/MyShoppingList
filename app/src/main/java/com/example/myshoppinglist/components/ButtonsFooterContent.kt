@@ -1,8 +1,11 @@
 package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,11 +24,12 @@ fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, bt
             .fillMaxWidth()
             .padding(0.dp, 12.dp), horizontalArrangement = if(btnTextCancel != null) Arrangement.SpaceBetween else Arrangement.Center){
         if(btnTextCancel != null){
-            TextButton(
+            OutlinedButton(
                 modifier = Modifier
-                    .fillMaxWidth(0.4F)
+                    .fillMaxWidth(0.45f)
                     .background(secondary)
-                    .padding(start = 16.dp, bottom = 16.dp, end = 16.dp),
+                    .padding(start = 6.dp, bottom = 8.dp, end = 6.dp)
+                ,
                 onClick = {
                     if (onClickCancel != null) {
                         onClickCancel()
@@ -42,9 +46,10 @@ fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, bt
                 }
             }
         }
+
         Button(colors = ButtonDefaults.buttonColors(backgroundColor = if(isClickable!!) primary else secondary_light),
             modifier = Modifier
-                .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
+                .padding(start = 6.dp, bottom = 16.dp, end = 6.dp)
                 .clickable(onClick = {
                 }), onClick = {                     if(onClickAccept != null){
                 onClickAccept()

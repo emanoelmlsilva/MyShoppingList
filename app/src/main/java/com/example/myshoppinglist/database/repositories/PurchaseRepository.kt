@@ -52,6 +52,12 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun getMonthDistinctByIdCard(nameUser: String, idCard: Long){
+        coroutineScope.launch(Dispatchers.Main){
+            searchMonthsCollection. value = asyncFindAllMonthDistinctByIdCard(nameUser, idCard).await()
+        }
+    }
+
     fun sumPriceAllCard(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val value = asyncSumPriceAllCard(nameUser).await()
@@ -100,6 +106,10 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     private fun asyncFindAllMonthByIdCard(nameUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getMonthByIdCard(nameUser, idCard)
+    }
+
+    private fun asyncFindAllMonthDistinctByIdCard(nameUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getMonthDistinctByIdCard(nameUser, idCard)
     }
 
     private fun asyncSumPriceById(idCard: Long, nameUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){

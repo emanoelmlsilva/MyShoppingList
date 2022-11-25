@@ -101,4 +101,11 @@ class FormatUtils {
 
         return getDate(dateFull)
     }
+
+    fun getNameMonth(month: String): String{
+        val dateCurrent = Date("1990/$month/01")
+        val formatter = SimpleDateFormat("MMMM", localeBr)
+        val nameMonth = formatter.format(dateCurrent)
+        return nameMonth
+    }
 }

@@ -34,6 +34,9 @@ interface PurchaseDAO {
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date DESC ")
     fun getMonthByIdCard(nameUser: String, idCard: Long):List<String>
 
+    @Query("SELECT DISTINCT(SUBSTR(date, 1, LENGTH(date) - 3)) as date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date ASC")
+    fun getMonthDistinctByIdCard(nameUser: String, idCard: Long):List<String>
+
     @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId")
     fun sumPriceById(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 

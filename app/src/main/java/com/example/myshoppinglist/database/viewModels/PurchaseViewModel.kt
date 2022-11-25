@@ -73,6 +73,14 @@ class PurchaseViewModel(context: Context): ViewModel() {
         }
     }
 
+    fun getMonthDistinctByIdCard(idCard: Long){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getMonthDistinctByIdCard(nameUser, idCard)
+        }
+    }
+
     fun sumPriceById(idCard: Long){
         var nameUser = ""
         userViewModel.searchResult.observeForever {

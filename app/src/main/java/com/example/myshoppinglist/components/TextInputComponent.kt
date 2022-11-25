@@ -27,7 +27,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
                            keyboardActions: KeyboardActions = KeyboardActions(), leadingIcon:  @Composable (() -> Unit)? = null, trailingIcon: @Composable (() -> Unit)? = null){
 
     var isErrorNickName by remember { mutableStateOf(false) }
-    var customModifier = modifier ?: Modifier.fillMaxWidth()
+    val customModifier = modifier ?: Modifier.fillMaxWidth()
     var textValue by remember {mutableStateOf(value)}
 
     if(reset){
