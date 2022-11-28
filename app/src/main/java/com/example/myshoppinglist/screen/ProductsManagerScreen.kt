@@ -43,6 +43,7 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.callback.CallbackFilter
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.BoxShowPriceProduct
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CustomerChip
 import com.example.myshoppinglist.components.TextInputComponent
@@ -83,6 +84,8 @@ fun ProductsManagerScreen(navController: NavController?) {
 
         Column(modifier = Modifier.padding(12.dp)) {
             SearchProduct(context, lifecycleOwner.value, productManagerFieldViewModel)
+
+            BoxShowPriceProduct(Modifier.padding(top = 16.dp), "123.34", "123")
         }
     })
 }
