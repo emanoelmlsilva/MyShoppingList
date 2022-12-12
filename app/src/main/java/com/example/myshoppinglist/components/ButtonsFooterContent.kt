@@ -26,7 +26,6 @@ fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, bt
         if(btnTextCancel != null){
             OutlinedButton(
                 modifier = Modifier
-                    .fillMaxWidth(0.45f)
                     .background(secondary)
                     .padding(start = 6.dp, bottom = 8.dp, end = 6.dp)
                 ,

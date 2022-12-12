@@ -1,8 +1,10 @@
 package com.example.myshoppinglist.database.viewModels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.repositories.PurchaseRepository
@@ -14,6 +16,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
     val searchCollectionResults: MutableLiveData<List<Purchase>>
     val searchResultMonths: MutableLiveData<List<String>>
     val searchSumPriceResult: MutableLiveData<Double>
+    var contextTest: Context
 
     private var userViewModel : UserViewModel
 
@@ -27,6 +30,17 @@ class PurchaseViewModel(context: Context): ViewModel() {
         searchCollectionResults = repository.searchCollecitonResult
         searchResultMonths = repository.searchMonthsCollection
         searchSumPriceResult = repository.searchPrice
+        contextTest = context
+    }
+
+    fun getPurchasesOfSearch(arguments: MutableList<Any>, condition: String){
+
+        val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
+            SimpleSQLiteQuery("SELECT * FROM purchases")
+        }else{
+            SimpleSQLiteQuery("SELECT * FROM purchases WHERE ${condition}", arguments.toTypedArray())
+        }
+        repository.getPurchasesOfSearch(query)
     }
 
     fun insertPurchase(purchaseCollection: List<Purchase>){

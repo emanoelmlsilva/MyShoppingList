@@ -1,6 +1,11 @@
 package com.example.myshoppinglist.database.repositories
 
+import android.content.Context
+import android.provider.BaseColumns
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.utils.FormatUtils
@@ -86,6 +91,18 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
             val limitWeek = FormatUtils().getDateString(calendar.time)
             searchCollecitonResult.value = asyncGetPurchsesWeek(nameUser, limitWeek).await()
         }
+    }
+
+    fun getPurchasesOfSearch(query: SupportSQLiteQuery){
+        Log.d("TESTANDO", "query.sql ${query.sql}")
+        coroutineScope.launch(Dispatchers.Main){
+            searchCollecitonResult.value = asyncGetPurchasesSearch(query).await()
+        }
+
+    }
+
+    private fun asyncGetPurchasesSearch(query: SupportSQLiteQuery): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesSearch(query)
     }
 
     private fun asyncFindAll(nameUser: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){

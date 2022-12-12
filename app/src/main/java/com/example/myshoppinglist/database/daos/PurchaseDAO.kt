@@ -1,9 +1,13 @@
 package com.example.myshoppinglist.database.daos
 
+import android.content.Context
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.utils.FormatUtils
@@ -51,4 +55,7 @@ interface PurchaseDAO {
 
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date DESC")
     fun getPurchasesWeekById(week: String, nameUser: String, idCard: Long): List<Purchase>
+
+    @RawQuery(observedEntities = [Purchase::class])
+    fun getPurchasesSearch(query: SupportSQLiteQuery): List<Purchase>
 }

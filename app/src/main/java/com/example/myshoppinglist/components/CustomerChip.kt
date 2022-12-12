@@ -46,7 +46,7 @@ fun CustomerChip(label: String, iconId: Int? = null, color: Color = primary_dark
         elevation = 0.dp,
     ) {
         Row(modifier = Modifier.padding(horizontal = paddingHorinzotal, vertical = paddingVertical), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically){
-            if(iconId != null) {
+            if(iconId != null && iconId > 0) {
                 if (!isEnabled || isBackgroundCircle) {
                     Column(
                         modifier = Modifier

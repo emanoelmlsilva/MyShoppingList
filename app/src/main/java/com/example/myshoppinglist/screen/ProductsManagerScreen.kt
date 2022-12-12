@@ -1,8 +1,10 @@
 package com.example.myshoppinglist.screen
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,10 +22,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -34,9 +36,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
@@ -52,12 +55,18 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeCategory
+import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import kotlinx.coroutines.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
+
+val TAG = "ProductsManagerScreen"
+
 
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
@@ -65,7 +74,7 @@ import kotlin.collections.HashMap
 fun ProductsManagerScreen(navController: NavController?) {
     val context = LocalContext.current
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-    val productManagerFieldViewModel: ProductManagerFieldViewModel = viewModel()
+    val productManagerFieldViewModel: ProductManagerFieldViewModel = ProductManagerFieldViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
 
     LaunchedEffect(Unit) {
@@ -90,6 +99,19 @@ fun ProductsManagerScreen(navController: NavController?) {
     })
 }
 
+@Composable
+fun isKeyboardVisible(): State<Boolean> {
+    val keyboardState = remember { mutableStateOf(false) }
+    val view = LocalView.current
+    LaunchedEffect(view) {
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            keyboardState.value = insets.isVisible(WindowInsetsCompat.Type.ime())
+            insets
+        }
+    }
+    return keyboardState
+}
+
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
@@ -104,6 +126,9 @@ fun SearchProduct(
     var enableDialog by remember { mutableStateOf(false) }
     val creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
     var filter by remember { mutableStateOf(ObjectFilter())}
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+
 
     productManagerFieldViewModel.product.observe(lifecycleOwner) {
         if (it.isNotBlank() && reset.value) {
@@ -112,9 +137,18 @@ fun SearchProduct(
         product.value = it
     }
 
+    productManagerFieldViewModel.purchaseViewModel.searchCollectionResults.observe(lifecycleOwner){
+        Log.d(TAG, "retornado ${it}")
+    }
+
     productManagerFieldViewModel.cardCreditCollection.observe(lifecycleOwner) {
-        creditCardDTOCollection.removeAll(creditCardDTOCollection)
         creditCardDTOCollection.addAll(it)
+    }
+
+    LaunchedEffect(key1 = enableDialog){
+        if(enableDialog){
+            keyboardController!!.hide()
+        }
     }
 
     Card(
@@ -123,7 +157,8 @@ fun SearchProduct(
             .fillMaxHeight(.13f),
         shape = RoundedCornerShape(8.dp)
     ) {
-        AlertDialogFilter(enableDialog, filter, creditCardDTOCollection, lifecycleOwner,
+        AlertDialogFilter(
+            keyboardController!!, enableDialog, filter, creditCardDTOCollection, lifecycleOwner,
             object : CallbackFilter {
                 override fun onClick() {
                     enableDialog = false
@@ -131,29 +166,32 @@ fun SearchProduct(
 
                 override fun onChangeObjectFilter(value: ObjectFilter) {
 
-                    filter.categoryCollection.forEach { productCategory ->
-                        listProductText.remove(productCategory)
-                    }
+                    listProductText.removeAll(listProductText)
 
                     value.categoryCollection.forEach { category ->
-                        listProductText.add(category)
+                        listProductText.add(category.category)
                     }
 
-                    val formarFilterMin = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(filter.priceMin.toDouble()))
-                    val formarFilterMax = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(filter.priceMax.toDouble()))
+                    if(value.priceMin != null && value.priceMax != null) {
+                        val formarValueMin =
+                            MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMin!!.toDouble()))
+                        val formarValueMax =
+                            MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMax!!.toDouble()))
 
-                    listProductText.remove("$formarFilterMin á $formarFilterMax")
+                        listProductText.add("$formarValueMin á $formarValueMax")
+                    }
 
-                    val formarValueMin = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMin.toDouble()))
-                    val formarValueMax = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMax.toDouble()))
+                    if(value.month.isNotBlank()) {
+                        listProductText.add(value.month)
+                    }
 
-                    listProductText.add("$formarValueMin á $formarValueMax")
-
-                    listProductText.remove(filter.month)
-
-                    listProductText.add(value.month)
+                    if(value.cardFilter.avatar > 0) {
+                        listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
+                    }
 
                     filter = value
+
+                    productManagerFieldViewModel.mountObejctSearchDatabase(filter)
                 }
             })
         Column(
@@ -172,7 +210,9 @@ fun SearchProduct(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextInputComponent(modifier = Modifier
+                    TextInputComponent(
+                        focusRequester = focusRequester,
+                    modifier = Modifier
                         .fillMaxWidth(.85f)
                         .fillMaxHeight(),
                         value = product.value,
@@ -188,9 +228,13 @@ fun SearchProduct(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
                             onDone = {
+                                filter.text = product.value
+
+                                productManagerFieldViewModel.mountObejctSearchDatabase(filter)
                                 listProductText.add(product.value)
                                 reset.value = true
                                 productManagerFieldViewModel.onChangeProduct("")
+
                             }
                         ),
                         error = false,
@@ -202,7 +246,12 @@ fun SearchProduct(
 
                     IconButton(
                         onClick = {
-                            enableDialog = true
+                            keyboardController.hide()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                withContext(Dispatchers.Main) {
+                                    enableDialog = true
+                                }
+                            }
                         },
                     ) {
                         Icon(
@@ -216,9 +265,45 @@ fun SearchProduct(
 
             LazyRow(modifier = Modifier.padding(top = 4.dp)) {
                 items(listProductText) { productItem ->
-                    CustomerChip(label = productItem, callback = object : Callback {
+
+                    var label: String? = null
+                    var icon: Int? = null
+
+                    if(productItem.startsWith("%card%")){
+                        var splitValueText = productItem.split(",")
+                        label = splitValueText[3]
+                        icon = splitValueText[2].trim().toInt()
+                    }
+                    CustomerChip(label = label ?: productItem, iconId = icon, callback = object : Callback {
                         override fun onClick() {
                             listProductText.remove(productItem)
+
+                            var formarValueMin: String? = null
+                            var formarValueMax: String? = null
+
+                            if(filter.priceMin != null && filter.priceMax != null){
+                                formarValueMin = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(
+                                    filter.priceMin!!.toDouble()))
+                                formarValueMax = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(
+                                    filter.priceMax!!.toDouble()))
+                            }
+
+                            if(productItem == filter.text){
+                                filter.text = ""
+                            }else if(productItem == filter.month){
+                                filter.month = ""
+                            }else if(productItem == "$formarValueMin á $formarValueMax") {
+                                filter.priceMin = null
+                                filter.priceMax = null
+                            }else if(productItem.startsWith("%card%")){
+                                filter.cardFilter = CardCreditFilter()
+                            }else{
+                                var typeCategory = filter.categoryCollection.find { it.category == productItem }
+                                if(typeCategory != null){
+                                    filter.categoryCollection.remove(typeCategory)
+                                }
+                            }
+
                         }
                     })
                 }
@@ -231,17 +316,21 @@ fun SearchProduct(
 @ExperimentalMaterialApi
 @Composable
 fun AlertDialogFilter(
+    keyboardController: SoftwareKeyboardController,
     enableDialog: Boolean,
     filter: ObjectFilter,
     cardCreditCollection: List<CreditCardDTO>,
     lifecycleOwner: LifecycleOwner,
     callback: CallbackFilter
 ) {
-    val categoryChoices = remember { mutableStateListOf<String>() }
-    var priceMin by remember { mutableStateOf(filter.priceMin) }
-    var priceMax by remember { mutableStateOf(filter.priceMax) }
+    val priceMinDefault = 0F
+    val priceMaxDefault = 100F
+    val categoryChoices = remember { mutableStateListOf<TypeCategory>() }
+    var priceMin by remember { mutableStateOf(priceMinDefault) }
+    var priceMax by remember { mutableStateOf(priceMaxDefault) }
     var month by remember { mutableStateOf("") }
     var idCardCredit by remember { mutableStateOf(if (cardCreditCollection.isNotEmpty()) cardCreditCollection[0].idCard else 0) }
+    var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter(if (cardCreditCollection.isNotEmpty()) cardCreditCollection[0] else null)) }
 
     var categoryCollections = listOf(
         TypeCategory.HYGIENE,
@@ -252,137 +341,170 @@ fun AlertDialogFilter(
     )
 
     LaunchedEffect(Unit){
-        categoryChoices.addAll(filter.categoryCollection)
+        keyboardController.hide()
+    }
+
+    LaunchedEffect(key1 = filter.cardFilter.id){
+        idCardCredit = filter.cardFilter.id
+        currentCardCreditFilter = filter.cardFilter
+    }
+
+    LaunchedEffect(key1 = filter.priceMin, key2 = filter.priceMax) {
+        keyboardController.hide()
+        priceMin = if(filter.priceMin == null) priceMinDefault else filter.priceMin!!
+        priceMax = if(filter.priceMax == null) priceMaxDefault else filter.priceMax!!
+    }
+
+    LaunchedEffect(key1 = filter.categoryCollection) {
+        categoryChoices.forEach {
+            val hasCollection = filter.categoryCollection.find { category -> category == it }
+
+            if(hasCollection == null){
+                categoryChoices.remove(it)
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = filter.month) {
         month = filter.month
-        idCardCredit = filter.idCard
     }
 
     if (enableDialog) {
-        Dialog(onDismissRequest = { }) {
-            Card(elevation = 0.dp, shape = RoundedCornerShape(8.dp)) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight(.85f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 20.dp)
+        Dialog(
+            onDismissRequest = { },
+            content = {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
                 ) {
-                    Text(text = "Filtros", fontFamily = LatoBold, fontSize = 24.sp)
-                    Divider(
-                        color = divider,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(1.dp)
-                    )
-                    Spacer(Modifier.size(44.dp))
-                    Card(
-                        modifier = Modifier
-                            .fillMaxHeight(.2f)
-                            .fillMaxWidth(),
-                        elevation = 0.dp,
-                        shape = RoundedCornerShape(8.dp),
+                            .padding(horizontal = 18.dp)
                     ) {
-                        Column(
+                        Text(text = "Filtros", fontFamily = LatoBold, fontSize = 24.sp, modifier = Modifier.padding(top = 25.dp))
+                        Divider(
+                            color = divider,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .fillMaxHeight()
+                                .height(1.dp)
+                        )
+                        Spacer(Modifier.size(44.dp))
+                        Card(
+                            modifier = Modifier
+                                .fillMaxHeight(.2f)
+                                .fillMaxWidth(),
+                            elevation = 0.dp,
+                            shape = RoundedCornerShape(8.dp),
                         ) {
-                            Card(
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxHeight(.4f)
-                                    .fillMaxWidth(),
-                                elevation = 0.dp,
-                                backgroundColor = background_card_light,
-                                shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
+                                    .fillMaxWidth()
+                                    .fillMaxHeight()
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.Center
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxHeight(.4f)
+                                        .fillMaxWidth(),
+                                    elevation = 0.dp,
+                                    backgroundColor = background_card_light,
+                                    shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
                                 ) {
-                                    Text(
-                                        text = "Categorias:",
-                                        fontFamily = LatoBold,
-                                        fontSize = 18.sp,
-                                        modifier = Modifier.padding(start = 12.dp)
-                                    )
+                                    Column(
+                                        horizontalAlignment = Alignment.Start,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "Categorias:",
+                                            fontFamily = LatoBold,
+                                            fontSize = 18.sp,
+                                            modifier = Modifier.padding(start = 12.dp)
+                                        )
+                                    }
                                 }
-                            }
-                            LazyRow(
-                                modifier = Modifier
-                                    .background(background_card_gray_light)
-                                    .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                items(categoryCollections) { category ->
-                                    val isChoiceCurrent = !categoryChoices.find { categoryChoice ->
-                                        categoryChoice == category.category
-                                    }.isNullOrBlank()
-                                    CustomerChip(
-                                        paddingVertical = 0.dp,
-                                        label = category.category,
-                                        iconId = category.imageCircle,
-                                        isEnabled = true,
-                                        isChoice = isChoiceCurrent,
-                                        color = primary_dark,
-                                        callback = object : Callback {
-                                            override fun onClick() {
-                                                val isChoiceOld =
-                                                    !categoryChoices.find { categoryChoice ->
-                                                        categoryChoice.equals(category.category)
-                                                    }.isNullOrBlank()
-                                                if (isChoiceOld) {
-                                                    categoryChoices.remove(category.category)
-                                                } else {
-                                                    categoryChoices.add(category.category)
+                                LazyRow(
+                                    modifier = Modifier
+                                        .background(background_card_gray_light)
+                                        .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    items(categoryCollections) { category ->
+                                        val isChoiceCurrent = categoryChoices.find { categoryChoice ->
+                                            categoryChoice == category
+                                        } != null
+                                        CustomerChip(
+                                            paddingVertical = 0.dp,
+                                            label = category.category,
+                                            iconId = category.imageCircle,
+                                            isEnabled = true,
+                                            isChoice = isChoiceCurrent,
+                                            color = primary_dark,
+                                            callback = object : Callback {
+                                                override fun onClick() {
+                                                    val isChoiceOld =
+                                                        categoryChoices.find { categoryChoice ->
+                                                            categoryChoice == category
+                                                        } != null
+                                                    if (isChoiceOld) {
+                                                        categoryChoices.remove(category)
+                                                    } else {
+                                                        categoryChoices.add(category)
+                                                    }
                                                 }
-                                            }
-                                        })
+                                            })
+                                    }
                                 }
                             }
                         }
+                        ChoicePrice(priceMin, priceMax, callbackMin = object : CustomTextFieldOnClick {
+                            override fun onChangeValueFloat(newValue: Float) {
+                                priceMin = newValue
+                            }
+                        }, callbackMax = object : CustomTextFieldOnClick {
+                            override fun onChangeValueFloat(newValue: Float) {
+                                priceMax = newValue
+                            }
+                        })
+
+                        ChoiceCard(filter.cardFilter.id, cardCreditCollection, object : CallbackCreditCard {
+                            override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
+                                idCardCredit = cardCreditFilter.id
+                                currentCardCreditFilter = cardCreditFilter
+                            }
+                        })
+
+                        ChoiceData(idCardCredit, filter.month, lifecycleOwner, object : Callback {
+                            override fun onChangeValueMong(newMonth: String) {
+                                month = newMonth
+                            }
+                        })
+
+                        Column {
+                            ButtonsFooterContent(
+                                btnTextCancel = "CANCELAR",
+                                onClickCancel = { callback.onClick() },
+                                btnTextAccept = "SALVAR",
+                                onClickAccept = {
+
+                                    val saveFilter = ObjectFilter(
+                                        categoryCollection = categoryChoices,
+                                        priceMin = priceMin,
+                                        priceMax = priceMax,
+                                        idCard = idCardCredit,
+                                        month = month,
+                                        cardFilter = currentCardCreditFilter
+                                    )
+                                    callback.onChangeObjectFilter(saveFilter)
+                                    callback.onClick()
+                                })
+                        }
+
                     }
-                    ChoicePrice(priceMin, priceMax, callbackMin = object : CustomTextFieldOnClick {
-                        override fun onChangeValueFloat(newValue: Float) {
-                            priceMin = newValue
-                        }
-                    }, callbackMax = object : CustomTextFieldOnClick {
-                        override fun onChangeValueFloat(newValue: Float) {
-                            priceMax = newValue
-                        }
-                    })
-
-                    ChoiceCard(filter.idCard, cardCreditCollection, object : CallbackCreditCard {
-                        override fun onChangeIdCard(idCard: Long) {
-                            idCardCredit = idCard
-                        }
-                    })
-
-                    ChoiceData(idCardCredit, filter.month, lifecycleOwner, object : Callback {
-                        override fun onChangeValueMong(newMonth: String) {
-                            month = newMonth
-                        }
-                    })
-
-                    Column(modifier = Modifier.padding(top = 26.dp)) {
-                        ButtonsFooterContent(
-                            btnTextCancel = "CANCELAR",
-                            onClickCancel = { callback.onClick() },
-                            btnTextAccept = "SALVAR",
-                            onClickAccept = {
-                                val saveFilter = ObjectFilter(
-                                    categoryChoices,
-                                    priceMin,
-                                    priceMax,
-                                    idCardCredit,
-                                    month
-                                )
-                                callback.onChangeObjectFilter(saveFilter)
-                                callback.onClick()
-                            })
-                    }
-
                 }
-            }
+            },
+        )
 
-        }
+
+//        }
     }
 }
 
@@ -390,16 +512,16 @@ fun AlertDialogFilter(
 @ExperimentalMaterialApi
 @Composable
 fun ChoicePrice(
-    priceMin: Float,
-    priceMax: Float,
+    priceMin: Float? = 0F,
+    priceMax: Float? = 100F,
     maxStepDefault: Float = 100.0f,
     callbackMin: CustomTextFieldOnClick,
     callbackMax: CustomTextFieldOnClick
 ) {
     var maxStepCurrent by remember { mutableStateOf(maxStepDefault) }
-    var sliderPosition by remember { mutableStateOf(priceMin..if(priceMax > 0f) priceMax else maxStepDefault) }
+    var sliderPosition by remember { mutableStateOf(priceMin!!..maxStepDefault) }
     var valueMin by remember { mutableStateOf(priceMin) }
-    var valueMax by remember { mutableStateOf(if(priceMax > 0f) priceMax else maxStepDefault) }
+    var valueMax by remember { mutableStateOf(if(priceMax!! > 0f) priceMax else maxStepDefault) }
     var enableEditMaxStep by remember { mutableStateOf(false) }
     var maxStep by remember {
         mutableStateOf(
@@ -412,6 +534,13 @@ fun ChoicePrice(
         )
     }
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(key1 = priceMin, key2 = priceMax){
+        sliderPosition = priceMin!!..(if (priceMax!! > 0f) priceMax else maxStepDefault)
+        valueMin = priceMin
+        valueMax = if(priceMax > 0f) priceMax else maxStepDefault
+
+    }
 
     Column {
         Spacer(Modifier.size(24.dp))
@@ -432,7 +561,7 @@ fun ChoicePrice(
                     valueMin = sliderPosition.start
                     valueMax = sliderPosition.endInclusive
 
-                    callbackMin.onChangeValueFloat(valueMin)
+                    callbackMin.onChangeValueFloat(valueMin!!)
                     callbackMax.onChangeValueFloat(valueMax)
 
                 },
@@ -452,7 +581,7 @@ fun ChoicePrice(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(valueMin.toDouble())))
+                Text(text = MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(valueMin!!.toDouble())))
 
                 if (enableEditMaxStep) {
                     Column(modifier = Modifier.fillMaxWidth(.2f)) {
@@ -490,7 +619,7 @@ fun ChoicePrice(
                                     valueMin = sliderPosition.start
                                     valueMax = sliderPosition.endInclusive
 
-                                    callbackMin.onChangeValueFloat(valueMin)
+                                    callbackMin.onChangeValueFloat(valueMin!!)
                                     callbackMax.onChangeValueFloat(valueMax)
 
                                     enableEditMaxStep = false
@@ -574,6 +703,7 @@ fun ChoiceCard(cardCurrent: Long, cardCreditCollection: List<CreditCardDTO>, cal
                             override fun onClick() {
                                 cardCreditChoice = cardCredit
                                 callbackCard.onChangeIdCard(cardCreditChoice.idCard)
+                                callbackCard.onChangeFilterCreditCard(CardCreditFilter(cardCreditChoice))
                             }
                         })
                 }
@@ -709,7 +839,8 @@ fun ChoiceData(idCard: Long, dataCurrent: String, lifecycleOwner: LifecycleOwner
     }
 }
 
-class ProductManagerFieldViewModel : BaseFieldViewModel() {
+class  ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
+    val purchaseViewModel = PurchaseViewModel(context)
     val product: MutableLiveData<String> = MutableLiveData("")
     var cardCreditCollection: MutableLiveData<List<CreditCardDTO>> =
         MutableLiveData(mutableListOf())
@@ -724,6 +855,78 @@ class ProductManagerFieldViewModel : BaseFieldViewModel() {
 
     override fun checkFileds(): Boolean {
         TODO("Not yet implemented")
+    }
+
+    fun mountObejctSearchDatabase(objectFilter: ObjectFilter){
+
+        var nameFields: String = ""
+        var collectionSeach: MutableList<Any> = mutableListOf()
+
+        if(objectFilter.text.isNotBlank()) {
+            nameFields += "name = ?"
+            collectionSeach.add(objectFilter.text)
+        }
+
+        if(objectFilter.priceMin != null && objectFilter.priceMin!! >= 0) {
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+            nameFields += "price >= ?"
+            collectionSeach.add(objectFilter.priceMin!!)
+        }
+
+        if(objectFilter.priceMax != null && objectFilter.priceMax!! >= 0) {
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+            nameFields += "price <= ?"
+            collectionSeach.add(objectFilter.priceMax!!)
+        }
+
+        if(objectFilter.idCard > 0) {
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+            nameFields += "purchaseCardId =?"
+            collectionSeach.add(objectFilter.idCard)
+        }
+
+        if(objectFilter.month.isNotBlank()) {
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+            nameFields += "date LIKE '%' || ? || '%'"
+            collectionSeach.add(objectFilter.month)
+        }
+
+        if(objectFilter.categoryCollection.size > 0){
+
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+
+            objectFilter.categoryCollection.forEachIndexed { index, category ->
+                nameFields += "category LIKE ?"
+                collectionSeach.add(category.toString())
+
+                if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
+                    nameFields += " AND "
+                }
+            }
+        }
+
+        if(objectFilter.cardFilter.nickName.isNotBlank()){
+            if (collectionSeach.size > 0) {
+                nameFields += " AND "
+            }
+
+            nameFields += "purchaseCardId = ?"
+            collectionSeach.add(objectFilter.cardFilter.id)
+        }
+
+        purchaseViewModel.getPurchasesOfSearch(
+            collectionSeach, nameFields
+        )
     }
 
 }

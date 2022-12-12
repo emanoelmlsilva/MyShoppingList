@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +9,9 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
@@ -21,7 +25,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
 
 @ExperimentalComposeUiApi
 @Composable
-    fun TextInputComponent(textColor: Color? = text_primary,disabledTextColor: Color? = text_primary, backgroundColor: Color = background_text_field, modifier: Modifier? = null,
+    fun TextInputComponent(focusRequester: FocusRequester = FocusRequester(), textColor: Color? = text_primary, disabledTextColor: Color? = text_primary, backgroundColor: Color = background_text_field, modifier: Modifier? = Modifier,
                            value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = true, isCountChar: Boolean? = false,
                            reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
                            keyboardActions: KeyboardActions = KeyboardActions(), leadingIcon:  @Composable (() -> Unit)? = null, trailingIcon: @Composable (() -> Unit)? = null){
@@ -56,7 +60,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
                 enabled = isEnableClick!!,
                 modifier = Modifier.fillMaxWidth().clickable(enabled = !isEnableClick, onClick = {
                     customOnClick.onClick()
-                }),
+                }).focusRequester(focusRequester),
                 label = { Text(label) },
                 singleLine = true,
                 maxLines = 1,
