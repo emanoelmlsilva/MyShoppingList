@@ -58,4 +58,7 @@ interface PurchaseDAO {
 
     @RawQuery(observedEntities = [Purchase::class])
     fun getPurchasesSearch(query: SupportSQLiteQuery): List<Purchase>
+
+    @RawQuery(observedEntities = [Purchase::class])
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Double
 }

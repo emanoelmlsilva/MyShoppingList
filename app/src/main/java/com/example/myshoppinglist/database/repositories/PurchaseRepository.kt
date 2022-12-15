@@ -94,15 +94,24 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     }
 
     fun getPurchasesOfSearch(query: SupportSQLiteQuery){
-        Log.d("TESTANDO", "query.sql ${query.sql}")
         coroutineScope.launch(Dispatchers.Main){
             searchCollecitonResult.value = asyncGetPurchasesSearch(query).await()
         }
 
     }
 
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery){
+        coroutineScope.launch(Dispatchers.Main){
+            searchPrice.value = asyncGetPurchasesSearchSum(query).await()
+        }
+    }
+
     private fun asyncGetPurchasesSearch(query: SupportSQLiteQuery): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getPurchasesSearch(query)
+    }
+
+    private fun asyncGetPurchasesSearchSum(query: SupportSQLiteQuery): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesSearchSum(query)
     }
 
     private fun asyncFindAll(nameUser: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){

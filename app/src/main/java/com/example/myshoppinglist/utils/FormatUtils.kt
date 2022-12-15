@@ -78,7 +78,7 @@ class FormatUtils {
         return formatred
     }
 
-    fun getNameDay(dateFull: String): String {
+    fun getNameDay(dateFull: String, enabled: Boolean = true): String {
         val formatter = SimpleDateFormat(patternReverseDate)
         val date = formatter.parse(dateFull)
         val dateCurrent = Calendar.getInstance().time
@@ -87,7 +87,7 @@ class FormatUtils {
         val yearCurrent = dateCurrent.year
         val monthCurrent = dateCurrent.month
 
-        if((dayCurrent - date.date) < dayOfWeek && yearCurrent == date.year && monthCurrent == date.month){
+        if(enabled && (dayCurrent - date.date) < dayOfWeek && yearCurrent == date.year && monthCurrent == date.month){
             if(date.month == dateCurrent.month && date.year == dateCurrent.year){
                 if(date.date == dayCurrent){
                     return "Hoje"

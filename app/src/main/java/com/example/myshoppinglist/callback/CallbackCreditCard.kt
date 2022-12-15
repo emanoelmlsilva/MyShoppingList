@@ -13,5 +13,7 @@ interface CallbackCreditCard : Callback{
 
     }
 
-    fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter)
+    fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter){
+
+    }
 }

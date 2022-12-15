@@ -47,7 +47,7 @@ fun BoxPurchaseHistoryComponent(visibleAnimation: Boolean, purchaseColleciton: L
                                 .padding(top = 3.dp)
                         )
                         Column(
-                            modifier = Modifier.padding(start = 12.dp)
+                            modifier = Modifier.padding(start = 12.dp).fillMaxWidth(.58f)
                         ) {
                             Text(
                                 text = purchase.name.capitalize(), fontFamily = LatoRegular, fontSize = 16.sp, color = text_primary_light
