@@ -392,8 +392,7 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(35.dp)
-                            .clickable { expandableContainer(indexInfo) },
+                            .clickable { expandableContainer(indexInfo) }.padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row( verticalAlignment = Alignment.CenterVertically){
@@ -427,12 +426,18 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
                             fontFamily = LatoBlack
                         )
                     }
-                    Divider(
-                        color = text_title_secondary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    )
+
+                    if (!isExpanded(
+                            indexInfo,
+                            expandeds
+                        )){
+                            Divider(
+                                color = text_title_secondary,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                            )
+                        }
                 }
 
             }
@@ -444,7 +449,7 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
             ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
                 Column(modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp), horizontalAlignment = Alignment.End) {
+                    .padding(vertical = 8.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
                     Column(modifier = Modifier.fillMaxWidth(.9f)) {
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
