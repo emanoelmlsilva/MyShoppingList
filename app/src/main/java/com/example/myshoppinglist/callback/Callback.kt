@@ -11,4 +11,8 @@ interface Callback {
     fun onChangeValueId(value: Int){
 
     }
+
+    fun onChangeValueMong(newMonth: String){
+
+    }
 }

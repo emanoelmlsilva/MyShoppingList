@@ -32,6 +32,14 @@ class Purchase {
     @ColumnInfo(name = "category")
     var category: TypeCategory = TypeCategory.DRINKS
 
+
+    constructor(name: String){
+        this.name = name
+    }
+
+    constructor(){
+    }
+
     constructor(
         name: String,
         locale: String,

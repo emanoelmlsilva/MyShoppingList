@@ -1,9 +1,13 @@
 package com.example.myshoppinglist.database.daos
 
+import android.content.Context
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.utils.FormatUtils
@@ -34,6 +38,9 @@ interface PurchaseDAO {
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date DESC ")
     fun getMonthByIdCard(nameUser: String, idCard: Long):List<String>
 
+    @Query("SELECT DISTINCT(SUBSTR(date, 1, LENGTH(date) - 3)) as date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date ASC")
+    fun getMonthDistinctByIdCard(nameUser: String, idCard: Long):List<String>
+
     @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId")
     fun sumPriceById(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
@@ -48,4 +55,10 @@ interface PurchaseDAO {
 
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date DESC")
     fun getPurchasesWeekById(week: String, nameUser: String, idCard: Long): List<Purchase>
+
+    @RawQuery(observedEntities = [Purchase::class])
+    fun getPurchasesSearch(query: SupportSQLiteQuery): List<Purchase>
+
+    @RawQuery(observedEntities = [Purchase::class])
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Double
 }

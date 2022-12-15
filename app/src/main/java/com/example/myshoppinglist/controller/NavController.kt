@@ -58,9 +58,9 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
                 SpendingScreen(navHostController, idCard)
             }
         }
-        composable(Screen.Products.name) {
+        composable(Screen.ProductsManager.name) {
             callback.onChangeVisible(true)
-            ProductsScreen(navHostController)
+            ProductsManagerScreen(navHostController)
         }
         composable(Screen.Finance.name) {
             callback.onChangeVisible(true)
