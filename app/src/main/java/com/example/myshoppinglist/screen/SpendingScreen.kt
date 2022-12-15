@@ -52,26 +52,26 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val purchaseViewModel = PurchaseViewModel(context)
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseInfo>() }
-    val price = remember { mutableStateOf(0.0)}
+    val price = remember { mutableStateOf(0.0) }
     val monthsCollection = remember { mutableStateListOf<String>() }
-    val monthCurrent = remember {mutableStateOf("")}
-    val creditCardCollection = remember { mutableListOf<CreditCard>()}
-    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null)}
-    val visibleAnimation = remember { mutableStateOf(true)}
+    val monthCurrent = remember { mutableStateOf("") }
+    val creditCardCollection = remember { mutableListOf<CreditCard>() }
+    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null) }
+    val visibleAnimation = remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = idCard){
+    LaunchedEffect(key1 = idCard) {
         creditCardViewModel.getAll()
         creditCardViewModel.findCreditCardById(idCard)
     }
 
-    fun reset(){
+    fun reset() {
         monthCurrent.value = ""
         price.value = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
     }
 
-    fun getInforPurchaseByMonth(month: String){
+    fun getInforPurchaseByMonth(month: String) {
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(month)
 
         purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.id, "$monthAndYearNumber-")
@@ -95,8 +95,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
-        if(it.isNotBlank()) {
-           getInforPurchaseByMonth(it)
+        if (it.isNotBlank()) {
+            getInforPurchaseByMonth(it)
         }
     }
 
@@ -107,11 +107,11 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         val convertedMonth = months.groupBy {
             val separaterDate = it.split("-")
             "${separaterDate.get(0)}-${separaterDate.get(1)}"
-        }.map{ group -> FormatUtils().getMonth("${group.key}-01")}
+        }.map { group -> FormatUtils().getMonth("${group.key}-01") }
 
         monthsCollection.addAll(convertedMonth)
 
-        if(convertedMonth.isNotEmpty()){
+        if (convertedMonth.isNotEmpty()) {
             val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
 
             monthCurrent.value = monthAndYearNumber
@@ -127,9 +127,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     purchaseViewModel.searchCollectionResults.observeForever { purchases ->
 
-        val purchaseInfoFormattedCollection: MutableList<PurchaseInfo> = purchases.groupBy { it.date }.map{ group -> PurchaseInfo(group.key,
-            group.value.reversed() as MutableList<Purchase>
-        )} as MutableList<PurchaseInfo>
+        val purchaseInfoFormattedCollection: MutableList<PurchaseInfo> =
+            purchases.groupBy { it.date }.map { group ->
+                PurchaseInfo(
+                    group.key,
+                    group.value.reversed() as MutableList<Purchase>
+                )
+            } as MutableList<PurchaseInfo>
 
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
 
@@ -139,7 +143,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     TopAppBarScreen(content = {
 
-        Column(modifier = Modifier.padding(16.dp)){
+        Column(modifier = Modifier.padding(16.dp)) {
             BaseAnimationComponent(
                 visibleAnimation = visibleAnimation.value,
                 contentBase = {
@@ -149,78 +153,111 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                     )
                 })
 
-            BoxSpendingFromMonth(spendingTextFieldViewModel, monthsCollection, price.value, currentCreditCard.value, creditCardCollection, object :
-                CallbackCreditCard {
-                override fun onChangeValueCreditCard(creditCard: CreditCard) {
-                    currentCreditCard.value = creditCard
+            BoxSpendingFromMonth(
+                spendingTextFieldViewModel,
+                monthsCollection,
+                price.value,
+                currentCreditCard.value,
+                creditCardCollection,
+                object :
+                    CallbackCreditCard {
+                    override fun onChangeValueCreditCard(creditCard: CreditCard) {
+                        currentCreditCard.value = creditCard
 
-                    purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
+                        purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
 
-                    reset()
+                        reset()
 
-                }
-            })
+                    }
+                })
 
             Spacer(
                 Modifier
-                    .height(35.dp))
+                    .height(35.dp)
+            )
 
             BaseAnimationComponent(
                 visibleAnimation = visibleAnimation.value,
                 contentBase = {
                     Column {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Card(modifier = Modifier
-                            .size(62.dp)
-                            .clip(CircleShape),
-                            backgroundColor = background_card,
-                            onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(ButtonDefaults.IconSize)
-                                    .padding(18.dp),
-                            )
+                        Row {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Card(modifier = Modifier
+                                    .size(62.dp)
+                                    .clip(CircleShape),
+                                    backgroundColor = background_card,
+                                    onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(ButtonDefaults.IconSize)
+                                            .padding(18.dp),
+                                    )
+                                }
+                                Text(
+                                    text = "Comprar",
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(start = 16.dp)) {
+                                Card(modifier = Modifier
+                                    .size(62.dp)
+                                    .clip(CircleShape),
+                                    backgroundColor = background_card,
+                                    onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_baseline_category_24),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(ButtonDefaults.IconSize)
+                                            .padding(18.dp),
+                                    )
+                                }
+                                Text(
+                                    text = "Categorias",
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
-                        Text(
-                            text = "Comprar",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp)
+                        Spacer(
+                            Modifier
+                                .height(15.dp)
+                        )
+
+                        Divider(
+                            color = divider,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
                         )
                     }
-                    Spacer(
-                        Modifier
-                            .height(15.dp)
-                    )
-
-                    Divider(
-                        color = divider,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    )
-                }
                 })
 
-            if(purchaseInfoCollection.isNotEmpty()){
+            if (purchaseInfoCollection.isNotEmpty()) {
                 BaseLazyColumnScroll(
                     visibleAnimation = visibleAnimation.value,
                     modifier = Modifier.fillMaxWidth(),
-                    callback =  object : VisibleCallback(){
+                    callback = object : VisibleCallback() {
                         override fun onChangeVisible(visible: Boolean) {
-                            if(visibleAnimation.value != visible) {
+                            if (visibleAnimation.value != visible) {
                                 visibleAnimation.value = visible
                             }
                         }
                     }
-                ){
-                    purchaseInfoCollection.map{ purchaseInfo ->
+                ) {
+                    purchaseInfoCollection.map { purchaseInfo ->
                         item {
-                            Text(text = FormatUtils().getNameDay(purchaseInfo.title).capitalize(), modifier = Modifier.padding(start = 8.dp, top = 24.dp), color = text_title_secondary)
+                            Text(
+                                text = FormatUtils().getNameDay(purchaseInfo.title).capitalize(),
+                                modifier = Modifier.padding(start = 8.dp, top = 24.dp),
+                                color = text_title_secondary
+                            )
                         }
 
-                        items(purchaseInfo.purchaseCollection){ purchase ->
+                        items(purchaseInfo.purchaseCollection) { purchase ->
                             BoxPurchaseSpeding(purchase)
                         }
                     }
@@ -228,44 +265,76 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
             }
         }
 
-    }, onClickIcon = {navController?.popBackStack()})
+    }, onClickIcon = { navController?.popBackStack() })
 }
 
 @Composable
-fun BoxSpendingFromMonth(spendingField: SpendingTextFieldViewModel, months: List<String>, price: Double, currentCreditCard: CreditCard?,creditCards: List<CreditCard>, callbackCreditCard: CallbackCreditCard){
+fun BoxSpendingFromMonth(
+    spendingField: SpendingTextFieldViewModel,
+    months: List<String>,
+    price: Double,
+    currentCreditCard: CreditCard?,
+    creditCards: List<CreditCard>,
+    callbackCreditCard: CallbackCreditCard
+) {
     val hasMonths = months.isNotEmpty()
-    val monthCurrent = remember { mutableStateOf(if(hasMonths) months[0] else "") }
+    val monthCurrent = remember { mutableStateOf(if (hasMonths) months[0] else "") }
     spendingField.monthCurrent.observeForever {
-        if(it.isNotBlank()) monthCurrent.value = it else if(hasMonths) monthCurrent.value = months[0]
+        if (it.isNotBlank()) monthCurrent.value = it else if (hasMonths) monthCurrent.value =
+            months[0]
     }
 
-    Column(verticalArrangement = Arrangement.Center){
-        Row(verticalAlignment = Alignment.Bottom){
-            Text(text = "Gastos do mês", modifier = Modifier.padding(bottom = 16.dp), fontSize = 16.sp, fontFamily = LatoBlack , color = text_primary_light)
+    Column(verticalArrangement = Arrangement.Center) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = "Gastos do mês",
+                modifier = Modifier.padding(bottom = 16.dp),
+                fontSize = 16.sp,
+                fontFamily = LatoBlack,
+                color = text_primary_light
+            )
             CustomDropDownMonth(
                 object : CustomTextFieldOnClick {
                     override fun onChangeValue(newValue: String) {
                         spendingField.onChangeMonth(newValue)
                     }
-                }, months, monthCurrent.value)
+                }, months, monthCurrent.value
+            )
         }
-        Row(verticalAlignment = Alignment.CenterVertically){
-            Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(price))}", fontWeight = FontWeight.Bold, fontSize = 40.sp)
-            if(currentCreditCard != null) BoxDropdownCardCredit(creditCards, currentCreditCard, callbackCreditCard)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(price))}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 40.sp
+            )
+            if (currentCreditCard != null) BoxDropdownCardCredit(
+                creditCards,
+                currentCreditCard,
+                callbackCreditCard
+            )
         }
     }
 }
 
 @Composable
-fun CustomDropDownMonth(callback: CustomTextFieldOnClick, monthCollection: List<String>, monthCurrent: String){
-    var expanded by remember {mutableStateOf(false)}
+fun CustomDropDownMonth(
+    callback: CustomTextFieldOnClick,
+    monthCollection: List<String>,
+    monthCurrent: String
+) {
+    var expanded by remember { mutableStateOf(false) }
 
     Card(elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
         .padding(6.dp, 16.dp, 16.dp, 16.dp)
-        .clickable(onClick = { expanded = true })) {
+        .clickable(onClick = { expanded = true })
+    ) {
 
         Row(horizontalArrangement = Arrangement.Center) {
-            Text(text = "- ${if (monthCollection.isNotEmpty()) monthCurrent else ""}", modifier = Modifier.padding(start = 8.dp, end = 8.dp), color = text_title_secondary)
+            Text(
+                text = "- ${if (monthCollection.isNotEmpty()) monthCurrent else ""}",
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                color = text_title_secondary
+            )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             monthCollection.forEach { month ->
@@ -282,11 +351,15 @@ fun CustomDropDownMonth(callback: CustomTextFieldOnClick, monthCollection: List<
 }
 
 @Composable
-fun BoxPurchaseSpeding(purchase: Purchase){
-    Column(modifier = Modifier.fillMaxWidth()){
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 32.dp, horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically){
+fun BoxPurchaseSpeding(purchase: Purchase) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 32.dp, horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
                 painter = painterResource(id = purchase.category.imageCircle),
                 contentDescription = null,
@@ -294,18 +367,46 @@ fun BoxPurchaseSpeding(purchase: Purchase){
                     .size(46.dp)
                     .padding(top = 3.dp, end = 8.dp)
             )
-            Row(modifier = Modifier
-                .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-                Column(horizontalAlignment = Alignment.Start){
-                    Text(text = purchase.name.capitalize(), fontFamily = LatoBlack, color = text_primary_light, fontSize = 14.sp, textAlign = TextAlign.Start)
-                    Text(text = purchase.locale, modifier = Modifier
-                        .padding(top = 8.dp), fontSize = 12.sp, color = text_title_secondary, textAlign = TextAlign.Start)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth(.58f)) {
+                    Text(
+                        text = purchase.name.capitalize(),
+                        fontFamily = LatoBlack,
+                        color = text_primary_light,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = purchase.locale,
+                        modifier = Modifier
+                            .padding(top = 8.dp),
+                        fontSize = 12.sp,
+                        color = text_title_secondary,
+                        textAlign = TextAlign.Start
+                    )
                 }
-                Column(horizontalAlignment = Alignment.End){
-                    Text(text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}", fontFamily = LatoBlack, color = text_primary_light, fontSize = 14.sp, textAlign = TextAlign.End)
-                    Text(text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "R$ ${
+                            MaskUtils.maskValue(
+                                MaskUtils.convertValueDoubleToString(
+                                    purchase.price
+                                )
+                            )
+                        }",
+                        fontFamily = LatoBlack,
+                        color = text_primary_light,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.End
+                    )
+                    Text(
+                        text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                         color = text_title_secondary, modifier = Modifier
-                            .padding(top = 8.dp), fontSize = 14.sp, textAlign = TextAlign.End)
+                            .padding(top = 8.dp), fontSize = 14.sp, textAlign = TextAlign.End
+                    )
                 }
             }
 
@@ -320,18 +421,20 @@ fun BoxPurchaseSpeding(purchase: Purchase){
     }
 }
 
-class SpendingTextFieldViewModel: BaseFieldViewModel(){
+class SpendingTextFieldViewModel : BaseFieldViewModel() {
 
-    val purchaseInfoCollection: MutableLiveData<MutableList<PurchaseInfo>> = MutableLiveData<MutableList<PurchaseInfo>>(
-        mutableListOf())
+    val purchaseInfoCollection: MutableLiveData<MutableList<PurchaseInfo>> =
+        MutableLiveData<MutableList<PurchaseInfo>>(
+            mutableListOf()
+        )
 
     val monthCurrent: MutableLiveData<String> = MutableLiveData<String>("")
 
-    fun onChangePurchaseInfoCollection(newPurchaseInfo: MutableList<PurchaseInfo>){
+    fun onChangePurchaseInfoCollection(newPurchaseInfo: MutableList<PurchaseInfo>) {
         purchaseInfoCollection.value = newPurchaseInfo
     }
 
-    fun onChangeMonth(newMonth: String){
+    fun onChangeMonth(newMonth: String) {
         monthCurrent.value = newMonth
     }
 
@@ -344,6 +447,6 @@ class SpendingTextFieldViewModel: BaseFieldViewModel(){
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
-fun PreviewSpendingScreen(){
+fun PreviewSpendingScreen() {
     SpendingScreen(null, 0L)
 }
