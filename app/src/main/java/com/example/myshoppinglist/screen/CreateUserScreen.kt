@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -37,9 +39,12 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.ui.theme.*
 
 
@@ -52,11 +57,24 @@ fun CreateUserScreen(navController: NavController?) {
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val userViewModel: UserViewModel = UserViewModel(context)
+    val categoryViewModel: CategoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryCollections = listOf(
+        TypeCategory.HYGIENE,
+        TypeCategory.CLEARNING,
+        TypeCategory.FOOD,
+        TypeCategory.DRINKS,
+        TypeCategory.OTHERS
+    )
 
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
             userViewModel.insertUser(User(name, nickName, idAvatar))
+            categoryCollections.forEach {
+                val category = Category(it.category, it.idImage, it.imageCircle)
+                categoryViewModel.insertCategory(category)
+            }
             navController?.navigate("createCards?hasToolbar=${false}")
         }
     }

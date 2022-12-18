@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -32,6 +33,7 @@ import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
@@ -53,7 +55,7 @@ fun HomeScreen(navController: NavController?) {
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
-    val purchaseCollection = remember { mutableStateListOf<Purchase>() }
+    val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     val price = remember { mutableStateOf<Double>(0.0) }
     val visibleAnimation = remember { mutableStateOf(true) }
     val creditCardColleciton = remember{ mutableStateListOf<List<CreditCardDTO>>()}
@@ -63,12 +65,13 @@ fun HomeScreen(navController: NavController?) {
         creditCardViewModel.getAllWithSum()
         purchaseViewModel.sumPriceAllCard()
         purchaseViewModel.getPurchasesWeek()
+        purchaseViewModel.getPurchasesAndCategoryWeek()
     }
     purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner.value) {
         price.value = it
     }
 
-    purchaseViewModel.searchCollectionResults.observe(lifecycleOwner.value) { purchases ->
+    purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
         purchaseCollection.removeAll(purchaseCollection)
         purchaseCollection.addAll(purchases.reversed())
 

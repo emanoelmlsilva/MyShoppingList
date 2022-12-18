@@ -37,8 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
@@ -49,11 +47,14 @@ import com.example.myshoppinglist.callback.CallbackFilter
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
-import com.example.myshoppinglist.enums.TypeCategory
+import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
@@ -63,10 +64,7 @@ import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MaskUtils.convertValueDoubleToString
 import kotlinx.coroutines.*
-import java.time.Year
 import java.util.*
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 import kotlin.collections.HashMap
 
 val TAG = "ProductsManagerScreen"
@@ -80,7 +78,7 @@ fun ProductsManagerScreen(navController: NavController?) {
     val productManagerFieldViewModel: ProductManagerFieldViewModel =
         ProductManagerFieldViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-    val purchaseInfoFilterCollection = remember { mutableStateListOf<Purchase>() }
+    val purchaseInfoFilterCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00")}
 
@@ -97,7 +95,7 @@ fun ProductsManagerScreen(navController: NavController?) {
             })
     }
 
-    productManagerFieldViewModel.purchaseViewModel.searchCollectionResults.observe(lifecycleOwner) {
+    productManagerFieldViewModel.purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner) {
         quantityPurchases = if(it.size > 100) it.size.toString() else "0${it.size}"
         purchaseInfoFilterCollection.removeAll(purchaseInfoFilterCollection)
         purchaseInfoFilterCollection.addAll(it)
@@ -133,7 +131,6 @@ fun SearchProduct(
     val listProductText = remember { mutableStateListOf<String>() }
     val reset = remember { mutableStateOf(false) }
     var enableDialog by remember { mutableStateOf(false) }
-    var creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
     var filter by remember { mutableStateOf(ObjectFilter()) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -325,32 +322,32 @@ fun SearchProduct(
     }
 }
 
-fun mountItemPurchase(purchaseCollection: List<Purchase>): List<PurchaseInfo> {
+fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<PurchaseInfo> {
     val purchaseInfoCollection = mutableListOf<PurchaseInfo>()
 
-    purchaseCollection.forEach { purchase ->
+    if(purchaseCollection.isEmpty()) return purchaseInfoCollection
 
+    purchaseCollection.forEach { purchaseAndCategory ->
+
+        val purchase = purchaseAndCategory.purchase
+        val category = purchaseAndCategory.category
 
         val purchaseFilterCollection =
-            purchaseCollection.filter { item -> purchase.name.contains(item.name.split(" ")[0]) }
+            purchaseCollection.filter { item -> purchase.name == item.purchase.name }
 
-        val hasNotItemPurchase = purchaseInfoCollection.firstOrNull { item -> item.title.contains(purchase.name)} == null
+        val hasNotItemPurchase = purchaseInfoCollection.firstOrNull { item -> item.title == purchase.name } == null
 
         if (hasNotItemPurchase) {
 
-            var titles = mutableListOf<String>()
+            if(purchaseFilterCollection.isNotEmpty()){
+                val purchaseMultCollection: MutableList<Purchase> = purchaseFilterCollection.map { it.purchase } as MutableList<Purchase>
+                val purchaseInfo = PurchaseInfo(
+                    purchase.name, category.imageCircle,
+                    purchaseMultCollection
+                )
 
-            purchaseFilterCollection.forEach { if(titles.indexOf(it.name) == -1){
-                titles.add(it.name)
+                purchaseInfoCollection.add(purchaseInfo)
             }
-            }
-
-            val purchaseInfo = PurchaseInfo(
-                if(titles.size > 0) titles.joinToString(" / ") else purchase.name, purchase.category.imageCircle,
-                purchaseFilterCollection as MutableList<Purchase>
-            )
-
-            purchaseInfoCollection.add(purchaseInfo)
         }
 
     }
@@ -363,7 +360,7 @@ fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
 }
 
 @Composable
-fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
+fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
     var purchaseInfoCollection = remember {
         mutableStateListOf<PurchaseInfo>()}
 
@@ -388,12 +385,12 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
     ) {
         purchaseInfoCollection.mapIndexed { indexInfo, purchaseInfo ->
             item {
-                Column {
+                Column() {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { expandableContainer(indexInfo) }.padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
+                            .clickable { expandableContainer(indexInfo) }.padding(top = 6.dp, bottom = 6.dp, end = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround
                     ) {
                         Row( verticalAlignment = Alignment.CenterVertically){
                             IconButton(onClick = { expandableContainer(indexInfo) }) {
@@ -408,7 +405,7 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
                                 )
                             }
                             Image(
-                                painter = painterResource(id = purchaseInfo.avatar),
+                                painter = painterResource(id = if(purchaseInfo.avatar > 0) purchaseInfo.avatar else CardCreditFlag.MONEY.flag),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(25.dp),
@@ -432,7 +429,7 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
                             expandeds
                         )){
                             Divider(
-                                color = text_title_secondary,
+                                color = divider,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(1.dp)
@@ -501,7 +498,7 @@ fun BoxPurchaseItens(purchaseCollection: List<Purchase>) {
 
                         }
                         Divider(
-                            color = border,
+                            color = divider_ligth,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(1.dp)
@@ -524,28 +521,28 @@ fun AlertDialogFilter(
     lifecycleOwner: LifecycleOwner,
     callback: CallbackFilter
 ) {
+    val context = LocalContext.current
     val priceMinDefault = 0F
     val priceMaxDefault = 100F
-    val categoryChoices = remember { mutableStateListOf<TypeCategory>() }
+    val categoryChoices = remember { mutableStateListOf<Category>() }
+    val categoryCollections = remember { mutableStateListOf<Category>() }
     var priceMin by remember { mutableStateOf(priceMinDefault) }
     var priceMax by remember { mutableStateOf(priceMaxDefault) }
     var month by remember { mutableStateOf("") }
     var idCardCredit by remember { mutableStateOf(0L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
     var creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
-
-    var categoryCollections = listOf(
-        TypeCategory.HYGIENE,
-        TypeCategory.CLEARNING,
-        TypeCategory.FOOD,
-        TypeCategory.DRINKS,
-        TypeCategory.OTHERS
-    )
+    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
 
     LaunchedEffect(Unit) {
         keyboardController.hide()
+        categoryViewModel.getAll()
     }
 
+    categoryViewModel.searchCollectionResult.observe(lifecycleOwner){
+        categoryCollections.removeAll(categoryCollections)
+        categoryCollections.addAll(it)
+    }
 
     productManagerFieldViewModel.cardCreditCollection.observe(lifecycleOwner) {
         if(it.isNotEmpty()){
@@ -960,7 +957,7 @@ fun ChoiceData(
     var monthCurrent by remember { mutableStateOf(if (splitDataCurrent.isNotEmpty()) splitDataCurrent[1] else "") }
     val dataCollection = remember { mutableStateListOf<String>() }
     val dateMonthAndYear = remember { mutableStateMapOf<String, MutableList<String>>() }
-    
+
     fun splitMonthOfYead(): HashMap<String, MutableList<String>> {
         val mapDate = HashMap<String, MutableList<String>>()
         dataCollection.forEach {
@@ -1147,8 +1144,8 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
             }
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
-                nameFields += "category LIKE ?"
-                collectionSeach.add(category.toString())
+                nameFields += "categoryOwnerId = ?"
+                collectionSeach.add(category.category)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " AND "
@@ -1169,7 +1166,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
             collectionSeach, nameFields
         )
 
-        purchaseViewModel.getPurchasesCountOfSearch(collectionSeach, nameFields)
+        purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)
     }
 
 }

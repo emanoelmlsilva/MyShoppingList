@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
@@ -16,9 +15,7 @@ import com.example.myshoppinglist.ui.theme.secondary_dark
 import com.example.myshoppinglist.ui.theme.text_secondary
 
 @Composable
-fun TopAppBarScreen(content: @Composable (() -> Unit?)?, onClickIcon: (() -> Unit)? = null, isScrollable: Boolean = false, modifier: Modifier = Modifier
-    .fillMaxWidth()
-    .fillMaxHeight(), color: Color = MaterialTheme.colors.background, contentColor: Color = contentColorFor(text_secondary), hasToolbar: Boolean = false) {
+fun TopAppBarScreen(content: @Composable (() -> Unit?)?, onClickIcon: (() -> Unit)? = null, isScrollable: Boolean = false, modifier: Modifier = Modifier, color: Color = MaterialTheme.colors.background, contentColor: Color = contentColorFor(text_secondary), hasToolbar: Boolean = false, floatingActionButton:  @Composable () -> Unit = { }) {
 
     val baseModifier = if(!isScrollable) modifier else modifier.verticalScroll(
         rememberScrollState()
@@ -43,14 +40,16 @@ fun TopAppBarScreen(content: @Composable (() -> Unit?)?, onClickIcon: (() -> Uni
                         elevation = 0.dp
                     )
                 }
-            }
-        ) {
+            },
+            modifier = Modifier.padding(bottom = if(floatingActionButton != {}) 65.dp else 0.dp),
+            floatingActionButton = floatingActionButton,
+            ) {
             content?.let { screen ->
                 Surface(
                     color = color,
                     contentColor = contentColor,
-                    modifier = baseModifier
-                ) {screen()} }
+                    modifier = baseModifier,
+                    ) {screen()} }
         }
     }
 }

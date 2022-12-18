@@ -66,5 +66,9 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             callback.onChangeVisible(true)
             FinanceScreen(navHostController)
         }
+        composable(Screen.Categories.name){
+            callback.onChangeVisible(true)
+            CategoriesScreen(navHostController)
+        }
     }
 }

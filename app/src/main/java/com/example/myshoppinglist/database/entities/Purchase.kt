@@ -29,15 +29,14 @@ class Purchase {
     var date: String = "24-01-2022"
     @ColumnInfo(name = "price")
     var price: Double = 0.0
-    @ColumnInfo(name = "category")
-    var category: TypeCategory = TypeCategory.DRINKS
-
+    @ColumnInfo(name = "categoryOwnerId")
+    var categoryOwnerId: String = ""
 
     constructor(name: String){
         this.name = name
     }
 
-    constructor(){
+    constructor(): super(){
     }
 
     constructor(
@@ -48,7 +47,7 @@ class Purchase {
         typeProduct: TypeProduct,
         date: String,
         price: Double,
-        category: TypeCategory
+        categoryOwnerId: String
     ) {
         this.name = name
         this.locale = locale
@@ -57,12 +56,11 @@ class Purchase {
         this.typeProduct = typeProduct
         this.date = date
         this.price = price
-        this.category = category
+        this.categoryOwnerId = categoryOwnerId
     }
 
     override fun toString(): String {
-        return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, category=$category)"
+        return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
-
 
 }

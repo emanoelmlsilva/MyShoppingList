@@ -25,7 +25,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.controller.NavController
 import com.example.myshoppinglist.database.viewModels.UserViewModel
-import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
+import com.example.myshoppinglist.ui.theme.primary
+import com.example.myshoppinglist.ui.theme.shadow
+import com.example.myshoppinglist.ui.theme.text_primary
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 class MainActivity : ComponentActivity() {
@@ -44,13 +48,14 @@ class MainActivity : ComponentActivity() {
                 val userViewModel: UserViewModel = UserViewModel(context)
                 val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
 
-                val route = if(userViewModel.hasExistUser()) com.example.myshoppinglist.enums.Screen.Home else com.example.myshoppinglist.enums.Screen.CreateUser
+                val route = if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
 
                 val screenBarCollection = listOf(
-                    com.example.myshoppinglist.enums.Screen.Home,
-                    com.example.myshoppinglist.enums.Screen.CreditCollection,
-                    com.example.myshoppinglist.enums.Screen.Finance,
-                    com.example.myshoppinglist.enums.Screen.ProductsManager
+                    Screen.Home,
+                    Screen.CreditCollection,
+//                    Screen.Finance,
+                    Screen.Categories,
+                    Screen.ProductsManager
                 )
 
                 Scaffold(

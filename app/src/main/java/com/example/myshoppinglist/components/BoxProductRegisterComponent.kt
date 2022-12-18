@@ -82,92 +82,92 @@ fun BoxProductRegisterComponent(
                     )
                 }
             }
-            if (isExpanded(
-                    indexInfo,
-                    expandeds
-                )
-            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp), horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = purchase.category.imageCircle),
-                            contentDescription = null,
-                            Modifier
-                                .size(46.dp)
-                                .padding(top = 3.dp)
-                        )
-                        Column {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    fontFamily = LatoRegular,
-                                    text = purchase.name, modifier = Modifier
-                                        .padding(start = 12.dp),
-                                    textAlign = TextAlign.Start
-                                )
-                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
-                                    Text(
-                                        fontFamily = LatoRegular,
-                                        fontSize = 12.sp,
-                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
-                                    )
-                                    Text(
-                                        fontFamily = LatoBold,
-                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
-                                        modifier = Modifier
-                                            .padding(start = 12.dp),
-                                    )
-                                }
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 18.dp), horizontalArrangement = Arrangement.End
-                            ) {
-                                IconButton(onClick = {
-                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
-                                })
-                                {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Edit,
-                                        contentDescription = null,
-                                        tint = text_primary,
-                                    )
-                                }
-                                IconButton(onClick = {
-                                    callbackPurchase.onChangeIndex(
-                                        indexInfo,
-                                        index,
-                                        TypeState.DELETE
-                                    )
-                                })
-                                {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Delete,
-                                        contentDescription = null,
-                                        tint = text_primary,
-                                    )
-                                }
-
-                            }
-                        }
-                    }
-                    Divider(
-                        color = divider,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    )
-                }
-
-
-            } else null
+//            if (isExpanded(
+//                    indexInfo,
+//                    expandeds
+//                )
+//            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
+//                Column(modifier = Modifier.fillMaxWidth()) {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp), horizontalArrangement = Arrangement.Center
+//                    ) {
+//                        Image(
+//                            painter = painterResource(id = purchase.category.imageCircle),
+//                            contentDescription = null,
+//                            Modifier
+//                                .size(46.dp)
+//                                .padding(top = 3.dp)
+//                        )
+//                        Column {
+//                            Row(
+//                                horizontalArrangement = Arrangement.SpaceBetween,
+//                                modifier = Modifier.fillMaxWidth()
+//                            ) {
+//                                Text(
+//                                    fontFamily = LatoRegular,
+//                                    text = purchase.name, modifier = Modifier
+//                                        .padding(start = 12.dp),
+//                                    textAlign = TextAlign.Start
+//                                )
+//                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+//                                    Text(
+//                                        fontFamily = LatoRegular,
+//                                        fontSize = 12.sp,
+//                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+//                                    )
+//                                    Text(
+//                                        fontFamily = LatoBold,
+//                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
+//                                        modifier = Modifier
+//                                            .padding(start = 12.dp),
+//                                    )
+//                                }
+//                            }
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(top = 18.dp), horizontalArrangement = Arrangement.End
+//                            ) {
+//                                IconButton(onClick = {
+//                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
+//                                })
+//                                {
+//                                    Icon(
+//                                        imageVector = Icons.Outlined.Edit,
+//                                        contentDescription = null,
+//                                        tint = text_primary,
+//                                    )
+//                                }
+//                                IconButton(onClick = {
+//                                    callbackPurchase.onChangeIndex(
+//                                        indexInfo,
+//                                        index,
+//                                        TypeState.DELETE
+//                                    )
+//                                })
+//                                {
+//                                    Icon(
+//                                        imageVector = Icons.Outlined.Delete,
+//                                        contentDescription = null,
+//                                        tint = text_primary,
+//                                    )
+//                                }
+//
+//                            }
+//                        }
+//                    }
+//                    Divider(
+//                        color = divider,
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(1.dp)
+//                    )
+//                }
+//
+//
+//            } else null
         }
     }
 }
@@ -185,43 +185,43 @@ fun changeVisibility(index: Int, visibilityCollection: MutableList<Int>): Mutabl
 fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
     return visibilityCollection.indexOf(index) != -1
 }
-
-@ExperimentalAnimationApi
-@Preview(showBackground = true)
-@Composable
-fun PreviewBoxProductRegisterComponent() {
-
-    BoxProductRegisterComponent(
-        mutableListOf(
-            PurchaseInfo(
-                "Lula Mercadinho",
-                mutableListOf(
-                    Purchase(
-                        "Biscoito",
-                        "Lula Mercadinho",
-                        0,
-                        "1",
-                        TypeProduct.QUANTITY,
-                        "13-06-2022",
-                        "0.0".toDouble(),
-                        TypeCategory.DRINKS
-                    ),
-                    Purchase(
-                        "Biscoito",
-                        "Lula Mercadinho",
-                        0,
-                        "1",
-                        TypeProduct.QUANTITY,
-                        "13-06-2022",
-                        "0.0".toDouble(),
-                        TypeCategory.DRINKS
-                    )
-                )
-            )
-        ), object : CallbackPurchase() {
-            override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
-                TODO("Not yet implemented")
-            }
-        }
-    )
-}
+//
+//@ExperimentalAnimationApi
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewBoxProductRegisterComponent() {
+//
+//    BoxProductRegisterComponent(
+//        mutableListOf(
+//            PurchaseInfo(
+//                "Lula Mercadinho",
+//                mutableListOf(
+//                    Purchase(
+//                        "Biscoito",
+//                        "Lula Mercadinho",
+//                        0,
+//                        "1",
+//                        TypeProduct.QUANTITY,
+//                        "13-06-2022",
+//                        "0.0".toDouble(),
+//                        TypeCategory.DRINKS
+//                    ),
+//                    Purchase(
+//                        "Biscoito",
+//                        "Lula Mercadinho",
+//                        0,
+//                        "1",
+//                        TypeProduct.QUANTITY,
+//                        "13-06-2022",
+//                        "0.0".toDouble(),
+//                        TypeCategory.DRINKS
+//                    )
+//                )
+//            )
+//        ), object : CallbackPurchase() {
+//            override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
+//                TODO("Not yet implemented")
+//            }
+//        }
+//    )
+//}

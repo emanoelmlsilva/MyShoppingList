@@ -1,23 +1,23 @@
 package com.example.myshoppinglist.database.viewModels
 
-import android.annotation.SuppressLint
+ import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.repositories.PurchaseRepository
+ import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+ import com.example.myshoppinglist.database.repositories.PurchaseRepository
 import com.example.myshoppinglist.utils.FormatUtils
-import com.example.myshoppinglist.utils.MaskUtils
 import java.util.*
 
 class PurchaseViewModel(context: Context): ViewModel() {
 
     private val repository: PurchaseRepository
     val searchResult: MutableLiveData<Purchase>
-    val searchCollectionResults: MutableLiveData<List<Purchase>>
+    val searchPurchaseAndCategory: MutableLiveData<List<PurchaseAndCategory>>
+    val searchPurchases: MutableLiveData<List<Purchase>>
     val searchResultMonths: MutableLiveData<List<String>>
     val searchSumPriceResult: MutableLiveData<Double>
     @SuppressLint("StaticFieldLeak")
@@ -32,7 +32,8 @@ class PurchaseViewModel(context: Context): ViewModel() {
         userViewModel.getUserCurrent()
         repository = PurchaseRepository(purchaseDAO)
         searchResult = repository.searchResult
-        searchCollectionResults = repository.searchCollecitonResult
+        searchPurchaseAndCategory = repository.searchCollecitonPurchaseAndCategory
+        searchPurchases = repository.searchCollecitonPurchase
         searchResultMonths = repository.searchMonthsCollection
         searchSumPriceResult = repository.searchPrice
         contextTest = context
@@ -43,16 +44,16 @@ class PurchaseViewModel(context: Context): ViewModel() {
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
 
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
-            SimpleSQLiteQuery("SELECT * FROM purchases WHERE date LIKE '%' || ? || '%'", arrayOf(
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category = categoryOwnerId AND date LIKE '%' || ? || '%'", arrayOf(
                 monthAndYearNumber
             ))
         }else{
-            SimpleSQLiteQuery("SELECT * FROM purchases WHERE ${condition}", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category = categoryOwnerId AND $condition", arguments.toTypedArray())
         }
         repository.getPurchasesOfSearch(query)
     }
 
-    fun getPurchasesCountOfSearch(arguments: MutableList<Any>, condition: String){
+    fun getPurchasesSumOfSearch(arguments: MutableList<Any>, condition: String){
 
         arguments.add(0, "QUANTITY")
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
@@ -64,7 +65,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
             SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%'", arguments.toTypedArray())
         }else{
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE ${condition}", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition", arguments.toTypedArray())
         }
         repository.getPurchasesSearchSum(query)
     }
@@ -150,6 +151,14 @@ class PurchaseViewModel(context: Context): ViewModel() {
         userViewModel.searchResult.observeForever {
             nameUser = it.name
             repository.getPurchasesWeek(nameUser)
+        }
+    }
+
+    fun getPurchasesAndCategoryWeek(){
+        var nameUser = ""
+        userViewModel.searchResult.observeForever {
+            nameUser = it.name
+            repository.getPurchasesAndCategoryWeek(nameUser)
         }
     }
 }

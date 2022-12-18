@@ -5,7 +5,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 class PurchaseInfo {
     var avatar: Int
     var title: String
-    var purchaseCollection: MutableList<Purchase>
+    var purchaseCollection: MutableList<Purchase> = mutableListOf()
 
     constructor(title: String, purchaseCollection: MutableList<Purchase>) {
         this.avatar = 0

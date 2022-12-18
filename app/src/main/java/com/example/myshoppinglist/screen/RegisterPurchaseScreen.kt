@@ -3,10 +3,11 @@ package com.example.myshoppinglist.screen
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Handler
-import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,7 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -24,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -34,22 +35,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.CallbackPurchase
+import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
-import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
@@ -68,8 +68,9 @@ import java.util.*
 @Composable
 fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long) {
     val context = LocalContext.current
-    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val purchaseViewModel = PurchaseViewModel(context)
+    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
@@ -78,18 +79,25 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     LaunchedEffect(key1 = idCardCurrent){
+        categoryViewModel.getAll()
         registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
     }
 
-    registerTextFieldViewModel.purchaseCollection.observe(lifecycleOwner.value, {
+    registerTextFieldViewModel.purchaseCollection.observe(lifecycleOwner) {
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         purchaseInfoCollection.addAll(it)
-        countProduct.value = purchaseInfoCollection.map{purchase -> purchase.purchaseCollection.map { item ->  item}.count()}.sum()
-    })
+        countProduct.value = purchaseInfoCollection.map { purchase ->
+            purchase.purchaseCollection.map { item -> item }.count()
+        }.sum()
+    }
 
-    registerTextFieldViewModel.resetDate.observe(lifecycleOwner.value, {
+    registerTextFieldViewModel.resetDate.observe(lifecycleOwner) {
         reset.value = it
-    })
+    }
+
+    categoryViewModel.searchCollectionResult.observe(lifecycleOwner){
+        registerTextFieldViewModel.onChangeCategoryCollection(it)
+    }
 
     suspend fun savePurchases(){
 
@@ -297,14 +305,16 @@ fun CategoryProduct(
     registerTextFieldViewModel: RegisterTextFieldViewModel,
     error: Boolean? = false
 ) {
-    var categoryCollections = listOf(
-        TypeCategory.HYGIENE,
-        TypeCategory.CLEARNING,
-        TypeCategory.FOOD,
-        TypeCategory.DRINKS,
-        TypeCategory.OTHERS
-    )
-    var categoryChoice = registerTextFieldViewModel.category.observeAsState().value
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+
+    val categoryCollections = remember { mutableStateListOf<Category>() }
+
+    val categoryChoice = registerTextFieldViewModel.category.observeAsState().value
+
+    registerTextFieldViewModel.categoryCollection.observe(lifecycleOwner){
+        categoryCollections.removeAll(categoryCollections)
+        categoryCollections.addAll(it)
+    }
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -325,10 +335,10 @@ fun CategoryProduct(
                 Card(modifier = Modifier
                     .padding(2.dp)
                     .clip(CircleShape)
-                    .clickable { registerTextFieldViewModel.onChangeCategory(category) }) {
+                    .clickable { registerTextFieldViewModel.onChangeCategory(category.category) }) {
                     Row(
                         modifier = Modifier
-                            .background(if (category == categoryChoice) primary_dark else background_card)
+                            .background(if (category.category == categoryChoice) primary_dark else background_card)
                             .padding(horizontal = 6.dp, vertical = 3.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -588,7 +598,9 @@ fun BoxChoiceValue(registerTextFieldViewModel: RegisterTextFieldViewModel) {
                 customOnClick = customOnClick
             )
 
-            Column(modifier = Modifier.fillMaxHeight().padding(start = 4.dp), verticalArrangement = Arrangement.SpaceBetween){
+            Column(modifier = Modifier
+                .fillMaxHeight()
+                .padding(start = 4.dp), verticalArrangement = Arrangement.SpaceBetween){
                 CustomButton(modifier = Modifier.padding(bottom = 4.dp),callback = object : Callback {
                     override fun onClick() {
                         focusRequester.requestFocus()
@@ -624,7 +636,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     var locale: MutableLiveData<String> = MutableLiveData("")
     var idCard: MutableLiveData<Long?> = MutableLiveData(-1)
     var dateCurrent: MutableLiveData<String> = MutableLiveData("")
-    var category: MutableLiveData<TypeCategory> = MutableLiveData(null)
+    var category: MutableLiveData<String> = MutableLiveData(null)
     var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
     var resetDate: MutableLiveData<Boolean> = MutableLiveData(false)
     var typeProduct: MutableLiveData<TypeProduct> = MutableLiveData(TypeProduct.QUANTITY)
@@ -639,13 +651,14 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val typeCategoryError: MutableLiveData<Boolean> = MutableLiveData(false)
     val quantOrKiloError:  MutableLiveData<Boolean> = MutableLiveData(false)
 
-    val index:  MutableLiveData<Int> = MutableLiveData(-1)
-    val indexInfo:  MutableLiveData<Int> = MutableLiveData(-1)
+    private val index:  MutableLiveData<Int> = MutableLiveData(-1)
+    private val indexInfo:  MutableLiveData<Int> = MutableLiveData(-1)
+    val categoryCollection = MutableLiveData<MutableList<Category>>(mutableListOf())
 
     fun updateData(purchase: Purchase, newIndex: Int, newIndexInfo: Int){
         product.value = purchase.name
         price.value = purchase.price.toString()
-        category.value = purchase.category
+        category.value = purchase.categoryOwnerId
         typeProduct.value = purchase.typeProduct
         locale.value = purchase.locale
         dateCurrent.value = purchase.date
@@ -694,6 +707,11 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }
     }
 
+    fun onChangeCategoryCollection(newCategoryCollection: List<Category>){
+        categoryCollection.value?.removeAll(newCategoryCollection)
+        categoryCollection.value?.addAll(newCategoryCollection)
+    }
+
     fun onChangeResetDate() {
         resetDate.value = true
 
@@ -716,7 +734,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }, 200)
     }
 
-    fun onChangeCategory(newCategoty: TypeCategory) {
+    fun onChangeCategory(newCategoty: String) {
         category.value = newCategoty
         typeCategoryError.value = false
 
@@ -738,7 +756,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             MaskUtils.convertValueStringToDouble(
                 price.value!!
             ),
-            category.value!!
+            category.value.toString()
         )
 
         if(index.value != -1 && indexInfo.value != -1 && purchaseCollection.value!!.size > 0){
