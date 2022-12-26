@@ -1,12 +1,9 @@
 package com.example.myshoppinglist.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -14,26 +11,15 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CallbackPurchase
-import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.enums.TypeCategory
-import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
 @Composable
@@ -185,43 +171,3 @@ fun changeVisibility(index: Int, visibilityCollection: MutableList<Int>): Mutabl
 fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
     return visibilityCollection.indexOf(index) != -1
 }
-//
-//@ExperimentalAnimationApi
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewBoxProductRegisterComponent() {
-//
-//    BoxProductRegisterComponent(
-//        mutableListOf(
-//            PurchaseInfo(
-//                "Lula Mercadinho",
-//                mutableListOf(
-//                    Purchase(
-//                        "Biscoito",
-//                        "Lula Mercadinho",
-//                        0,
-//                        "1",
-//                        TypeProduct.QUANTITY,
-//                        "13-06-2022",
-//                        "0.0".toDouble(),
-//                        TypeCategory.DRINKS
-//                    ),
-//                    Purchase(
-//                        "Biscoito",
-//                        "Lula Mercadinho",
-//                        0,
-//                        "1",
-//                        TypeProduct.QUANTITY,
-//                        "13-06-2022",
-//                        "0.0".toDouble(),
-//                        TypeCategory.DRINKS
-//                    )
-//                )
-//            )
-//        ), object : CallbackPurchase() {
-//            override fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState) {
-//                TODO("Not yet implemented")
-//            }
-//        }
-//    )
-//}

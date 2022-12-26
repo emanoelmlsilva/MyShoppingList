@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -12,11 +11,9 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -32,7 +29,6 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
-import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
@@ -213,7 +209,7 @@ fun MySpending(
                                     LazyColumn{
                                         items(creditCardCollection){ creditCardDTO ->
                                             ItemSpending(creditCardDTO, object : Callback {
-                                                override fun onChangeIdCard(idCard: Long) {
+                                                override fun onChangeValue(idCard: Long) {
                                                     navController?.navigate("spending?idCard=${idCard}")
                                                 }
                                             })
@@ -251,7 +247,7 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
-            .clickable { callBack.onChangeIdCard(creditCardDTO.idCard) }
+            .clickable { callBack.onChangeValue(creditCardDTO.idCard) }
     ) {
         Row(
             modifier = Modifier
@@ -269,13 +265,16 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Card(elevation = 2.dp, shape = RoundedCornerShape(4.5.dp), backgroundColor = background_card, border = BorderStroke(1.dp, border),
-                    modifier = Modifier.fillMaxWidth(.6f).fillMaxHeight(.4f)){
+                    modifier = Modifier
+                        .fillMaxWidth(.6f)
+                        .fillMaxHeight(.4f)){
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
                         Image(
                             painter = painterResource(id = creditCardDTO.flag),
                             contentDescription = null,
                             modifier = Modifier
-                                .shadow(12.dp, CircleShape).size(24.dp)
+                                .shadow(12.dp, CircleShape)
+                                .size(24.dp)
                         )
                     }
                 }
@@ -283,7 +282,8 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
             }
             Column(
                 Modifier
-                    .fillMaxWidth(.6f).padding(start = 8.dp)
+                    .fillMaxWidth(.6f)
+                    .padding(start = 8.dp)
             ) {
                 Text(
                     text = creditCardDTO.cardName,
@@ -294,7 +294,9 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
             }
             Text(
                 text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(creditCardDTO.value.toDouble()))}",
-                modifier = Modifier.fillMaxWidth().padding(end = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 4.dp),
                 fontFamily = LatoBold,
                 fontSize = 18.sp,
                 color = text_money,

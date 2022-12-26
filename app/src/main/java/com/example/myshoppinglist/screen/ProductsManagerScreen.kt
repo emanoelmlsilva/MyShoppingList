@@ -1,14 +1,15 @@
 package com.example.myshoppinglist.screen
 
+import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.foundation.Image
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,13 +20,16 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Done
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
@@ -41,10 +45,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.callback.CallbackCreditCard
-import com.example.myshoppinglist.callback.CallbackFilter
-import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.Category
@@ -54,18 +55,17 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
-import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MaskUtils.convertValueDoubleToString
 import kotlinx.coroutines.*
 import java.util.*
-import kotlin.collections.HashMap
 
 val TAG = "ProductsManagerScreen"
 
@@ -80,7 +80,8 @@ fun ProductsManagerScreen(navController: NavController?) {
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
     val purchaseInfoFilterCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     var valueSum by remember { mutableStateOf(0.0) }
-    var quantityPurchases by remember { mutableStateOf("00")}
+    var quantityPurchases by remember { mutableStateOf("00") }
+    var visibleAnimation by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         creditCardViewModel.getAll()
@@ -88,42 +89,58 @@ fun ProductsManagerScreen(navController: NavController?) {
     }
 
     creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) { creditCardCollection ->
-            productManagerFieldViewModel.onChangeCardCreditCollection(creditCardCollection.map { creditCard ->
-                CreditCardDTO().fromCreditCardDTO(
-                    creditCard
-                )
-            })
+        productManagerFieldViewModel.onChangeCardCreditCollection(creditCardCollection.map { creditCard ->
+            CreditCardDTO().fromCreditCardDTO(
+                creditCard
+            )
+        })
     }
 
     productManagerFieldViewModel.purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner) {
-        quantityPurchases = if(it.size > 100) it.size.toString() else "0${it.size}"
+        quantityPurchases =
+            if (it.size > 100) it.size.toString() else if (it.size < 10) "00${it.size}" else "0${it.size}"
         purchaseInfoFilterCollection.removeAll(purchaseInfoFilterCollection)
         purchaseInfoFilterCollection.addAll(it)
     }
 
-    productManagerFieldViewModel.purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner){
+    productManagerFieldViewModel.purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner) {
         valueSum = it
     }
 
-    TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, content = {
+    productManagerFieldViewModel.visibleAnimation.observe(lifecycleOwner) {
+        visibleAnimation = it
+    }
 
-        Column(modifier = Modifier.padding(12.dp)) {
-            SearchProduct(context, lifecycleOwner, productManagerFieldViewModel)
+    Surface(
+        color = MaterialTheme.colors.background,
+        contentColor = contentColorFor(text_secondary),
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+    ) {
 
-            BoxShowPriceProduct(Modifier.padding(top = 16.dp), convertValueDoubleToString(valueSum)
-                , quantityPurchases)
+        Column(modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)) {
+            SearchProduct(context, visibleAnimation, lifecycleOwner, productManagerFieldViewModel)
 
-            BoxPurchaseItens(purchaseInfoFilterCollection)
+            BoxShowPriceProduct(
+                convertValueDoubleToString(valueSum),
+                quantityPurchases
+            )
+
+            BoxPurchaseItens(context, purchaseInfoFilterCollection, productManagerFieldViewModel)
 
         }
-    })
+    }
 }
 
+@SuppressLint("CheckResult")
+@OptIn(ExperimentalAnimationApi::class)
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
 fun SearchProduct(
     context: Context,
+    visibleAnimation: Boolean,
     lifecycleOwner: LifecycleOwner,
     productManagerFieldViewModel: ProductManagerFieldViewModel
 ) {
@@ -134,6 +151,47 @@ fun SearchProduct(
     var filter by remember { mutableStateOf(ObjectFilter()) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
+
+    fun removeFilter(productItem: String) {
+        listProductText.remove(productItem)
+
+        var formarValueMin: String? = null
+        var formarValueMax: String? = null
+
+        if (filter.priceMin != null && filter.priceMax != null) {
+            formarValueMin = MaskUtils.maskValue(
+                convertValueDoubleToString(
+                    filter.priceMin!!.toDouble()
+                )
+            )
+            formarValueMax = MaskUtils.maskValue(
+                convertValueDoubleToString(
+                    filter.priceMax!!.toDouble()
+                )
+            )
+        }
+
+        if (productItem == filter.text) {
+            filter.text = ""
+        } else if (productItem == filter.month) {
+            filter.month = ""
+        } else if (productItem == "$formarValueMin á $formarValueMax") {
+            filter.priceMin = null
+            filter.priceMax = null
+        } else if (productItem.startsWith("%card%")) {
+            filter.cardFilter = CardCreditFilter()
+            filter.idCard = 0
+        } else {
+            var typeCategory =
+                filter.categoryCollection.find { productItem.contains(it.category) }
+            if (typeCategory != null) {
+                filter.categoryCollection.remove(typeCategory)
+            }
+        }
+
+        productManagerFieldViewModel.mountObejctSearchDatabase(filter)
+
+    }
 
     productManagerFieldViewModel.product.observe(lifecycleOwner) {
         if (it.isNotBlank() && reset.value) {
@@ -148,184 +206,167 @@ fun SearchProduct(
         }
     }
 
-    Card(
-        backgroundColor = background_card_gray_light, modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(.13f),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        AlertDialogFilter(
-            keyboardController!!, enableDialog, filter, productManagerFieldViewModel, lifecycleOwner,
-            object : CallbackFilter {
-                override fun onClick() {
-                    enableDialog = false
-                }
-
-                override fun onChangeObjectFilter(value: ObjectFilter) {
-
-                    listProductText.removeAll(listProductText)
-
-                    value.categoryCollection.forEach { category ->
-                        listProductText.add(category.category)
-                    }
-
-                    if (value.priceMin != null && value.priceMax != null) {
-                        val formarValueMin =
-                            MaskUtils.maskValue(convertValueDoubleToString(value.priceMin!!.toDouble()))
-                        val formarValueMax =
-                            MaskUtils.maskValue(convertValueDoubleToString(value.priceMax!!.toDouble()))
-
-                        listProductText.add("$formarValueMin á $formarValueMax")
-                    }
-
-                    if (value.month.isNotBlank()) {
-                        listProductText.add(value.month)
-                    }
-
-                    if (value.cardFilter.avatar > 0) {
-                        listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
-                    }
-
-                    filter = value
-
-                    productManagerFieldViewModel.mountObejctSearchDatabase(filter)
-                }
-            })
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-        ) {
+    BaseAnimationComponent(
+        visibleAnimation = visibleAnimation,
+        contentBase = {
             Card(
-                backgroundColor = background_card_light,
-                modifier = Modifier
+                backgroundColor = background_card_gray_light, modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.53f),
-                shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
+                    .fillMaxHeight(.13f),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                AlertDialogFilter(
+                    keyboardController!!,
+                    enableDialog,
+                    filter,
+                    productManagerFieldViewModel,
+                    lifecycleOwner,
+                    object : CallbackFilter {
+                        override fun onClick() {
+                            enableDialog = false
+                        }
+
+                        override fun onChangeObjectFilter(value: ObjectFilter) {
+
+                            listProductText.removeAll(listProductText)
+
+                            value.categoryCollection.forEach { category ->
+                                listProductText.add("%category%, ${category.category}, ${category.idImage}, ${category.color}")
+                            }
+
+                            if (value.priceMin != null && value.priceMax != null) {
+                                val formarValueMin =
+                                    MaskUtils.maskValue(convertValueDoubleToString(value.priceMin!!.toDouble()))
+                                val formarValueMax =
+                                    MaskUtils.maskValue(convertValueDoubleToString(value.priceMax!!.toDouble()))
+
+                                listProductText.add("$formarValueMin á $formarValueMax")
+                            }
+
+                            if (value.month.isNotBlank()) {
+                                listProductText.add(value.month)
+                            }
+
+                            if (value.cardFilter.avatar > 0) {
+                                listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
+                            }
+
+                            filter = value
+
+                            productManagerFieldViewModel.mountObejctSearchDatabase(filter)
+                        }
+                    })
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
                 ) {
-                    TextInputComponent(
-                        focusRequester = focusRequester,
+                    Card(
+                        backgroundColor = background_card_light,
                         modifier = Modifier
-                            .fillMaxWidth(.85f)
-                            .fillMaxHeight(),
-                        value = product.value,
-                        reset = reset.value,
-                        label = "Produto",
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = null,
-                                tint = text_primary,
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                filter.text = product.value
-
-                                productManagerFieldViewModel.mountObejctSearchDatabase(filter)
-                                listProductText.add(product.value)
-                                reset.value = true
-                                productManagerFieldViewModel.onChangeProduct("")
-
-                            }
-                        ),
-                        error = false,
-                        customOnClick = object : CustomTextFieldOnClick {
-                            override fun onChangeValue(newValue: String) {
-                                productManagerFieldViewModel.onChangeProduct(newValue)
-                            }
-                        })
-
-                    IconButton(
-                        onClick = {
-                            keyboardController.hide()
-                            CoroutineScope(Dispatchers.IO).launch {
-                                withContext(Dispatchers.Main) {
-                                    enableDialog = true
-                                }
-                            }
-                        },
+                            .fillMaxWidth()
+                            .fillMaxHeight(.53f),
+                        shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_outline_filter_alt_24),
-                            contentDescription = null,
-                            tint = text_primary,
-                        )
-                    }
-                }
-            }
-
-            LazyRow(modifier = Modifier.padding(top = 4.dp)) {
-                items(listProductText) { productItem ->
-
-                    var label: String? = null
-                    var icon: Int? = null
-
-                    if (productItem.startsWith("%card%")) {
-                        var splitValueText = productItem.split(",")
-                        label = splitValueText[3]
-                        icon = splitValueText[2].trim().toInt()
-                    }
-                    CustomerChip(
-                        label = label ?: productItem,
-                        iconId = icon,
-                        callback = object : Callback {
-                            override fun onClick() {
-                                listProductText.remove(productItem)
-
-                                var formarValueMin: String? = null
-                                var formarValueMax: String? = null
-
-                                if (filter.priceMin != null && filter.priceMax != null) {
-                                    formarValueMin = MaskUtils.maskValue(
-                                        convertValueDoubleToString(
-                                            filter.priceMin!!.toDouble()
-                                        )
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextInputComponent(
+                                focusRequester = focusRequester,
+                                modifier = Modifier
+                                    .fillMaxWidth(.85f)
+                                    .fillMaxHeight(),
+                                value = product.value,
+                                reset = reset.value,
+                                label = "Produto",
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = null,
+                                        tint = text_primary,
                                     )
-                                    formarValueMax = MaskUtils.maskValue(
-                                        convertValueDoubleToString(
-                                            filter.priceMax!!.toDouble()
-                                        )
-                                    )
-                                }
+                                },
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        filter.text = product.value
 
-                                if (productItem == filter.text) {
-                                    filter.text = ""
-                                } else if (productItem == filter.month) {
-                                    filter.month = ""
-                                } else if (productItem == "$formarValueMin á $formarValueMax") {
-                                    filter.priceMin = null
-                                    filter.priceMax = null
-                                } else if (productItem.startsWith("%card%")) {
-                                    filter.cardFilter = CardCreditFilter()
-                                    filter.idCard = 0
-                                } else {
-                                    var typeCategory =
-                                        filter.categoryCollection.find { it.category == productItem }
-                                    if (typeCategory != null) {
-                                        filter.categoryCollection.remove(typeCategory)
+                                        productManagerFieldViewModel.mountObejctSearchDatabase(
+                                            filter
+                                        )
+                                        listProductText.add(product.value)
+                                        reset.value = true
+                                        productManagerFieldViewModel.onChangeProduct("")
+
                                     }
-                                }
+                                ),
+                                error = false,
+                                customOnClick = object : CustomTextFieldOnClick {
+                                    override fun onChangeValue(newValue: String) {
+                                        productManagerFieldViewModel.onChangeProduct(newValue)
+                                    }
+                                })
 
-                                productManagerFieldViewModel.mountObejctSearchDatabase(filter)
-
+                            IconButton(
+                                onClick = {
+                                    keyboardController.hide()
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        withContext(Dispatchers.Main) {
+                                            enableDialog = true
+                                        }
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_outline_filter_alt_24),
+                                    contentDescription = null,
+                                    tint = text_primary,
+                                )
                             }
-                        })
+                        }
+                    }
+
+                    LazyRow(modifier = Modifier.padding(top = 4.dp)) {
+                        items(listProductText) { productItem ->
+
+                            var label: String? = null
+                            var icon: Int? = null
+                            var category: Category? = null
+
+                            if (productItem.startsWith("%card%")) {
+                                var splitValueText = productItem.split(",")
+                                label = splitValueText[3]
+                                icon = splitValueText[2].trim().toInt()
+                            }else if(productItem.startsWith("%category%")){
+                                var splitValuesCategory = productItem.split(",")
+                                val categorySplit = splitValuesCategory[1].trim()
+                                val idImageSplit = splitValuesCategory[2].trim()
+                                val color = splitValuesCategory[3].trim().toFloat().toInt()
+
+                                category = Category(categorySplit, idImageSplit, color)
+                            }
+                            CustomerChip(
+                                context = context,
+                                category = category,
+                                label = label ?: productItem,
+                                iconId = icon,
+                                callback = object : Callback {
+                                    override fun onClick() {
+                                        removeFilter(productItem)
+                                    }
+                                })
+                        }
+                    }
                 }
             }
-        }
-    }
+        })
 }
 
 fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<PurchaseInfo> {
     val purchaseInfoCollection = mutableListOf<PurchaseInfo>()
 
-    if(purchaseCollection.isEmpty()) return purchaseInfoCollection
+    if (purchaseCollection.isEmpty()) return purchaseInfoCollection
 
     purchaseCollection.forEach { purchaseAndCategory ->
 
@@ -335,14 +376,19 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
         val purchaseFilterCollection =
             purchaseCollection.filter { item -> purchase.name == item.purchase.name }
 
-        val hasNotItemPurchase = purchaseInfoCollection.firstOrNull { item -> item.title == purchase.name } == null
+        val hasNotItemPurchase =
+            purchaseInfoCollection.firstOrNull { item -> item.title == purchase.name } == null
 
         if (hasNotItemPurchase) {
 
-            if(purchaseFilterCollection.isNotEmpty()){
-                val purchaseMultCollection: MutableList<Purchase> = purchaseFilterCollection.map { it.purchase } as MutableList<Purchase>
+            if (purchaseFilterCollection.isNotEmpty()) {
+                val purchaseMultCollection: MutableList<Purchase> =
+                    purchaseFilterCollection.map { it.purchase } as MutableList<Purchase>
+
+                val valueSum = purchaseMultCollection.sumOf { it.price * if(it.typeProduct == TypeProduct.QUANTITY) it.quantiOrKilo.toInt() else 1 }
+
                 val purchaseInfo = PurchaseInfo(
-                    purchase.name, category.imageCircle,
+                    purchase.name, category.idImage, valueSum, Color(category.color),
                     purchaseMultCollection
                 )
 
@@ -360,13 +406,18 @@ fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
 }
 
 @Composable
-fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
+fun BoxPurchaseItens(
+    context: Context,
+    purchaseCollection: List<PurchaseAndCategory>,
+    productManagerFieldViewModel: ProductManagerFieldViewModel
+) {
     var purchaseInfoCollection = remember {
-        mutableStateListOf<PurchaseInfo>()}
+        mutableStateListOf<PurchaseInfo>()
+    }
 
     val expandeds = remember { mutableStateListOf<Int>() }
 
-    LaunchedEffect(key1 = purchaseCollection.size){
+    LaunchedEffect(key1 = purchaseCollection.size) {
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         purchaseInfoCollection.addAll(mountItemPurchase(purchaseCollection))
     }
@@ -378,22 +429,34 @@ fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
         expandeds.addAll(changeVisibility(index, auxExpandeds))
     }
 
-    LazyColumn(
+    BaseLazyColumnScroll(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp, bottom = 38.dp)
+            .padding(top = 20.dp),
+        visibleAnimation = true,
+        callback = object : VisibleCallback() {
+            override fun onChangeVisible(visible: Boolean) {
+                productManagerFieldViewModel.onChangeVisibleAnimation(visible)
+            }
+        }
     ) {
         purchaseInfoCollection.mapIndexed { indexInfo, purchaseInfo ->
             item {
-                Column() {
+                Column(
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { expandableContainer(indexInfo) }.padding(top = 6.dp, bottom = 6.dp, end = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround
+                            .clickable { expandableContainer(indexInfo) }
+                            .padding(top = 6.dp, bottom = 6.dp, end = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        Row( verticalAlignment = Alignment.CenterVertically){
-                            IconButton(onClick = { expandableContainer(indexInfo) }) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = { expandableContainer(indexInfo) },
+                                modifier = Modifier.size(30.dp)
+                            ) {
                                 Icon(
                                     imageVector = if (com.example.myshoppinglist.components.isExpanded(
                                             indexInfo,
@@ -404,12 +467,18 @@ fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
                                     tint = text_primary,
                                 )
                             }
-                            Image(
-                                painter = painterResource(id = if(purchaseInfo.avatar > 0) purchaseInfo.avatar else CardCreditFlag.MONEY.flag),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(25.dp),
+                            IconCategoryComponent(
+                                modifier = Modifier.padding(start = 6.dp),
+                                iconCategory = AssetsUtils.readIconBitmapById(
+                                    context,
+                                    purchaseInfo.avatar
+                                )!!
+                                    .asImageBitmap(),
+                                colorIcon = purchaseInfo.color,
+                                size = 30.dp,
+                                enabledBackground = true
                             )
+
                             Text(
                                 text = purchaseInfo.title.capitalize(),
                                 modifier = Modifier
@@ -419,22 +488,10 @@ fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
                             )
                         }
                         Text(
-                            text = "${if(purchaseInfo.purchaseCollection.size < 100) "0${purchaseInfo.purchaseCollection.size}" else purchaseInfo.purchaseCollection.size}",
+                            text = "${if (purchaseInfo.purchaseCollection.size < 100) "0${purchaseInfo.purchaseCollection.size}" else purchaseInfo.purchaseCollection.size}",
                             fontFamily = LatoBlack
                         )
                     }
-
-                    if (!isExpanded(
-                            indexInfo,
-                            expandeds
-                        )){
-                            Divider(
-                                color = divider,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                            )
-                        }
                 }
 
             }
@@ -443,69 +500,112 @@ fun BoxPurchaseItens(purchaseCollection: List<PurchaseAndCategory>) {
                     indexInfo,
                     expandeds
                 )
-            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
-                    Column(modifier = Modifier.fillMaxWidth(.9f)) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                        ) {
-                            Text(
-                                fontFamily = LatoRegular,
-                                text = purchase.locale, modifier = Modifier
-                                    .padding(start = 12.dp),
-                                textAlign = TextAlign.Start
-                            )
+            ) {
+
+                itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth(.9f)) {
                             Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.Bottom
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(30.dp)
                             ) {
                                 Text(
                                     fontFamily = LatoRegular,
-                                    fontSize = 12.sp,
-                                    text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
-                                )
-
-                                Text(
-                                    fontFamily = LatoRegular,
-                                    fontSize = 12.sp,
-                                    text = "R$ ${
-                                        MaskUtils.maskValue(
-                                            convertValueDoubleToString(
-                                                purchase.price
-                                            )
-                                        )
-                                    }",
-                                    modifier = Modifier
+                                    text = purchase.locale, modifier = Modifier
                                         .padding(start = 12.dp),
+                                    textAlign = TextAlign.Start
                                 )
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                    )
 
-                                Text(
-                                    text = FormatUtils().getNameDay(purchase.date, false)
-                                        .uppercase(),
-                                    fontFamily = LatoBlack,
-                                    fontSize = 12.sp,
-                                    color = text_primary_light,
-                                    modifier = Modifier
-                                        .padding(start = 12.dp)
-                                )
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "R$ ${
+                                            MaskUtils.maskValue(
+                                                convertValueDoubleToString(
+                                                    purchase.price
+                                                )
+                                            )
+                                        }",
+                                        modifier = Modifier
+                                            .padding(start = 12.dp),
+                                    )
+
+                                    Text(
+                                        text = FormatUtils().getNameDay(purchase.date, false)
+                                            .uppercase(),
+                                        fontFamily = LatoBlack,
+                                        fontSize = 12.sp,
+                                        color = text_primary_light,
+                                        modifier = Modifier
+                                            .padding(start = 12.dp)
+                                    )
+
+                                }
 
                             }
-
+                            Divider(
+                                color = divider_ligth,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                            )
                         }
-                        Divider(
-                            color = divider_ligth,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                        )
                     }
                 }
             }
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = 6.dp,
+                            end = 6.dp,
+                            bottom = if (indexInfo == (purchaseInfoCollection.size - 1)) 56.dp else 8.dp
+                        ),
+                ) {
+                    Text(text = "Total", fontFamily = LatoBlack, color = text_title_secondary)
+                    Text(
+                        text = "- R$ ${
+                            MaskUtils.maskValue(
+                                convertValueDoubleToString(
+                                    purchaseInfo.value
+                                )
+                            )
+                        }",
+                        fontFamily = LatoBlack,
+                        modifier = Modifier.padding(start = 8.dp, end = 6.dp),
+                        color = primary_dark
+                    )
+                }
+
+                Divider(
+                    color = divider,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                )
+
+            }
+
         }
     }
 }
@@ -539,13 +639,13 @@ fun AlertDialogFilter(
         categoryViewModel.getAll()
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner){
+    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
         categoryCollections.removeAll(categoryCollections)
         categoryCollections.addAll(it)
     }
 
     productManagerFieldViewModel.cardCreditCollection.observe(lifecycleOwner) {
-        if(it.isNotEmpty()){
+        if (it.isNotEmpty()) {
             creditCardDTOCollection.removeAll(creditCardDTOCollection)
             creditCardDTOCollection.addAll(it)
         }
@@ -619,7 +719,7 @@ fun AlertDialogFilter(
                                         .fillMaxHeight(.4f)
                                         .fillMaxWidth(),
                                     elevation = 0.dp,
-                                    backgroundColor = background_card_light,
+                                    backgroundColor = primary_dark,
                                     shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
                                 ) {
                                     Column(
@@ -628,8 +728,9 @@ fun AlertDialogFilter(
                                     ) {
                                         Text(
                                             text = "Categorias:",
-                                            fontFamily = LatoBold,
+                                            fontFamily = LatoBlack,
                                             fontSize = 18.sp,
+                                            color = text_primary_light,
                                             modifier = Modifier.padding(start = 12.dp)
                                         )
                                     }
@@ -645,26 +746,76 @@ fun AlertDialogFilter(
                                             categoryChoices.find { categoryChoice ->
                                                 categoryChoice == category
                                             } != null
-                                        CustomerChip(
-                                            paddingVertical = 0.dp,
-                                            label = category.category,
-                                            iconId = category.imageCircle,
-                                            isEnabled = true,
-                                            isChoice = isChoiceCurrent,
-                                            color = primary_dark,
-                                            callback = object : Callback {
-                                                override fun onClick() {
-                                                    val isChoiceOld =
-                                                        categoryChoices.find { categoryChoice ->
-                                                            categoryChoice == category
-                                                        } != null
-                                                    if (isChoiceOld) {
-                                                        categoryChoices.remove(category)
-                                                    } else {
-                                                        categoryChoices.add(category)
-                                                    }
+                                        Card(modifier = Modifier
+                                            .padding(2.dp)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                val isChoiceOld =
+                                                    categoryChoices.find { categoryChoice ->
+                                                        categoryChoice == category
+                                                    } != null
+                                                if (isChoiceOld) {
+                                                    categoryChoices.remove(category)
+                                                } else {
+                                                    categoryChoices.add(category)
                                                 }
-                                            })
+                                            }
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(if (isChoiceCurrent) background_card_light else background_card),
+                                                horizontalArrangement = Arrangement.SpaceAround,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                IconCategoryComponent(
+                                                    modifier = Modifier.padding(
+                                                        horizontal = 8.dp,
+                                                        vertical = 4.dp
+                                                    ),
+                                                    iconCategory = AssetsUtils.readIconBitmapById(
+                                                        context,
+                                                        category.idImage
+                                                    )!!
+                                                        .asImageBitmap(),
+                                                    colorIcon = Color(category.color),
+                                                    size = 23.dp,
+                                                    enableClick = true,
+                                                    enabledBackground = true,
+                                                    callback = object : Callback {
+                                                        override fun onClick() {
+                                                            val isChoiceOld =
+                                                                categoryChoices.find { categoryChoice ->
+                                                                    categoryChoice == category
+                                                                } != null
+                                                            if (isChoiceOld) {
+                                                                categoryChoices.remove(category)
+                                                            } else {
+                                                                categoryChoices.add(category)
+                                                            }
+                                                        }
+                                                    }
+                                                )
+
+                                                Text(
+                                                    text = category.category,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(end = if (isChoiceCurrent) 8.dp else 18.dp)
+                                                )
+
+                                                if (isChoiceCurrent) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Done,
+                                                        contentDescription = null,
+                                                        tint = text_primary,
+                                                        modifier = Modifier
+                                                            .size(23.dp)
+                                                            .padding(end = 8.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -694,7 +845,7 @@ fun AlertDialogFilter(
                             })
 
                         ChoiceData(idCardCredit, filter.month, lifecycleOwner, object : Callback {
-                            override fun onChangeValueMong(newMonth: String) {
+                            override fun onChangeValue(newMonth: String) {
                                 month = newMonth
                             }
                         })
@@ -920,11 +1071,11 @@ fun ChoiceCard(
                         isEnabled = true,
                         isBackgroundCircle = true,
                         isChoice = isChoiceCurrent,
-                        color = primary_dark,
+                        color = background_card_light,
                         callback = object : Callback {
                             override fun onClick() {
                                 cardCreditChoice = cardCredit
-                                callbackCard.onChangeIdCard(cardCreditChoice.idCard)
+                                callbackCard.onChangeValue(cardCreditChoice.idCard)
                                 callbackCard.onChangeFilterCreditCard(
                                     CardCreditFilter(
                                         cardCreditChoice
@@ -965,9 +1116,9 @@ fun ChoiceData(
             val year = splitDate[0]
             val month = splitDate[1]
 
-            if(mapDate[year].isNullOrEmpty()){
+            if (mapDate[year].isNullOrEmpty()) {
                 mapDate[year] = mutableListOf(month)
-            }else {
+            } else {
                 mapDate[year]?.add(month)
             }
 
@@ -1055,7 +1206,7 @@ fun ChoiceData(
                             isEnabled = true,
                             isBackgroundCircle = true,
                             isChoice = isChoiceCurrent,
-                            color = primary_dark,
+                            color = background_card_light,
                             callback = object : Callback {
                                 override fun onClick() {
                                     if (monthCurrent == month) {
@@ -1063,7 +1214,7 @@ fun ChoiceData(
                                     } else {
                                         monthCurrent = month
 
-                                        callback.onChangeValueMong("$yearCurrent-$monthCurrent")
+                                        callback.onChangeValue("$yearCurrent-$monthCurrent")
                                     }
 
                                 }
@@ -1082,6 +1233,11 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
     val product: MutableLiveData<String> = MutableLiveData("")
     var cardCreditCollection: MutableLiveData<List<CreditCardDTO>> =
         MutableLiveData(mutableListOf())
+    var visibleAnimation: MutableLiveData<Boolean> = MutableLiveData(true)
+
+    fun onChangeVisibleAnimation(newVisibleAnimation: Boolean) {
+        this.visibleAnimation.value = newVisibleAnimation
+    }
 
     fun onChangeProduct(newProduct: String) {
         product.value = newProduct

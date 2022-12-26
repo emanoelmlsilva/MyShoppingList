@@ -14,22 +14,25 @@ class Category{
     var category: String = ""
 
     @ColumnInfo(name = "idImage")
-    var idImage: Int = 0
+    var idImage: String = ""
 
-    @ColumnInfo(name = "imageCircle")
-    var imageCircle: Int = 0
+    @ColumnInfo(name = "color")
+    var color: Int = 0
 
     constructor(): super(){
     }
 
-    constructor(category: String, idImage: Int, imageCircle: Int){
+    constructor(category: String, idImage: String){
         this.category = category
         this.idImage = idImage
-        this.imageCircle = imageCircle
+    }
+
+    constructor(category: String, idImage: String, color: Int):this(category, idImage){
+        this.color = color
     }
 
     override fun toString(): String {
-        return "Category(category='$category', idImage=$idImage, imageCircle=$imageCircle)"
+        return "Category(category='$category', idImage=$idImage"
     }
 
 

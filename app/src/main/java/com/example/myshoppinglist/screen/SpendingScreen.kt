@@ -1,7 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -28,6 +30,7 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.BoxDropdownCardCredit
+import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -39,6 +42,7 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
@@ -141,8 +145,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     }
 
-    TopAppBarScreen(content = {
-
+    Surface(
+        color = MaterialTheme.colors.background,
+        contentColor = contentColorFor(text_secondary),
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             BaseAnimationComponent(
                 visibleAnimation = visibleAnimation.value,
@@ -201,26 +210,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
                             }
-//                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(start = 16.dp)) {
-//                                Card(modifier = Modifier
-//                                    .size(62.dp)
-//                                    .clip(CircleShape),
-//                                    backgroundColor = background_card,
-//                                    onClick = { navController!!.navigate(Screen.Categories.name) }) {
-//                                    Icon(
-//                                        painter = painterResource(id = R.drawable.ic_baseline_category_24),
-//                                        contentDescription = null,
-//                                        modifier = Modifier
-//                                            .size(ButtonDefaults.IconSize)
-//                                            .padding(18.dp),
-//                                    )
-//                                }
-//                                Text(
-//                                    text = "Categorias",
-//                                    fontWeight = FontWeight.Bold,
-//                                    modifier = Modifier.padding(top = 4.dp)
-//                                )
-//                            }
                         }
                         Spacer(
                             Modifier
@@ -265,7 +254,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
             }
         }
 
-    }, onClickIcon = { navController?.popBackStack() })
+    }
 }
 
 @Composable
@@ -354,25 +343,26 @@ fun CustomDropDownMonth(
 fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory) {
     val purchase = purchaseAndCategory.purchase ?: Purchase()
     val category = purchaseAndCategory.category ?: Category()
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp, horizontal = 8.dp),
+                .padding(vertical = 18.dp, horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = category.imageCircle),
-                contentDescription = null,
-                Modifier
-                    .size(46.dp)
-                    .padding(top = 3.dp, end = 8.dp)
+            IconCategoryComponent(
+                iconCategory = AssetsUtils.readIconBitmapById(context, category.idImage)!!
+                    .asImageBitmap(),
+                size = 46.dp,
+                colorIcon = Color(category.color),
+                enabledBackground = true
             )
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth().padding(start = 16.dp), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth(.58f)) {
                     Text(

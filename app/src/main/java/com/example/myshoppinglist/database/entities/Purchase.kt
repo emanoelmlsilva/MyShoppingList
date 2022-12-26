@@ -3,10 +3,8 @@ package com.example.myshoppinglist.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import org.jetbrains.annotations.NotNull
-import java.util.*
 
 @Entity(tableName = "purchases")
 class Purchase {

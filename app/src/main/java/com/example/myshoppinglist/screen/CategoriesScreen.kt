@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -12,6 +11,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -23,9 +24,12 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
+import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.AssetsUtils
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -51,7 +55,9 @@ fun CategoriesScreen(navController: NavHostController?) {
 
     TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, floatingActionButton = {
         if(visibleAnimation) FloatingActionButton(backgroundColor = primary_dark,
-            onClick = { /* ... */ }) {
+            onClick = {
+                navController!!.navigate(Screen.RegisterCategory.name)
+            }) {
                 Icon(Icons.Filled.Add,null, tint = background_card)
         }
     }, content = {
@@ -96,7 +102,6 @@ fun CategoriesScreen(navController: NavHostController?) {
                         }
                     }
                 })
-
             BaseLazyColumnScroll(
                 visibleAnimation = visibleAnimation,
                 modifier = Modifier
@@ -128,12 +133,12 @@ fun CategoriesScreen(navController: NavHostController?) {
                                 horizontalArrangement = Arrangement.SpaceAround,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Image(
-                                    painter = painterResource(id = category.imageCircle),
-                                    contentDescription = null,
-                                    Modifier
-                                        .size(36.dp)
-                                        .padding(top = 3.dp, end = 8.dp)
+                                IconCategoryComponent(
+                                    iconCategory = AssetsUtils.readIconBitmapById(context, category.idImage)!!
+                                        .asImageBitmap(),
+                                    colorIcon = Color(category.color),
+                                    size = 36.dp,
+                                    enableClick = true
                                 )
 
                                 Text(text = category.category, modifier = Modifier.fillMaxWidth())
@@ -162,7 +167,6 @@ fun CategoriesScreen(navController: NavHostController?) {
                                 }
                             }
                         }
-
                         Divider(
                             color = divider,
                             modifier = Modifier

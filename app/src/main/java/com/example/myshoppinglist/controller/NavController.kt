@@ -70,5 +70,9 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             callback.onChangeVisible(true)
             CategoriesScreen(navHostController)
         }
+        composable(Screen.RegisterCategory.name){
+            callback.onChangeVisible(false)
+            RegisterCategoryScreen(navHostController)
+        }
     }
 }

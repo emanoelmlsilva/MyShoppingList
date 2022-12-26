@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -44,7 +45,6 @@ import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
-import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.ui.theme.*
 
 
@@ -61,18 +61,17 @@ fun CreateUserScreen(navController: NavController?) {
     val userViewModel: UserViewModel = UserViewModel(context)
     val categoryViewModel: CategoryViewModel = CategoryViewModel(context, lifecycleOwner)
     val categoryCollections = listOf(
-        TypeCategory.HYGIENE,
-        TypeCategory.CLEARNING,
-        TypeCategory.FOOD,
-        TypeCategory.DRINKS,
-        TypeCategory.OTHERS
+        Category("Higiene", "outline_sanitizer_black_36.png", card_blue.toArgb()),
+        Category("Limpeza", "outline_cleaning_services_black_36.png", card_pink.toArgb()),
+        Category("Comida", "food_bank.png", card_red_dark.toArgb()),
+        Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
     )
 
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
-            userViewModel.insertUser(User(name, nickName, idAvatar))
+            userViewModel.insertUser(User(name.trim(), nickName.trim(), idAvatar))
             categoryCollections.forEach {
-                val category = Category(it.category, it.idImage, it.imageCircle)
+                val category = Category(it.category, it.idImage, it.color)
                 categoryViewModel.insertCategory(category)
             }
             navController?.navigate("createCards?hasToolbar=${false}")

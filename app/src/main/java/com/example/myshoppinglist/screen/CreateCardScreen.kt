@@ -66,8 +66,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
             if (createCardCreditViewModel.checkFileds()) {
                 creditCardViewModel.insertCreditCard(
                     CreditCard(
-                        name,
-                        nameCard,
+                        name.trim(),
+                        nameCard.trim(),
                         0F,
                         colorCurrent.toArgb(),
                         typeCard,
@@ -149,7 +149,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
 
                         }
 
-                        override fun onChangeValueId(value: Int) {
+                        override fun onChangeValue(value: Int) {
                             createCardCreditViewModel.onChangeFlagCurrent(value)
                         }
                     }) }
@@ -199,7 +199,7 @@ fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback){
     Card(elevation = 2.dp, shape = RoundedCornerShape(8.dp), backgroundColor = if(isFlagChoice) primary_dark else secondary_light,
         modifier = Modifier.width(45.dp).height(30.dp).clickable {
             isFlagChoice = true
-            callback.onChangeValueId(flagId) }){
+            callback.onChangeValue(flagId) }){
         Image(
             painter = painterResource(id = flagId),
             contentDescription = null,
