@@ -231,7 +231,7 @@ fun SearchProduct(
                             listProductText.removeAll(listProductText)
 
                             value.categoryCollection.forEach { category ->
-                                listProductText.add("%category%, ${category.category}, ${category.idImage}, ${category.color}")
+                                listProductText.add("%category%, ${category.id}, ${category.category}, ${category.idImage}, ${category.color}")
                             }
 
                             if (value.priceMin != null && value.priceMax != null) {
@@ -340,11 +340,13 @@ fun SearchProduct(
                                 icon = splitValueText[2].trim().toInt()
                             }else if(productItem.startsWith("%category%")){
                                 var splitValuesCategory = productItem.split(",")
-                                val categorySplit = splitValuesCategory[1].trim()
-                                val idImageSplit = splitValuesCategory[2].trim()
-                                val color = splitValuesCategory[3].trim().toFloat().toInt()
+                                val idSplit = splitValuesCategory[1].toLong()
+                                val categorySplit = splitValuesCategory[2].trim()
+                                val idImageSplit = splitValuesCategory[3].trim()
+                                val color = splitValuesCategory[4].trim().toFloat().toInt()
 
                                 category = Category(categorySplit, idImageSplit, color)
+                                category.id = idSplit
                             }
                             CustomerChip(
                                 context = context,
@@ -1301,7 +1303,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
                 nameFields += "categoryOwnerId = ?"
-                collectionSeach.add(category.category)
+                collectionSeach.add(category.id)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " AND "

@@ -37,7 +37,7 @@ interface PurchaseDAO {
     fun getPurchaseAllByIdCard(nameUser: String, idCard: Long): List<Purchase>
 
     @Transaction
-    @Query("SELECT * FROM purchases, credit_cards, category WHERE category = categoryOwnerId AND cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE category.id = categoryOwnerId AND cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
     fun getPurchaseByMonth(date: String, nameUser: String, idCard: Long): List<PurchaseAndCategory>
 
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date DESC ")
@@ -56,7 +56,7 @@ interface PurchaseDAO {
     fun sumPriceByMonth(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
 
     @Transaction
-    @Query("SELECT * FROM purchases, credit_cards, category WHERE categoryOwnerId IN (category.category) AND cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE categoryOwnerId = category.id AND cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")
     fun getPurchasesAndCategoryWeek(week: String, nameUser: String): List<PurchaseAndCategory>
 
     @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")

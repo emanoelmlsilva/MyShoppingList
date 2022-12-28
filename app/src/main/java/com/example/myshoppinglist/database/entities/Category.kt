@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull
 class Category{
 
     @PrimaryKey(autoGenerate = true)
-    @NotNull
     @ColumnInfo(name = "id")
     var id: Long = 0L
 

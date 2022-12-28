@@ -44,11 +44,11 @@ class PurchaseViewModel(context: Context): ViewModel() {
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
 
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
-            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category = categoryOwnerId AND date LIKE '%' || ? || '%'", arrayOf(
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND date LIKE '%' || ? || '%'", arrayOf(
                 monthAndYearNumber
             ))
         }else{
-            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category = categoryOwnerId AND $condition", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND $condition", arguments.toTypedArray())
         }
         repository.getPurchasesOfSearch(query)
     }

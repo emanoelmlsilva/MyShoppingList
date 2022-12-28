@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull
 class Purchase {
 
     @PrimaryKey(autoGenerate = true)
-    @NotNull
     @ColumnInfo(name = "idPruchase")
     var id: Long = 0
     @ColumnInfo(name = "name")

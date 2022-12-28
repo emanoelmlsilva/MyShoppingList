@@ -7,6 +7,6 @@ import com.example.myshoppinglist.database.entities.Purchase
 
 data class PurchaseAndCategory(
     @Embedded val purchase: Purchase,
-    @Relation(parentColumn = "categoryOwnerId", entityColumn = "category")val category: Category
+    @Relation(parentColumn = "categoryOwnerId", entityColumn = "id")val category: Category
 ) {
 }
