@@ -340,7 +340,7 @@ fun SearchProduct(
                                 icon = splitValueText[2].trim().toInt()
                             }else if(productItem.startsWith("%category%")){
                                 var splitValuesCategory = productItem.split(",")
-                                val idSplit = splitValuesCategory[1].toLong()
+                                val idSplit = splitValuesCategory[1].trim().toLong()
                                 val categorySplit = splitValuesCategory[2].trim()
                                 val idImageSplit = splitValuesCategory[3].trim()
                                 val color = splitValuesCategory[4].trim().toFloat().toInt()
