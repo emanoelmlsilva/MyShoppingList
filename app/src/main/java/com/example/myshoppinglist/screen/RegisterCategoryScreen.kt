@@ -4,7 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -37,14 +38,19 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.godaddy.android.colorpicker.harmony.ColorHarmonyMode
 import com.godaddy.android.colorpicker.harmony.HarmonyColorPicker
 import com.godaddy.android.colorpicker.toColorInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun RegisterCategoryScreen(navController: NavController) {
+fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val iconsCategories = remember { mutableListOf<IconCategory>() }
+    val scope = rememberCoroutineScope()
+    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
     val registerCategoryFieldViewModel = RegisterCategoryFieldViewModel()
+    val scrollState = rememberLazyListState()
     var idCurrent by remember {
         mutableStateOf("")
     }
@@ -54,7 +60,6 @@ fun RegisterCategoryScreen(navController: NavController) {
     var categoryCurrent by remember {
         mutableStateOf("")
     }
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
 
     val isErrorName: Boolean by registerCategoryFieldViewModel.isErrorCategory.observeAsState(false)
 
@@ -66,8 +71,21 @@ fun RegisterCategoryScreen(navController: NavController) {
         )
     }
 
+    LaunchedEffect(idCategory) {
+
+        this.launch(context = Dispatchers.Main) {
+            if (idCategory != null) {
+                Thread.sleep(500)
+                categoryViewModel.getCategoryById(idCategory)
+            }
+        }
+
+    }
+
     registerCategoryFieldViewModel.iconCategoryCollection.observe(lifecycleOwner) {
+
         iconsCategories.addAll(it)
+
     }
 
     registerCategoryFieldViewModel.id.observe(lifecycleOwner) {
@@ -82,20 +100,37 @@ fun RegisterCategoryScreen(navController: NavController) {
         categoryCurrent = it
     }
 
-    fun saveCategory(category: Category) {
-        categoryViewModel.insertCategory(category)
-
+    categoryViewModel.searchResult.observe(lifecycleOwner) { it ->
+        if (it != null) {
+            registerCategoryFieldViewModel.onChangeCategory(it.category)
+            registerCategoryFieldViewModel.onChangeColor(it.color)
+            registerCategoryFieldViewModel.onChangeIdCurrent(it.idImage)
+        }
     }
 
-    fun goBackNavigation(){
+    fun updateCategory(category: Category) {
+        categoryViewModel.updateCategory(category)
+    }
+
+    fun saveCategory(category: Category) {
+        categoryViewModel.insertCategory(category)
+    }
+
+    fun goBackNavigation() {
         navController.popBackStack()
     }
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
-        if (registerCategoryFieldViewModel.checkFileds()) {
-            saveCategory(Category(categoryCurrent, idCurrent, colorCurrent))
-            goBackNavigation()
+        val newCategory = Category(categoryCurrent, idCurrent, colorCurrent)
+
+        if (idCategory != null) {
+            newCategory.id = idCategory
+            updateCategory(newCategory)
+        }else{
+            saveCategory(newCategory)
         }
+
+        goBackNavigation()
     }, hasToolbar = true, hasBackButton = false, content = {
 
         Column(
@@ -110,12 +145,13 @@ fun RegisterCategoryScreen(navController: NavController) {
                 IconCategoryComponent(
                     iconCategory = AssetsUtils.readIconImageBitmapById(
                         context,
-                        idCurrent
+                        idCurrent.ifEmpty { "fastfood.png" }
                     )!!,
                     colorIcon = Color(colorCurrent),
                     size = 56.dp,
                     enableClick = true
                 )
+
 
                 TextInputComponent(modifier = Modifier
                     .fillMaxWidth()
@@ -150,12 +186,19 @@ fun RegisterCategoryScreen(navController: NavController) {
             Column(modifier = Modifier.padding(horizontal = 2.dp)) {
                 Text("Escolha um ícone", fontFamily = LatoBold, fontSize = 18.sp)
                 LazyVerticalGrid(
+                    state = scrollState,
                     modifier = Modifier
                         .fillMaxHeight(.7f)
                         .padding(start = 13.dp, top = 8.dp),
                     cells = GridCells.Fixed(8)
                 ) {
-                    items(iconsCategories) { iconCategory ->
+                    iconsCategories.forEachIndexed { index, iconCategory ->
+                        if (iconCategory.idImage.lowercase() == idCurrent.lowercase()) {
+                            //esse calculo deve ser feito porque é um grid
+                            scope.launch { scrollState.animateScrollToItem(((index / 8))) }
+                        }
+                    }
+                    itemsIndexed(iconsCategories) { index, iconCategory ->
                         Row(horizontalArrangement = Arrangement.Center) {
                             Column(
                                 modifier = Modifier
@@ -191,7 +234,12 @@ class RegisterCategoryFieldViewModel : BaseFieldViewModel() {
     val categoryCurrent = MutableLiveData("")
     val id = MutableLiveData("fastfood.png")
     val color = MutableLiveData(card_red_dark.toArgb())
+    val category = MutableLiveData(Category())
     var isErrorCategory: MutableLiveData<Boolean> = MutableLiveData(false)
+
+    fun onChangeCategory(newCategory: Category) {
+        this.category.value = newCategory
+    }
 
     fun onChangeColor(newColor: Int) {
         this.color.value = newColor

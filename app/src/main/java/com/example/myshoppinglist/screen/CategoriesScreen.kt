@@ -53,10 +53,14 @@ fun CategoriesScreen(navController: NavHostController?) {
         categorySize = it.size
     }
 
+    fun onClick(idCategory: Long? = null){
+        navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory}")
+    }
+
     TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, floatingActionButton = {
         if(visibleAnimation) FloatingActionButton(backgroundColor = primary_dark,
             onClick = {
-                navController!!.navigate(Screen.RegisterCategory.name)
+                onClick()
             }) {
                 Icon(Icons.Filled.Add,null, tint = background_card)
         }
@@ -146,6 +150,7 @@ fun CategoriesScreen(navController: NavHostController?) {
                             Row() {
                                 IconButton(
                                     onClick = {
+                                        onClick(category.id)
                                     },
                                 ) {
                                     Icon(

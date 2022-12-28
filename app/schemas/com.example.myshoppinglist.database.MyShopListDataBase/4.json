@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "5ac8e4efa673b4dfd843d9aa2a91ba57",
+    "identityHash": "df4e2c24b7f3e31096c469ae52948952",
     "entities": [
       {
         "tableName": "users",
@@ -100,7 +100,7 @@
       },
       {
         "tableName": "purchases",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idPruchase` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `locale` TEXT NOT NULL, `purchaseCardId` INTEGER NOT NULL, `quantiOrKilo` TEXT NOT NULL, `typeProduct` TEXT NOT NULL, `date` TEXT NOT NULL, `price` REAL NOT NULL, `categoryOwnerId` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idPruchase` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `locale` TEXT NOT NULL, `purchaseCardId` INTEGER NOT NULL, `quantiOrKilo` TEXT NOT NULL, `typeProduct` TEXT NOT NULL, `date` TEXT NOT NULL, `price` REAL NOT NULL, `categoryOwnerId` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -153,7 +153,7 @@
           {
             "fieldPath": "categoryOwnerId",
             "columnName": "categoryOwnerId",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -168,8 +168,14 @@
       },
       {
         "tableName": "category",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`category` TEXT NOT NULL, `idImage` TEXT NOT NULL, `color` INTEGER NOT NULL, PRIMARY KEY(`category`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `category` TEXT NOT NULL, `idImage` TEXT NOT NULL, `color` INTEGER NOT NULL)",
         "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
           {
             "fieldPath": "category",
             "columnName": "category",
@@ -191,18 +197,28 @@
         ],
         "primaryKey": {
           "columnNames": [
-            "category"
+            "id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_category_category",
+            "unique": true,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_category_category` ON `${TABLE_NAME}` (`category`)"
+          }
+        ],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5ac8e4efa673b4dfd843d9aa2a91ba57')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'df4e2c24b7f3e31096c469ae52948952')"
     ]
   }
 }

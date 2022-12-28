@@ -70,9 +70,10 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             callback.onChangeVisible(true)
             CategoriesScreen(navHostController)
         }
-        composable(Screen.RegisterCategory.name){
+        composable("${Screen.RegisterCategory.name}?idCategory={idCategory}", arguments = listOf(navArgument("idCategory"){ type = NavType.LongType })){ navBackStack ->
             callback.onChangeVisible(false)
-            RegisterCategoryScreen(navHostController)
+            val idCategory = navBackStack.arguments?.getLong("idCategory")
+            RegisterCategoryScreen(navHostController, idCategory)
         }
     }
 }

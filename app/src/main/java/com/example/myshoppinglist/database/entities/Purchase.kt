@@ -28,7 +28,7 @@ class Purchase {
     @ColumnInfo(name = "price")
     var price: Double = 0.0
     @ColumnInfo(name = "categoryOwnerId")
-    var categoryOwnerId: String = ""
+    var categoryOwnerId: Long = 0
 
     constructor(name: String){
         this.name = name
@@ -45,7 +45,7 @@ class Purchase {
         typeProduct: TypeProduct,
         date: String,
         price: Double,
-        categoryOwnerId: String
+        categoryOwnerId: Long
     ) {
         this.name = name
         this.locale = locale

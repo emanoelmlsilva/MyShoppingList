@@ -357,13 +357,13 @@ fun CategoryProduct(
                     .padding(2.dp)
                     .clip(CircleShape)
                     .clickable {
-                        registerTextFieldViewModel.onChangeCategory(category.category)
+                        registerTextFieldViewModel.onChangeCategory(category.id)
                     }
                 ) {
                     Row(
                         modifier = Modifier
                             .height(33.dp)
-                            .background(if (category.category == categoryChoice) background_card_light else background_card),
+                            .background(if (category.id == categoryChoice) background_card_light else background_card),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -379,7 +379,7 @@ fun CategoryProduct(
                             enabledBackground = false,
                             callback = object : Callback {
                                 override fun onClick() {
-                                    registerTextFieldViewModel.onChangeCategory(category.category)
+                                    registerTextFieldViewModel.onChangeCategory(category.id)
                                 }
                             }
                         )
@@ -713,7 +713,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     var locale: MutableLiveData<String> = MutableLiveData("")
     var idCard: MutableLiveData<Long?> = MutableLiveData(-1)
     var dateCurrent: MutableLiveData<String> = MutableLiveData("")
-    var category: MutableLiveData<String> = MutableLiveData(null)
+    var category: MutableLiveData<Long> = MutableLiveData(null)
     var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
     var resetDate: MutableLiveData<Boolean> = MutableLiveData(false)
     var typeProduct: MutableLiveData<TypeProduct> = MutableLiveData(TypeProduct.QUANTITY)
@@ -814,7 +814,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }, 200)
     }
 
-    fun onChangeCategory(newCategoty: String) {
+    fun onChangeCategory(newCategoty: Long) {
         category.value = newCategoty
         typeCategoryError.value = false
 
@@ -836,7 +836,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             MaskUtils.convertValueStringToDouble(
                 price.value!!
             ),
-            category.value.toString()
+            category.value!!
         )
 
         if (index.value != -1 && indexInfo.value != -1 && purchaseCollection.value!!.size > 0) {
