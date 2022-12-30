@@ -6,9 +6,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -416,6 +414,7 @@ fun BoxPurchaseItens(
     var purchaseInfoCollection = remember {
         mutableStateListOf<PurchaseInfo>()
     }
+    var listState: LazyListState = rememberLazyListState()
 
     val expandeds = remember { mutableStateListOf<Int>() }
 
@@ -432,6 +431,7 @@ fun BoxPurchaseItens(
     }
 
     BaseLazyColumnScroll(
+        listState = listState,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp),
@@ -581,7 +581,7 @@ fun BoxPurchaseItens(
                         .padding(
                             top = 6.dp,
                             end = 6.dp,
-                            bottom = if (indexInfo == (purchaseInfoCollection.size - 1)) 56.dp else 8.dp
+                            bottom = if (indexInfo == (purchaseInfoCollection.size - 1) && purchaseInfoCollection.size > 8) 56.dp else 8.dp
                         ),
                 ) {
                     Text(text = "Total", fontFamily = LatoBlack, color = text_title_secondary)

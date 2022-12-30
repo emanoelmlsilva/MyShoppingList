@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -17,12 +18,12 @@ import com.example.myshoppinglist.callback.VisibleCallback
 
 @Composable
 fun BaseLazyColumnScroll(
+    listState: LazyListState = rememberLazyListState(),
     visibleAnimation: Boolean,
     callback: VisibleCallback?,
     modifier: Modifier? = null,
     content: LazyListScope.() -> Unit
 ) {
-    val listState = rememberLazyListState()
     val modifierDefault = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
