@@ -74,9 +74,9 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     LaunchedEffect(idCategory) {
 
         this.launch(context = Dispatchers.Main) {
-            if (idCategory != null) {
-                Thread.sleep(500)
-                categoryViewModel.getCategoryById(idCategory)
+            if (idCategory != 0L) {
+                Thread.sleep(250)
+                categoryViewModel.getCategoryById(idCategory!!)
             }
         }
 

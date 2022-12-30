@@ -54,7 +54,7 @@ fun CategoriesScreen(navController: NavHostController?) {
     }
 
     fun onClick(idCategory: Long? = null){
-        navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory}")
+        navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory ?: 0}")
     }
 
     TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, floatingActionButton = {
