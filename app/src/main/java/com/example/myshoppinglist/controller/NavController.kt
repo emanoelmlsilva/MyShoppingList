@@ -66,5 +66,14 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             callback.onChangeVisible(true)
             FinanceScreen(navHostController)
         }
+        composable(Screen.Categories.name){
+            callback.onChangeVisible(true)
+            CategoriesScreen(navHostController)
+        }
+        composable("${Screen.RegisterCategory.name}?idCategory={idCategory}", arguments = listOf(navArgument("idCategory"){ type = NavType.LongType })){ navBackStack ->
+            callback.onChangeVisible(false)
+            val idCategory = navBackStack.arguments?.getLong("idCategory")
+            RegisterCategoryScreen(navHostController, idCategory)
+        }
     }
 }

@@ -1,13 +1,10 @@
 package com.example.myshoppinglist.database.repositories
 
-import android.content.Context
-import android.provider.BaseColumns
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.utils.FormatUtils
 import kotlinx.coroutines.*
 import java.math.RoundingMode
@@ -16,7 +13,8 @@ import java.util.*
 class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     val searchResult = MutableLiveData<Purchase>()
-    val searchCollecitonResult = MutableLiveData<List<Purchase>>()
+    val searchCollecitonPurchaseAndCategory = MutableLiveData<List<PurchaseAndCategory>>()
+    val searchCollecitonPurchase = MutableLiveData<List<Purchase>>()
     val searchMonthsCollection = MutableLiveData<List<String>>()
     val searchPrice = MutableLiveData<Double>()
     val coroutineScope = CoroutineScope(Dispatchers.Main)
@@ -29,25 +27,25 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     fun getPurchaseAll(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncFindAll(nameUser).await()
+//            searchCollecitonResult.value = asyncFindAll(nameUser).await()
         }
     }
 
     fun getPurchaseAll(nameUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncFindAllByUserAndIdCard(nameUser, idCard).await()
+//            searchCollecitonResult.value = asyncFindAllByUserAndIdCard(nameUser, idCard).await()
         }
     }
 
     fun getPurchaseByMonth(nameUser: String, date: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncFindAllByMonth(date, nameUser, idCard).await()
+            searchCollecitonPurchaseAndCategory.value = asyncFindAllByMonth(date, nameUser, idCard)
         }
     }
 
     fun getPurchaseAllByIdCard(nameUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncFindAllByIdCard(nameUser, idCard).await()
+//            searchCollecitonResult.value = asyncFindAllByIdCard(nameUser, idCard).await()
         }
     }
 
@@ -84,18 +82,27 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun getPurchasesAndCategoryWeek(nameUser: String){
+        coroutineScope.launch(Dispatchers.Main){
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_YEAR, -7)
+            val limitWeek = FormatUtils().getDateString(calendar.time)
+            searchCollecitonPurchaseAndCategory.value = asyncGetPurchsesAndCategoryWeek(nameUser, limitWeek).await()
+        }
+    }
+
     fun getPurchasesWeek(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.DAY_OF_YEAR, -7)
             val limitWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonResult.value = asyncGetPurchsesWeek(nameUser, limitWeek).await()
+            searchCollecitonPurchase.value = asyncGetPurchsesWeek(nameUser, limitWeek).await()
         }
     }
 
     fun getPurchasesOfSearch(query: SupportSQLiteQuery){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonResult.value = asyncGetPurchasesSearch(query).await()
+            searchCollecitonPurchaseAndCategory.value = asyncGetPurchasesSearch(query)
         }
 
     }
@@ -106,9 +113,10 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
-    private fun asyncGetPurchasesSearch(query: SupportSQLiteQuery): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchasesSearch(query)
-    }
+    private suspend fun asyncGetPurchasesSearch(query: SupportSQLiteQuery): List<PurchaseAndCategory> =
+        coroutineScope.async(Dispatchers.IO){
+            return@async purchaseDAO.getPurchasesSearch(query)
+        }.await()
 
     private fun asyncGetPurchasesSearchSum(query: SupportSQLiteQuery): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getPurchasesSearchSum(query)
@@ -122,9 +130,10 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         return@async purchaseDAO.getPurchaseAllByUserAndIdCard(name, idCard)
     }
 
-    private fun asyncFindAllByMonth(date: String, nameUser: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchaseByMonth(date, nameUser, idCard)
-    }
+    private suspend fun asyncFindAllByMonth(date: String, nameUser: String, idCard: Long): List<PurchaseAndCategory> =
+        coroutineScope.async(Dispatchers.IO){
+            return@async purchaseDAO.getPurchaseByMonth(date, nameUser, idCard)
+        }.await()
 
     private fun asyncFindAllByIdCard(nameUser: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.getPurchaseAllByIdCard(nameUser, idCard)
@@ -148,6 +157,10 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     private fun asyncSumPriceByMonth(idCard: Long, nameUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
         return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
+    }
+
+    private fun asyncGetPurchsesAndCategoryWeek(nameUser: String, week: String): Deferred<List<PurchaseAndCategory>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesAndCategoryWeek(week, nameUser)
     }
 
     private fun asyncGetPurchsesWeek(nameUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){

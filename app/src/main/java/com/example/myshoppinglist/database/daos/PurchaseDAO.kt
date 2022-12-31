@@ -5,10 +5,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.utils.FormatUtils
 import java.text.SimpleDateFormat
@@ -23,17 +25,20 @@ interface PurchaseDAO {
     @Update
     fun updatePurchase(purchase: Purchase)
 
+    @Transaction
     @Query("SELECT * FROM purchases, credit_cards  WHERE purchaseCardId = :idCard AND cardUserId = :nameUser ORDER BY date DESC")
     fun getPurchaseAllByUserAndIdCard(nameUser: String, idCard: Long): List<Purchase>
 
     @Query("SELECT * FROM purchases, credit_cards WHERE purchaseCardId = idCard AND cardUserId = :nameUser ORDER BY date")
     fun getPurchaseAll(nameUser: String): List<Purchase>
 
+    @Transaction
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId ORDER BY date DESC")
     fun getPurchaseAllByIdCard(nameUser: String, idCard: Long): List<Purchase>
 
-    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
-    fun getPurchaseByMonth(date: String, nameUser: String, idCard: Long): List<Purchase>
+    @Transaction
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE category.id = categoryOwnerId AND cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
+    fun getPurchaseByMonth(date: String, nameUser: String, idCard: Long): List<PurchaseAndCategory>
 
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date DESC ")
     fun getMonthByIdCard(nameUser: String, idCard: Long):List<String>
@@ -50,14 +55,20 @@ interface PurchaseDAO {
     @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(nameUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
 
-    @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")
+    @Transaction
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE categoryOwnerId = category.id AND cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")
+    fun getPurchasesAndCategoryWeek(week: String, nameUser: String): List<PurchaseAndCategory>
+
+    @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :nameUser AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.idPruchase")
     fun getPurchasesWeek(week: String, nameUser: String): List<Purchase>
 
+    @Transaction
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :nameUser AND idCard = :idCard AND idCard = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date DESC")
     fun getPurchasesWeekById(week: String, nameUser: String, idCard: Long): List<Purchase>
 
-    @RawQuery(observedEntities = [Purchase::class])
-    fun getPurchasesSearch(query: SupportSQLiteQuery): List<Purchase>
+    @Transaction
+    @RawQuery(observedEntities = [PurchaseAndCategory::class])
+    fun getPurchasesSearch(query: SupportSQLiteQuery): List<PurchaseAndCategory>
 
     @RawQuery(observedEntities = [Purchase::class])
     fun getPurchasesSearchSum(query: SupportSQLiteQuery): Double

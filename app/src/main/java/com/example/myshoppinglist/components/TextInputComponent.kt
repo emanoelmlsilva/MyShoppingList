@@ -58,7 +58,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
                     }
                 },
                 enabled = isEnableClick!!,
-                modifier = Modifier.fillMaxWidth().clickable(enabled = !isEnableClick, onClick = {
+                modifier = Modifier.fillMaxWidth().clickable(onClick = {
                     customOnClick.onClick()
                 }).focusRequester(focusRequester),
                 label = { Text(label) },

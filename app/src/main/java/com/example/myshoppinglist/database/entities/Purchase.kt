@@ -3,16 +3,13 @@ package com.example.myshoppinglist.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.myshoppinglist.enums.TypeCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import org.jetbrains.annotations.NotNull
-import java.util.*
 
 @Entity(tableName = "purchases")
 class Purchase {
 
     @PrimaryKey(autoGenerate = true)
-    @NotNull
     @ColumnInfo(name = "idPruchase")
     var id: Long = 0
     @ColumnInfo(name = "name")
@@ -29,15 +26,14 @@ class Purchase {
     var date: String = "24-01-2022"
     @ColumnInfo(name = "price")
     var price: Double = 0.0
-    @ColumnInfo(name = "category")
-    var category: TypeCategory = TypeCategory.DRINKS
-
+    @ColumnInfo(name = "categoryOwnerId")
+    var categoryOwnerId: Long = 0
 
     constructor(name: String){
         this.name = name
     }
 
-    constructor(){
+    constructor(): super(){
     }
 
     constructor(
@@ -48,7 +44,7 @@ class Purchase {
         typeProduct: TypeProduct,
         date: String,
         price: Double,
-        category: TypeCategory
+        categoryOwnerId: Long
     ) {
         this.name = name
         this.locale = locale
@@ -57,12 +53,11 @@ class Purchase {
         this.typeProduct = typeProduct
         this.date = date
         this.price = price
-        this.category = category
+        this.categoryOwnerId = categoryOwnerId
     }
 
     override fun toString(): String {
-        return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, category=$category)"
+        return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
-
 
 }

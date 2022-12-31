@@ -4,15 +4,15 @@ interface Callback {
 
     fun onClick(){}
 
-    fun onChangeIdCard(idCard: Long){
+    fun onChangeValue(idCard: Long){
 
     }
 
-    fun onChangeValueId(value: Int){
+    fun onChangeValue(value: Int){
 
     }
 
-    fun onChangeValueMong(newMonth: String){
+    fun onChangeValue(newMonth: String){
 
     }
 }
