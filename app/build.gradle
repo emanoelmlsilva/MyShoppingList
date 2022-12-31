@@ -13,7 +13,7 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 6
-        versionName "1.0.5-Beta"
+        versionName "1.0.6-Beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -90,7 +90,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-coil:0.7.1")
     implementation "com.google.accompanist:accompanist-pager:0.19.0"
     implementation "com.google.accompanist:accompanist-pager-indicators:0.19.0"
-
+    implementation 'com.godaddy.android.colorpicker:compose-color-picker:0.4.2'
+    implementation 'com.godaddy.android.colorpicker:compose-color-picker-android:0.4.2'
+    
     // Extensions = ViewModel + LiveData
     implementation "android.arch.lifecycle:extensions:1.1.0"
     kapt "android.arch.lifecycle:compiler:1.1.0"

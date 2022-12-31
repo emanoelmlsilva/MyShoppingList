@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -12,15 +13,18 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -37,10 +41,13 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 
 @ExperimentalComposeUiApi
@@ -52,11 +59,23 @@ fun CreateUserScreen(navController: NavController?) {
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val userViewModel: UserViewModel = UserViewModel(context)
+    val categoryViewModel: CategoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryCollections = listOf(
+        Category("Higiene", "outline_sanitizer_black_36.png", card_blue.toArgb()),
+        Category("Limpeza", "outline_cleaning_services_black_36.png", card_pink.toArgb()),
+        Category("Comida", "food_bank.png", card_red_dark.toArgb()),
+        Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
+    )
 
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
-            userViewModel.insertUser(User(name, nickName, idAvatar))
+            userViewModel.insertUser(User(name.trim(), nickName.trim(), idAvatar))
+            categoryCollections.forEach {
+                val category = Category(it.category, it.idImage, it.color)
+                categoryViewModel.insertCategory(category)
+            }
             navController?.navigate("createCards?hasToolbar=${false}")
         }
     }
