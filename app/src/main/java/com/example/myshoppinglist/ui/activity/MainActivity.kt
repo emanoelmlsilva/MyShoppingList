@@ -8,31 +8,28 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.BlendMode.Companion.Screen
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.controller.NavController
 import com.example.myshoppinglist.database.viewModels.UserViewModel
-import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
+import com.example.myshoppinglist.ui.theme.primary
+import com.example.myshoppinglist.ui.theme.shadow
+import com.example.myshoppinglist.ui.theme.text_primary
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 class MainActivity : ComponentActivity() {
@@ -51,13 +48,14 @@ class MainActivity : ComponentActivity() {
                 val userViewModel: UserViewModel = UserViewModel(context)
                 val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
 
-                val route = if(userViewModel.hasExistUser()) com.example.myshoppinglist.enums.Screen.Home else com.example.myshoppinglist.enums.Screen.CreateUser
+                val route = if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
 
                 val screenBarCollection = listOf(
-                    com.example.myshoppinglist.enums.Screen.Home,
-                    com.example.myshoppinglist.enums.Screen.CreditCollection,
-                    com.example.myshoppinglist.enums.Screen.Finance,
-                    com.example.myshoppinglist.enums.Screen.Products
+                    Screen.Home,
+                    Screen.CreditCollection,
+//                    Screen.Finance,
+                    Screen.Categories,
+                    Screen.ProductsManager
                 )
 
                 Scaffold(

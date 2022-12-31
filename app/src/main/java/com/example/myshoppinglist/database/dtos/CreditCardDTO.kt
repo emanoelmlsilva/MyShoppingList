@@ -14,7 +14,6 @@ class CreditCardDTO(
     var colorCard: Int = card_blue.toArgb(),
     var typeCard: TypeCard = TypeCard.CREDIT,
     var flag: Int = CardCreditFlag.MONEY.flag) {
-
      fun fromCreditCardDTO(creditCard: CreditCard): CreditCardDTO{
         return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag)
     }

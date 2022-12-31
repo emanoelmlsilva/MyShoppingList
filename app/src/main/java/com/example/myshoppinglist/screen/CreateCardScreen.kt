@@ -1,9 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,7 +21,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,8 +66,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
             if (createCardCreditViewModel.checkFileds()) {
                 creditCardViewModel.insertCreditCard(
                     CreditCard(
-                        name,
-                        nameCard,
+                        name.trim(),
+                        nameCard.trim(),
                         0F,
                         colorCurrent.toArgb(),
                         typeCard,
@@ -152,7 +149,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean) {
 
                         }
 
-                        override fun onChangeValueId(value: Int) {
+                        override fun onChangeValue(value: Int) {
                             createCardCreditViewModel.onChangeFlagCurrent(value)
                         }
                     }) }
@@ -202,7 +199,7 @@ fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback){
     Card(elevation = 2.dp, shape = RoundedCornerShape(8.dp), backgroundColor = if(isFlagChoice) primary_dark else secondary_light,
         modifier = Modifier.width(45.dp).height(30.dp).clickable {
             isFlagChoice = true
-            callback.onChangeValueId(flagId) }){
+            callback.onChangeValue(flagId) }){
         Image(
             painter = painterResource(id = flagId),
             contentDescription = null,

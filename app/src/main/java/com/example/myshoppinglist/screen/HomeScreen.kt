@@ -12,11 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
@@ -27,7 +29,7 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
-import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
@@ -49,7 +51,7 @@ fun HomeScreen(navController: NavController?) {
     val purchaseViewModel = PurchaseViewModel(context)
     val userViewModel = UserViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
-    val purchaseCollection = remember { mutableStateListOf<Purchase>() }
+    val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     val price = remember { mutableStateOf<Double>(0.0) }
     val visibleAnimation = remember { mutableStateOf(true) }
     val creditCardColleciton = remember{ mutableStateListOf<List<CreditCardDTO>>()}
@@ -59,12 +61,13 @@ fun HomeScreen(navController: NavController?) {
         creditCardViewModel.getAllWithSum()
         purchaseViewModel.sumPriceAllCard()
         purchaseViewModel.getPurchasesWeek()
+        purchaseViewModel.getPurchasesAndCategoryWeek()
     }
     purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner.value) {
         price.value = it
     }
 
-    purchaseViewModel.searchCollectionResults.observe(lifecycleOwner.value) { purchases ->
+    purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
         purchaseCollection.removeAll(purchaseCollection)
         purchaseCollection.addAll(purchases.reversed())
 
@@ -164,11 +167,12 @@ fun MySpending(
                             .padding(start = 50.dp)
                     ) {}
                     Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(text = "Saldo geral", fontFamily = LatoRegular)
+                        Text(text = "Saldo geral", fontFamily = LatoRegular, color = text_primary_light)
                         Spacer(Modifier.size(12.dp))
                         Text(
                             text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(priceTotal))}",
-                            fontFamily = LatoBold
+                            fontFamily = LatoBlack,
+                            color = text_primary_light
                         )
                     }
                 }
@@ -205,7 +209,7 @@ fun MySpending(
                                     LazyColumn{
                                         items(creditCardCollection){ creditCardDTO ->
                                             ItemSpending(creditCardDTO, object : Callback {
-                                                override fun onChangeIdCard(idCard: Long) {
+                                                override fun onChangeValue(idCard: Long) {
                                                     navController?.navigate("spending?idCard=${idCard}")
                                                 }
                                             })
@@ -243,7 +247,7 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
-            .clickable { callBack.onChangeIdCard(creditCardDTO.idCard) }
+            .clickable { callBack.onChangeValue(creditCardDTO.idCard) }
     ) {
         Row(
             modifier = Modifier
@@ -254,23 +258,32 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
         ) {
             Column(
                 modifier = Modifier
-                    .padding(end = 4.dp)
                     .size(55.dp)
                     .clip(CircleShape)
                     .background(Color(creditCardDTO.colorCard)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = creditCardDTO.flag),
-                    contentDescription = null,
+                Card(elevation = 2.dp, shape = RoundedCornerShape(4.5.dp), backgroundColor = background_card, border = BorderStroke(1.dp, border),
                     modifier = Modifier
-                        .size(23.dp)
-                )
+                        .fillMaxWidth(.6f)
+                        .fillMaxHeight(.4f)){
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+                        Image(
+                            painter = painterResource(id = creditCardDTO.flag),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .shadow(12.dp, CircleShape)
+                                .size(24.dp)
+                        )
+                    }
+                }
+
             }
             Column(
                 Modifier
                     .fillMaxWidth(.6f)
+                    .padding(start = 8.dp)
             ) {
                 Text(
                     text = creditCardDTO.cardName,
@@ -281,10 +294,13 @@ fun ItemSpending(creditCardDTO: CreditCardDTO, callBack: Callback) {
             }
             Text(
                 text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(creditCardDTO.value.toDouble()))}",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 4.dp),
                 fontFamily = LatoBold,
                 fontSize = 18.sp,
-                color = text_money
+                color = text_money,
+                textAlign = TextAlign.End
             )
         }
 
