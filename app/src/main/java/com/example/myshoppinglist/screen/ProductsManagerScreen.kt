@@ -748,7 +748,7 @@ fun AlertDialogFilter(
                                             categoryChoices.find { categoryChoice ->
                                                 categoryChoice == category
                                             } != null
-                                        Card(modifier = Modifier
+                                        Card(backgroundColor = (if (isChoiceCurrent) background_card_light else background_card),modifier = Modifier
                                             .padding(2.dp)
                                             .clip(CircleShape)
                                             .clickable {
@@ -765,8 +765,7 @@ fun AlertDialogFilter(
                                         ) {
                                             Row(
                                                 modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .background(if (isChoiceCurrent) background_card_light else background_card),
+                                                    .fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceAround,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {

@@ -19,7 +19,7 @@ import com.example.myshoppinglist.callback.VisibleCallback
 @Composable
 fun BaseLazyColumnScroll(
     listState: LazyListState = rememberLazyListState(),
-    visibleAnimation: Boolean,
+    visibleAnimation: Boolean = true,
     callback: VisibleCallback?,
     modifier: Modifier? = null,
     content: LazyListScope.() -> Unit
