@@ -20,6 +20,18 @@ class ItemListRepository(private val itemListDAO: ItemListDAO) {
         }
     }
 
+    fun updateItemList(itemList: ItemList){
+        coroutineScope.launch(Dispatchers.IO){
+            itemListDAO.updateItemList(itemList)
+        }
+    }
+
+    fun deleteItemList(itemList: ItemList){
+        coroutineScope.launch(Dispatchers.IO) {
+            itemListDAO.deleteItemList(itemList)
+        }
+    }
+
     fun getAll(nameUser: String){
         coroutineScope.launch(Dispatchers.Main){
             searchItemListResult.value = asyncFindAll(nameUser)

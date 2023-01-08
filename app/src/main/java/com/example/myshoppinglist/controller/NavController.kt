@@ -77,7 +77,7 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
         }
         composable(Screen.ListPurchase.name){
             callback.onChangeVisible(false)
-            ListPurchaseScreen(navHostController)
+            ListItemPurchaseScreen(navHostController)
         }
     }
 }

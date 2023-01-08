@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.database.daos
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -16,6 +17,9 @@ interface ItemListDAO {
 
     @Update
     fun updateItemList(itemList: ItemList)
+
+    @Delete
+    fun deleteItemList(itemList: ItemList)
 
     @Query("SELECT * FROM itemLists, category WHERE category.id = itemLists.categoryOwnerIdItem")
     fun getAll(): List<ItemListAndCateogry>

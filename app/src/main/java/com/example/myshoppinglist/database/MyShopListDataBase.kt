@@ -3,16 +3,10 @@ package com.example.myshoppinglist.database
 import android.content.Context
 import androidx.room.*
 import androidx.room.migration.AutoMigrationSpec
-import com.example.myshoppinglist.database.daos.CategoryDAO
-import com.example.myshoppinglist.database.daos.CreditCardDAO
-import com.example.myshoppinglist.database.daos.PurchaseDAO
-import com.example.myshoppinglist.database.daos.UserDao
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.daos.*
+import com.example.myshoppinglist.database.entities.*
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class], version = 5, exportSchema = true
+@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 5, exportSchema = true
 , autoMigrations = [AutoMigration (
     from = 4,
     to = 5,
@@ -24,6 +18,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
     abstract fun creditCardDao(): CreditCardDAO
     abstract fun purchaseDAO(): PurchaseDAO
     abstract fun categoryDAO(): CategoryDAO
+    abstract fun itemListDAO(): ItemListDAO
 
     @DeleteColumn(tableName = "purchases",columnName = "category")
     @RenameColumn(
@@ -42,7 +37,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "TestMyShopList.db"
+                        "TestMyShopList2.db"
                     ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
                 }
                 return this.instance!!

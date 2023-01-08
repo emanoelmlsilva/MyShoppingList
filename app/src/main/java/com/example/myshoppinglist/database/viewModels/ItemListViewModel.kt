@@ -29,6 +29,14 @@ class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Base
         repository.insertItemList(itemList)
     }
 
+    fun updateItemList(itemList: ItemList){
+        repository.updateItemList(itemList)
+    }
+
+    fun deleteItemList(itemList: ItemList){
+        repository.deleteItemList(itemList)
+    }
+
     fun getAll(){
         var nameUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
