@@ -382,10 +382,10 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
         if (hasNotItemPurchase) {
 
             if (purchaseFilterCollection.isNotEmpty()) {
-                val purchaseMultCollection: MutableList<Purchase> =
-                    purchaseFilterCollection.map { it.purchase } as MutableList<Purchase>
+                val purchaseMultCollection: MutableList<PurchaseAndCategory> =
+                    purchaseFilterCollection.map { it.purchase } as MutableList<PurchaseAndCategory>
 
-                val valueSum = purchaseMultCollection.sumOf { it.price * if(it.typeProduct == TypeProduct.QUANTITY) it.quantiOrKilo.toInt() else 1 }
+                val valueSum = purchaseMultCollection.sumOf { it.purchase.price * if(it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
 
                 val purchaseInfo = PurchaseInfo(
                     purchase.name, category.idImage, valueSum, Color(category.color),
@@ -504,7 +504,9 @@ fun BoxPurchaseItens(
                 )
             ) {
 
-                itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
+                itemsIndexed(purchaseInfo.purchaseCollection) { index, purchaseAndCategory ->
+                    val purchase = purchaseAndCategory.purchase
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()

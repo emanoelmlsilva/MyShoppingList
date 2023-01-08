@@ -1,9 +1,11 @@
 package com.example.myshoppinglist.components
 
+import android.content.Context
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -11,19 +13,30 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.CallbackPurchase
+import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
 @Composable
 fun BoxProductRegisterComponent(
+    context: Context,
     purchaseInfoCollection: MutableList<PurchaseInfo>,
     callbackPurchase: CallbackPurchase
 ) {
@@ -44,7 +57,9 @@ fun BoxProductRegisterComponent(
                 Column {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth().height(30.dp).clickable { expandableContainer(indexInfo)  }, verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth()
+                            .height(30.dp)
+                            .clickable { expandableContainer(indexInfo) }, verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(modifier = Modifier
                             .padding(4.dp), onClick = { expandableContainer(indexInfo) }) {
@@ -68,92 +83,102 @@ fun BoxProductRegisterComponent(
                     )
                 }
             }
-//            if (isExpanded(
-//                    indexInfo,
-//                    expandeds
-//                )
-//            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchase ->
-//                Column(modifier = Modifier.fillMaxWidth()) {
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(16.dp), horizontalArrangement = Arrangement.Center
-//                    ) {
-//                        Image(
-//                            painter = painterResource(id = purchase.category.imageCircle),
-//                            contentDescription = null,
-//                            Modifier
-//                                .size(46.dp)
-//                                .padding(top = 3.dp)
-//                        )
-//                        Column {
-//                            Row(
-//                                horizontalArrangement = Arrangement.SpaceBetween,
-//                                modifier = Modifier.fillMaxWidth()
-//                            ) {
-//                                Text(
-//                                    fontFamily = LatoRegular,
-//                                    text = purchase.name, modifier = Modifier
-//                                        .padding(start = 12.dp),
-//                                    textAlign = TextAlign.Start
-//                                )
-//                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
-//                                    Text(
-//                                        fontFamily = LatoRegular,
-//                                        fontSize = 12.sp,
-//                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
-//                                    )
-//                                    Text(
-//                                        fontFamily = LatoBold,
-//                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
-//                                        modifier = Modifier
-//                                            .padding(start = 12.dp),
-//                                    )
-//                                }
-//                            }
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(top = 18.dp), horizontalArrangement = Arrangement.End
-//                            ) {
-//                                IconButton(onClick = {
-//                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
-//                                })
-//                                {
-//                                    Icon(
-//                                        imageVector = Icons.Outlined.Edit,
-//                                        contentDescription = null,
-//                                        tint = text_primary,
-//                                    )
-//                                }
-//                                IconButton(onClick = {
-//                                    callbackPurchase.onChangeIndex(
-//                                        indexInfo,
-//                                        index,
-//                                        TypeState.DELETE
-//                                    )
-//                                })
-//                                {
-//                                    Icon(
-//                                        imageVector = Icons.Outlined.Delete,
-//                                        contentDescription = null,
-//                                        tint = text_primary,
-//                                    )
-//                                }
-//
-//                            }
-//                        }
-//                    }
-//                    Divider(
-//                        color = divider,
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(1.dp)
-//                    )
-//                }
-//
-//
-//            } else null
+            if (isExpanded(
+                    indexInfo,
+                    expandeds
+                )
+            ) itemsIndexed(purchaseInfo.purchaseCollection) { index, purchaseAndCategory ->
+                val category = purchaseAndCategory.category
+                val purchase = purchaseAndCategory.purchase
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp), horizontalArrangement = Arrangement.Center
+                    ) {
+
+                        IconCategoryComponent(
+                            modifier = Modifier.padding(start = 6.dp),
+                            iconCategory = AssetsUtils.readIconBitmapById(
+                                context,
+                                category.idImage
+                            )!!
+                                .asImageBitmap(),
+                            colorIcon = Color(category.color),
+                            size = 40.dp,
+                            enabledBackground = true
+                        )
+                        Column {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    fontFamily = LatoRegular,
+                                    text = purchase.name, modifier = Modifier
+                                        .padding(start = 12.dp),
+                                    textAlign = TextAlign.Start
+                                )
+                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                    )
+                                    Text(
+                                        fontFamily = LatoBold,
+                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
+                                        modifier = Modifier
+                                            .padding(start = 12.dp),
+                                    )
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 18.dp), horizontalArrangement = Arrangement.End
+                            ) {
+                                IconButton(onClick = {
+                                    expandeds.removeAll(expandeds)
+                                    callbackPurchase.onChangeIndex(indexInfo, index, TypeState.EDIT)
+                                })
+                                {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = null,
+                                        tint = text_primary,
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    expandeds.removeAll(expandeds)
+                                    callbackPurchase.onChangeIndex(
+                                        indexInfo,
+                                        index,
+                                        TypeState.DELETE
+                                    )
+                                })
+                                {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Delete,
+                                        contentDescription = null,
+                                        tint = text_primary,
+                                    )
+                                }
+
+                            }
+                        }
+                    }
+                    Divider(
+                        color = divider,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    )
+                }
+
+
+            } else null
         }
     }
 }
