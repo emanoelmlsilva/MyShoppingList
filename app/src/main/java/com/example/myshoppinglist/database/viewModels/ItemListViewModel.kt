@@ -37,11 +37,11 @@ class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Base
         repository.deleteItemList(itemList)
     }
 
-    fun getAll(){
+    fun getAll(idCard: Long){
         var nameUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
             nameUser = it.name
-            repository.getAll(nameUser)
+            repository.getAll(idCard)
         }
     }
 

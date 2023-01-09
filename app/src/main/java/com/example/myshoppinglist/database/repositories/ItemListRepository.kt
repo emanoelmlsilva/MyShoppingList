@@ -32,13 +32,13 @@ class ItemListRepository(private val itemListDAO: ItemListDAO) {
         }
     }
 
-    fun getAll(nameUser: String){
+    fun getAll(idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchItemListResult.value = asyncFindAll(nameUser)
+            searchItemListResult.value = asyncFindAll(idCard)
         }
     }
 
-    private suspend fun asyncFindAll(name: String): List<ItemListAndCateogry> = coroutineScope.async(Dispatchers.IO) {
-        return@async itemListDAO.getAll()
+    private suspend fun asyncFindAll(idCard: Long): List<ItemListAndCateogry> = coroutineScope.async(Dispatchers.IO) {
+        return@async itemListDAO.getAll(idCard)
     }.await()
 }

@@ -21,6 +21,6 @@ interface ItemListDAO {
     @Delete
     fun deleteItemList(itemList: ItemList)
 
-    @Query("SELECT * FROM itemLists, category WHERE category.id = itemLists.categoryOwnerIdItem")
-    fun getAll(): List<ItemListAndCateogry>
+    @Query("SELECT * FROM itemLists, category WHERE category.id = itemLists.categoryOwnerIdItem AND itemLists.creditCardOwnerIdItem = :idCard")
+    fun getAll(idCard: Long): List<ItemListAndCateogry>
 }

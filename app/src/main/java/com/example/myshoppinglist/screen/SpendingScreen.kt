@@ -146,23 +146,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     }
 
     TopAppBarScreen(hasBackButton = true, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
-//    Surface(
-//        color = MaterialTheme.colors.background,
-//        contentColor = contentColorFor(text_secondary),
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .fillMaxHeight()
-//    ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            BaseAnimationComponent(
-                visibleAnimation = visibleAnimation.value,
-                contentBase = {
-//                    Spacer(
-//                        Modifier
-//                            .height(35.dp)
-//                    )
-                })
-
             BoxSpendingFromMonth(
                 spendingTextFieldViewModel,
                 monthsCollection,
@@ -223,7 +207,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     .size(62.dp)
                                     .clip(CircleShape),
                                     backgroundColor = background_card,
-                                    onClick = { navController!!.navigate(Screen.ListPurchase.name)}) {
+                                    onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard.value?.id ?: idCard}") }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.list_view),
                                         contentDescription = null,

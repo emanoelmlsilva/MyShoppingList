@@ -53,7 +53,7 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ListItemPurchaseScreen(navController: NavHostController) {
+fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
     val context = LocalContext.current
     var checkAll by remember { mutableStateOf(false) }
     var visibleAnimation by remember { mutableStateOf(true) }
@@ -73,8 +73,8 @@ fun ListItemPurchaseScreen(navController: NavHostController) {
 
     }
 
-    LaunchedEffect(key1 = Unit) {
-        itemListViewModel.getAll()
+    LaunchedEffect(key1 = idCard) {
+        itemListViewModel.getAll(idCard)
     }
 
     itemListViewModel.searchItemListResult.observe(lifecycleOwner) {
@@ -126,12 +126,13 @@ fun ListItemPurchaseScreen(navController: NavHostController) {
                 RegisterItemList(
                     context,
                     lifecycleOwner,
+                    idCard,
                     enabledDialog,
                     itemListUpdate,
                     object : CallbackItemList {
                         override fun itemList(itemList: ItemList) {
                             itemListViewModel.insertItemList(itemList)
-                            itemListViewModel.getAll()
+                            itemListViewModel.getAll(idCard)
                             scope.launch {
                                 enabledDialog = false
                             }
@@ -139,7 +140,7 @@ fun ListItemPurchaseScreen(navController: NavHostController) {
 
                         override fun onUpdate(item: ItemListAndCateogry) {
                             itemListViewModel.updateItemList(item.itemList)
-                            itemListViewModel.getAll()
+                            itemListViewModel.getAll(idCard)
                             scope.launch {
                                 enabledDialog = false
                             }
@@ -242,7 +243,7 @@ fun ListItemPurchaseScreen(navController: NavHostController) {
                                 override fun onDelete() {
                                     itemListViewModel.deleteItemList(itemListCurrent)
                                     scope.launch {
-                                        itemListViewModel.getAll()
+                                        itemListViewModel.getAll(idCard)
                                     }
                                 }
 
@@ -263,6 +264,7 @@ fun ListItemPurchaseScreen(navController: NavHostController) {
 fun RegisterItemList(
     context: Context,
     lifecycleOwner: LifecycleOwner,
+    idCard: Long,
     enabledDialog: Boolean,
     itemListUpdate: ItemListAndCateogry?,
     callback: CallbackItemList
@@ -437,7 +439,7 @@ fun RegisterItemList(
                                     reset()
                                 },
                                 onClickAccept = {
-                                    val itemList = ItemList(item, categoryChoice)
+                                    val itemList = ItemList(item, categoryChoice, idCard)
                                     if (itemListUpdate != null) {
                                         itemList.id = itemListUpdate.itemList.id
                                         callback.onUpdate(ItemListAndCateogry(itemList, Category()))

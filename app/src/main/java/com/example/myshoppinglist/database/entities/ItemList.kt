@@ -19,16 +19,19 @@ class ItemList {
     @ColumnInfo(name = "categoryOwnerIdItem")
     var categoryOwnerIdItem: Long = 0
 
+    @ColumnInfo(name = "creditCardOwnerIdItem")
+    var creditCardOwnerIdItem: Long = 0
     constructor(): super(){
     }
 
-    constructor(item: String, categoryOwnerIdItem: Long) {
+    constructor(item: String, categoryOwnerIdItem: Long, cartOwnerIdItem: Long) {
         this.item = item
         this.categoryOwnerIdItem = categoryOwnerIdItem
+        this.creditCardOwnerIdItem = cartOwnerIdItem
     }
 
     override fun toString(): String {
-        return "ItemList(id=$id, item='$item', categoryOwnerIdItem=$categoryOwnerIdItem)"
+        return "ItemList(item='$item', categoryOwnerIdItem=$categoryOwnerIdItem, cartOwnerIdItem=$creditCardOwnerIdItem)"
     }
 
 

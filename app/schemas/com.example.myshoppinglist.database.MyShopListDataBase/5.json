@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "5c6b2f9b74412019bc328f0e0a3adbe4",
+    "identityHash": "adaede8264dbb817cdf3bcd868ee4bd3",
     "entities": [
       {
         "tableName": "users",
@@ -216,7 +216,7 @@
       },
       {
         "tableName": "itemLists",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idItem` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idItem` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL, `creditCardOwnerIdItem` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -235,6 +235,12 @@
             "columnName": "categoryOwnerIdItem",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "creditCardOwnerIdItem",
+            "columnName": "creditCardOwnerIdItem",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -250,7 +256,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5c6b2f9b74412019bc328f0e0a3adbe4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'adaede8264dbb817cdf3bcd868ee4bd3')"
     ]
   }
 }
