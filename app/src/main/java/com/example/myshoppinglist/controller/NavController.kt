@@ -75,5 +75,11 @@ fun NavController(navHostController: NavHostController, window: Window, routeIni
             val idCategory = navBackStack.arguments?.getLong("idCategory")
             RegisterCategoryScreen(navHostController, idCategory)
         }
+        composable("${Screen.ListPurchase.name}?idCard={idCard}", arguments = listOf(navArgument("idCard") { type = NavType.LongType })){
+                navBackStack ->
+            callback.onChangeVisible(false)
+            val idCard = navBackStack.arguments?.getLong("idCard")
+            ListItemPurchaseScreen(navHostController, idCard!!)
+        }
     }
 }

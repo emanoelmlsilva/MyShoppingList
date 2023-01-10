@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 5,
-    "identityHash": "adaede8264dbb817cdf3bcd868ee4bd3",
+    "version": 6,
+    "identityHash": "dac7e27436b9c9fb4c40da6236e9645a",
     "entities": [
       {
         "tableName": "users",
@@ -216,11 +216,11 @@
       },
       {
         "tableName": "itemLists",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idItem` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL, `creditCardOwnerIdItem` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
-            "columnName": "idItem",
+            "columnName": "id",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -231,21 +231,15 @@
             "notNull": true
           },
           {
-            "fieldPath": "categoryOwnerIdItem",
+            "fieldPath": "categoryOwnerId",
             "columnName": "categoryOwnerIdItem",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "creditCardOwnerIdItem",
-            "columnName": "creditCardOwnerIdItem",
             "affinity": "INTEGER",
             "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "idItem"
+            "id"
           ],
           "autoGenerate": true
         },
@@ -256,7 +250,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'adaede8264dbb817cdf3bcd868ee4bd3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dac7e27436b9c9fb4c40da6236e9645a')"
     ]
   }
 }

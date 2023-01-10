@@ -13,5 +13,6 @@ enum class Screen(val id: Int) {
     Finance(R.drawable.ic_financial),
     ProductsManager(R.drawable.ic_prototype),
     Categories(R.drawable.ic_outline_category_24),
-    RegisterCategory(R.drawable.default_avatar)
+    RegisterCategory(R.drawable.default_avatar),
+    ListPurchase(R.drawable.default_avatar)
 }

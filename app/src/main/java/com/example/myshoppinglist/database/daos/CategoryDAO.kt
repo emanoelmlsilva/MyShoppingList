@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.database.daos
 
-import android.database.sqlite.SQLiteException
 import androidx.room.*
 import com.example.myshoppinglist.database.entities.Category
 

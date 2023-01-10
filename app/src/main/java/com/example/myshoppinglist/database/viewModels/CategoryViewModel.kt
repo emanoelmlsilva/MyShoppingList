@@ -20,7 +20,7 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner): ViewM
 
     init{
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
-        val categoryDAO = myShopListDataBase.categoryDAO()
+            val categoryDAO = myShopListDataBase.categoryDAO()
         userViewModel = UserViewModel(context)
         userViewModel.getUserCurrent()
         repository = CategoryRepository(categoryDAO)

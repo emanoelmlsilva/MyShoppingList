@@ -65,7 +65,7 @@ fun CreditCollectionScreen(navController: NavController?){
 fun generateCardCredit(creditCardCollection: List<CreditCard>): List<CreditCardDTO>{
     var creditCardDTOCollection: MutableList<CreditCardDTO> =
         creditCardCollection.map { CreditCardDTO(it.id, it.cardName, it.holderName, it.value, it.colorCard, it.typeCard, it.flag) }.toMutableList()
-    creditCardDTOCollection.add(0, CreditCardDTO(0L, "", "", 0F ))
+    creditCardDTOCollection.add(CreditCardDTO(0L, "", "", 0F ))
     return creditCardDTOCollection;
 }
 
