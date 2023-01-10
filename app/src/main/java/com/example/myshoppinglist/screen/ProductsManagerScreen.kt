@@ -373,7 +373,7 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
         val purchase = purchaseAndCategory.purchase
         val category = purchaseAndCategory.category
 
-        val purchaseFilterCollection =
+        val purchaseFilterCollection: List<PurchaseAndCategory> =
             purchaseCollection.filter { item -> purchase.name == item.purchase.name }
 
         val hasNotItemPurchase =
@@ -383,7 +383,7 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
 
             if (purchaseFilterCollection.isNotEmpty()) {
                 val purchaseMultCollection: MutableList<PurchaseAndCategory> =
-                    purchaseFilterCollection.map { it.purchase } as MutableList<PurchaseAndCategory>
+                    purchaseFilterCollection.map { it } as MutableList<PurchaseAndCategory>
 
                 val valueSum = purchaseMultCollection.sumOf { it.purchase.price * if(it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
 
@@ -1307,7 +1307,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
                 collectionSeach.add(category.id)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
-                    nameFields += " AND "
+                    nameFields += " OR "
                 }
             }
         }
