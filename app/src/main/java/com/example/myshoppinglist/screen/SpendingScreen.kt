@@ -145,23 +145,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     }
 
-    Surface(
-        color = MaterialTheme.colors.background,
-        contentColor = contentColorFor(text_secondary),
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            BaseAnimationComponent(
-                visibleAnimation = visibleAnimation.value,
-                contentBase = {
-                    Spacer(
-                        Modifier
-                            .height(35.dp)
-                    )
-                })
-
+    TopAppBarScreen(hasBackButton = true, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             BoxSpendingFromMonth(
                 spendingTextFieldViewModel,
                 monthsCollection,
@@ -206,7 +191,35 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                 }
                                 Text(
                                     text = "Comprar",
-                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = LatoBlack,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+
+                            Spacer(
+                                Modifier
+                                    .width(20.dp)
+                            )
+
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Card(modifier = Modifier
+                                    .size(62.dp)
+                                    .clip(CircleShape),
+                                    backgroundColor = background_card,
+                                    onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard.value?.id ?: idCard}") }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.list_view),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(ButtonDefaults.IconSize)
+                                            .padding(18.dp),
+                                    )
+                                }
+                                Text(
+                                    text = "Lista Mercado",
+                                    fontFamily = LatoBlack,
+                                    fontSize = 16.sp,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
                             }
@@ -254,7 +267,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
             }
         }
 
-    }
+    })
 }
 
 @Composable

@@ -34,6 +34,7 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MountStructureCrediCard
@@ -210,7 +211,7 @@ fun MySpending(
                                         items(creditCardCollection){ creditCardDTO ->
                                             ItemSpending(creditCardDTO, object : Callback {
                                                 override fun onChangeValue(idCard: Long) {
-                                                    navController?.navigate("spending?idCard=${idCard}")
+                                                    navController?.navigate("${Screen.Spending.name}?idCard=${idCard}")
                                                 }
                                             })
                                         }

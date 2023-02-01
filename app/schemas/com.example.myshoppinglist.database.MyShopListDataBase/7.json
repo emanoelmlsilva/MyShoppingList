@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 5,
-    "identityHash": "d88931f6a37aec7a1a77122fa0aee7c8",
+    "version": 7,
+    "identityHash": "dac7e27436b9c9fb4c40da6236e9645a",
     "entities": [
       {
         "tableName": "users",
@@ -216,11 +216,11 @@
       },
       {
         "tableName": "itemLists",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idItem` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL, `creditCardOwnerIdItem` INTEGER NOT NULL, `isRemoved` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
-            "columnName": "idItem",
+            "columnName": "id",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -235,23 +235,11 @@
             "columnName": "categoryOwnerIdItem",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "creditCardOwnerIdItem",
-            "columnName": "creditCardOwnerIdItem",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isRemoved",
-            "columnName": "isRemoved",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "idItem"
+            "id"
           ],
           "autoGenerate": true
         },
@@ -262,7 +250,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd88931f6a37aec7a1a77122fa0aee7c8')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dac7e27436b9c9fb4c40da6236e9645a')"
     ]
   }
 }
