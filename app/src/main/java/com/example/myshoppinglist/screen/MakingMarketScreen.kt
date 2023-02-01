@@ -207,6 +207,7 @@ fun MakingMarketScreen(
                             itemListAndCategory,
                             isCheck,
                             true,
+                            isRemoved = itemListCurrent.isRemoved,
                             sizeCheckCollection = true,
                             idItem = itemListCurrent.id,
                             category = category,
@@ -280,6 +281,7 @@ fun DialogSaveProduct(
     var visibilityDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val purchaseViewModel = PurchaseViewModel(context)
+    val itemListViewModel = ItemListViewModel(context, lifecycleOwner)
 
     LaunchedEffect(Unit) {
         creditCardViewModel.getAll()
@@ -332,6 +334,10 @@ fun DialogSaveProduct(
             }
 
             purchaseViewModel.insertPurchase(purchaseCollection)
+
+            val itemRemovedCollection = marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListAndCategory.itemList.id) != -1 && it.itemListAndCategory.itemList.isRemoved }.map{it.itemListAndCategory.itemList}
+
+            itemRemovedCollection.forEach {  itemListViewModel.deleteItemList(it) }
         }
 
         purchaserSaveCoroutine.await()

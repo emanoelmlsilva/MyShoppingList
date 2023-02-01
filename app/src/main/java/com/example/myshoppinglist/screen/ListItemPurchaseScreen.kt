@@ -230,6 +230,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                             itemListAndCategory = itemListAndCategory,
                             isCheck = isCheck,
                             isMarket = false,
+                            isRemoved = itemListCurrent.isRemoved,
                             sizeCheckCollection = itemCheckCollection.isNotEmpty(),
                             idItem = itemListCurrent.id,
                             category = itemListAndCategory.category,
@@ -285,6 +286,7 @@ fun RegisterItemList(
     var item by remember {
         mutableStateOf("")
     }
+    var checkRemoved by remember{ mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         categoryViewModel.getAll()
@@ -357,12 +359,12 @@ fun RegisterItemList(
                         }
 
                         Column(
-                            verticalArrangement = Arrangement.SpaceAround, modifier = Modifier
-                                .padding(horizontal = 4.dp)
-                                .fillMaxHeight()
+                            verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
+                                .padding(start = 4.dp, end = 4.dp, bottom = 18.dp)
+                                .fillMaxHeight(.65f)
                         ) {
                             TextInputComponent(
-                                modifier = Modifier.padding(horizontal = 4.dp),
+                                modifier = Modifier.padding(horizontal = 4.dp).padding(0.dp),
                                 label = "Produto",
                                 value = item,
                                 reset = false,
@@ -375,12 +377,34 @@ fun RegisterItemList(
                                     }
                                 })
 
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.Start)
+                                    .clickable {
+                                        checkRemoved = !checkRemoved
+                                    },
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                                    checked = checkRemoved,
+                                    onCheckedChange = {
+                                        checkRemoved = it
+                                    }
+                                )
+                                Text(
+                                    "Remover ao salvar",
+                                    fontFamily = LatoRegular,
+                                )
+                            }
+
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = "Categorias",
                                         modifier = Modifier.padding(
-                                            top = 16.dp,
+                                            top = 0.dp,
                                             bottom = 8.dp,
                                             end = 4.dp
                                         ),
@@ -437,27 +461,27 @@ fun RegisterItemList(
                                     }
                                 }
                             }
-
-                            ButtonsFooterContent(
-                                isClickable = true,
-                                btnTextCancel = "CANCELAR",
-                                btnTextAccept = "SALVAR",
-                                onClickCancel = {
-                                    callback.onClick()
-                                    reset()
-                                },
-                                onClickAccept = {
-                                    val itemList = ItemList(item, categoryChoice, idCard)
-                                    if (itemListUpdate != null) {
-                                        itemList.id = itemListUpdate.itemList.id
-                                        callback.onUpdate(ItemListAndCategory(itemList, Category()))
-                                    } else {
-                                        callback.itemList(itemList)
-                                    }
-
-                                    reset()
-                                })
                         }
+
+                        ButtonsFooterContent(
+                            isClickable = true,
+                            btnTextCancel = "CANCELAR",
+                            btnTextAccept = "SALVAR",
+                            onClickCancel = {
+                                callback.onClick()
+                                reset()
+                            },
+                            onClickAccept = {
+                                val itemList = ItemList(item, checkRemoved, categoryChoice, idCard)
+                                if (itemListUpdate != null) {
+                                    itemList.id = itemListUpdate.itemList.id
+                                    callback.onUpdate(ItemListAndCategory(itemList, Category()))
+                                } else {
+                                    callback.itemList(itemList)
+                                }
+
+                                reset()
+                            })
 
                     }
                 }

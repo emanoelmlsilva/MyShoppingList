@@ -1,9 +1,7 @@
 package com.example.myshoppinglist.database.dtos
 
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import com.squareup.moshi.JsonClass
 
-//@JsonClass(generateAdapter = true)
 class ItemListAndCategoryDTO() {
     lateinit var itemListDTO: ItemListDTO
     lateinit var categoryDTO: CategoryDTO

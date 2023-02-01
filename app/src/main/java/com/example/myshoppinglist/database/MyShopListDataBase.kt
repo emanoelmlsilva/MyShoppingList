@@ -37,7 +37,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "TestMyShopList3.db"
+                        "TestMyShopList.db"
                     ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
                 }
                 return this.instance!!

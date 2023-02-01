@@ -24,17 +24,21 @@ class ItemList {
     @ColumnInfo(name = "creditCardOwnerIdItem")
     var creditCardOwnerIdItem: Long = 0
 
+    @ColumnInfo(name = "isRemoved")
+    var isRemoved: Boolean = false
+
     constructor(): super(){
     }
 
-    constructor(item: String, categoryOwnerIdItem: Long, cartOwnerIdItem: Long) {
+    constructor(item: String, isRemoved: Boolean, categoryOwnerIdItem: Long, cartOwnerIdItem: Long) {
         this.item = item
+        this.isRemoved = isRemoved
         this.categoryOwnerIdItem = categoryOwnerIdItem
         this.creditCardOwnerIdItem = cartOwnerIdItem
     }
 
     override fun toString(): String {
-        return "ItemList(item='$item', categoryOwnerIdItem=$categoryOwnerIdItem, cartOwnerIdItem=$creditCardOwnerIdItem)"
+        return "ItemList(id=$id, item='$item', categoryOwnerIdItem=$categoryOwnerIdItem, creditCardOwnerIdItem=$creditCardOwnerIdItem, isRemoved=$isRemoved)"
     }
 
 
