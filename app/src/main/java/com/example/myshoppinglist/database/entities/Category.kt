@@ -4,8 +4,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.squareup.moshi.JsonClass
 import org.jetbrains.annotations.NotNull
 
+@JsonClass(generateAdapter = true)
 @Entity(tableName = "category", indices = [Index(value = ["category"], unique = true)])
 class Category{
 

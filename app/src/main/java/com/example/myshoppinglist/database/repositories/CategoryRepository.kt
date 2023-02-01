@@ -1,11 +1,12 @@
 package com.example.myshoppinglist.database.repositories
 
-import android.database.sqlite.SQLiteException
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.daos.CategoryDAO
 import com.example.myshoppinglist.database.entities.Category
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class CategoryRepository(private val categoryDAO: CategoryDAO) {
 

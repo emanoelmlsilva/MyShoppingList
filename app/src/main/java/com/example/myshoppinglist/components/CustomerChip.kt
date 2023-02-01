@@ -127,7 +127,7 @@ fun CustomerChip(
                 }
             } else if (category != null) {
                 IconCategoryComponent(
-                    modifier = Modifier.padding(start = 4.dp),
+                    modifier = Modifier.padding(start = 2.dp),
                     iconCategory = AssetsUtils.readIconBitmapById(
                         context!!,
                         category.idImage

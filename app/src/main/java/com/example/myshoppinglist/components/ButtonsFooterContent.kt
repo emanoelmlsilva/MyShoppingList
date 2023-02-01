@@ -22,11 +22,10 @@ fun ButtonsFooterContent(isClickable: Boolean? = true, btnTextAccept: String, bt
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(0.dp, 12.dp), horizontalArrangement = if(btnTextCancel != null) Arrangement.SpaceBetween else Arrangement.Center){
+            .padding(0.dp, if(btnTextCancel != null) 12.dp else 0.dp), horizontalArrangement = if(btnTextCancel != null) Arrangement.SpaceBetween else Arrangement.Center){
         if(btnTextCancel != null){
             OutlinedButton(
                 modifier = Modifier
-                    .background(secondary)
                     .padding(start = 6.dp, bottom = 8.dp, end = 6.dp)
                 ,
                 onClick = {

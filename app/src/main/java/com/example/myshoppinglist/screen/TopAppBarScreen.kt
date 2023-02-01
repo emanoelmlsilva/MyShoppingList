@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
@@ -12,7 +13,10 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
 import com.example.myshoppinglist.ui.theme.primary
 import com.example.myshoppinglist.ui.theme.secondary_dark
@@ -29,7 +33,8 @@ fun TopAppBarScreen(
     color: Color = MaterialTheme.colors.background,
     contentColor: Color = contentColorFor(text_secondary),
     hasToolbar: Boolean = false,
-    floatingActionButton: @Composable () -> Unit = { }
+    floatingActionButton: @Composable () -> Unit = { },
+    paddingFloatingButton: Dp = 0.dp
 ) {
 
     val baseModifier = if (!isScrollable) modifier else modifier.verticalScroll(
@@ -56,9 +61,10 @@ fun TopAppBarScreen(
                         navigationIcon = {
                             IconButton(onClick = { if (onClickIcon != null) onClickIcon() }) {
                                 Icon(
-                                    imageVector = if(hasBackButton) Icons.Filled.ArrowBack else Icons.Filled.Close ,
+                                    painter = painterResource(id = if(hasBackButton) R.drawable.chevron_left else R.drawable.close),
                                     contentDescription = null,
-                                    tint = secondary_dark
+                                    tint = secondary_dark,
+                                    modifier = Modifier.size(26.dp)
                                 )
                             }
                         },
@@ -67,7 +73,7 @@ fun TopAppBarScreen(
                     )
                 }
             },
-            modifier = Modifier.padding(bottom = if(floatingActionButton != {}) 65.dp else 0.dp),
+            modifier = Modifier.padding(bottom = paddingFloatingButton),
             floatingActionButton = floatingActionButton,
         ) {
             content?.let { screen ->
