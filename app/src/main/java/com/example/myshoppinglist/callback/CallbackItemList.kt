@@ -1,7 +1,7 @@
 package com.example.myshoppinglist.callback
 
 import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCateogry
+import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 
 interface CallbackItemList : Callback{
 
@@ -9,7 +9,7 @@ interface CallbackItemList : Callback{
 
     fun onDelete(){}
 
-    fun onUpdate(item: ItemListAndCateogry){}
+    fun onUpdate(item: ItemListAndCategory){}
 
     fun onFinish(){}
 }

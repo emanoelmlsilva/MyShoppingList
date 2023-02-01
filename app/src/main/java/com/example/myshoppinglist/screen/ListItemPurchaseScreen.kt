@@ -3,6 +3,7 @@
 package com.example.myshoppinglist.screen
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +18,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -41,15 +40,17 @@ import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCateogry
+import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.ItemListViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.ConversionUtils
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -59,10 +60,10 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
     var visibleAnimation by remember { mutableStateOf(true) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val itemListCollection = remember { mutableStateListOf<ItemListAndCateogry>() }
+    val itemListCollection = remember { mutableStateListOf<ItemListAndCategory>() }
     val itemListViewModel = ItemListViewModel(context, lifecycleOwner)
     var enabledDialog by remember { mutableStateOf(false) }
-    var itemListUpdate by remember { mutableStateOf<ItemListAndCateogry?>(null) }
+    var itemListUpdate by remember { mutableStateOf<ItemListAndCategory?>(null) }
     val scope = rememberCoroutineScope()
 
     fun selectedCheckAll() {
@@ -99,7 +100,11 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         icon = { Icon(Icons.Filled.ShoppingCart, null, tint = primary_dark) },
                         backgroundColor = text_secondary,
                         onClick = {
-
+                            if(itemCheckCollection.isNotEmpty()){
+                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils.toJson(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
+                            }else{
+                                Toast.makeText(context, "Selecione pelo menos um produto!", Toast.LENGTH_SHORT).show()
+                            }
                         },
                         text = { Text("mercado".capitalize()) }
                     )
@@ -123,6 +128,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
         },
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
+
                 RegisterItemList(
                     context,
                     lifecycleOwner,
@@ -138,7 +144,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                             }
                         }
 
-                        override fun onUpdate(item: ItemListAndCateogry) {
+                        override fun onUpdate(item: ItemListAndCategory) {
                             itemListViewModel.updateItemList(item.itemList)
                             itemListViewModel.getAll(idCard)
                             scope.launch {
@@ -219,15 +225,18 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                     itemsIndexed(itemListCollection) { index, itemListAndCategory ->
                         val itemListCurrent = itemListAndCategory.itemList
                         val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
-                        SwipeableItemList(
-                            context,
-                            itemListAndCategory,
-                            isCheck,
-                            itemListCurrent.id,
-                            itemListAndCategory.category,
-                            itemListAndCategory.itemList.item,
-                            if (index % 2 == 0) divider_ligth else divider,
-                            object : CallbackItemList {
+                        SlidingItemListComponent(
+                            context = context,
+                            itemListAndCategory = itemListAndCategory,
+                            isCheck = isCheck,
+                            isMarket = false,
+                            isRemoved = itemListCurrent.isRemoved,
+                            sizeCheckCollection = itemCheckCollection.isNotEmpty(),
+                            idItem = itemListCurrent.id,
+                            category = itemListAndCategory.category,
+                            product = itemListAndCategory.itemList.item,
+                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
+                            callback = object : CallbackItemList {
                                 override fun onChangeValue(idCard: Long) {
                                     val isChecked = itemCheckCollection.indexOf(idCard) != -1
                                     checkAll = if (isChecked) {
@@ -247,7 +256,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                                     }
                                 }
 
-                                override fun onUpdate(item: ItemListAndCateogry) {
+                                override fun onUpdate(item: ItemListAndCategory) {
                                     enabledDialog = true
                                     itemListUpdate = item
 
@@ -266,7 +275,7 @@ fun RegisterItemList(
     lifecycleOwner: LifecycleOwner,
     idCard: Long,
     enabledDialog: Boolean,
-    itemListUpdate: ItemListAndCateogry?,
+    itemListUpdate: ItemListAndCategory?,
     callback: CallbackItemList
 ) {
     val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
@@ -277,6 +286,7 @@ fun RegisterItemList(
     var item by remember {
         mutableStateOf("")
     }
+    var checkRemoved by remember{ mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         categoryViewModel.getAll()
@@ -349,12 +359,12 @@ fun RegisterItemList(
                         }
 
                         Column(
-                            verticalArrangement = Arrangement.SpaceAround, modifier = Modifier
-                                .padding(horizontal = 4.dp)
-                                .fillMaxHeight()
+                            verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
+                                .padding(start = 4.dp, end = 4.dp, bottom = 18.dp)
+                                .fillMaxHeight(.65f)
                         ) {
                             TextInputComponent(
-                                modifier = Modifier.padding(horizontal = 4.dp),
+                                modifier = Modifier.padding(horizontal = 4.dp).padding(0.dp),
                                 label = "Produto",
                                 value = item,
                                 reset = false,
@@ -367,12 +377,34 @@ fun RegisterItemList(
                                     }
                                 })
 
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.Start)
+                                    .clickable {
+                                        checkRemoved = !checkRemoved
+                                    },
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                                    checked = checkRemoved,
+                                    onCheckedChange = {
+                                        checkRemoved = it
+                                    }
+                                )
+                                Text(
+                                    "Remover ao salvar",
+                                    fontFamily = LatoRegular,
+                                )
+                            }
+
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = "Categorias",
                                         modifier = Modifier.padding(
-                                            top = 16.dp,
+                                            top = 0.dp,
                                             bottom = 8.dp,
                                             end = 4.dp
                                         ),
@@ -429,188 +461,30 @@ fun RegisterItemList(
                                     }
                                 }
                             }
-
-                            ButtonsFooterContent(
-                                isClickable = true,
-                                btnTextCancel = "CANCELAR",
-                                btnTextAccept = "SALVAR",
-                                onClickCancel = {
-                                    callback.onClick()
-                                    reset()
-                                },
-                                onClickAccept = {
-                                    val itemList = ItemList(item, categoryChoice, idCard)
-                                    if (itemListUpdate != null) {
-                                        itemList.id = itemListUpdate.itemList.id
-                                        callback.onUpdate(ItemListAndCateogry(itemList, Category()))
-                                    } else {
-                                        callback.itemList(itemList)
-                                    }
-
-                                    reset()
-                                })
                         }
+
+                        ButtonsFooterContent(
+                            isClickable = true,
+                            btnTextCancel = "CANCELAR",
+                            btnTextAccept = "SALVAR",
+                            onClickCancel = {
+                                callback.onClick()
+                                reset()
+                            },
+                            onClickAccept = {
+                                val itemList = ItemList(item, checkRemoved, categoryChoice, idCard)
+                                if (itemListUpdate != null) {
+                                    itemList.id = itemListUpdate.itemList.id
+                                    callback.onUpdate(ItemListAndCategory(itemList, Category()))
+                                } else {
+                                    callback.itemList(itemList)
+                                }
+
+                                reset()
+                            })
 
                     }
                 }
             })
-    }
-}
-
-enum class SwipeDirection(val raw: Int) {
-    Left(0),
-    Initial(1),
-    Right(2),
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun SwipeableItemList(
-    context: Context,
-    itemListAndCategory: ItemListAndCateogry,
-    isCheck: Boolean,
-    idItem: Long,
-    category: Category,
-    product: String,
-    backgroundColor: Color,
-    callback: CallbackItemList
-) {
-    val squareSize = 100f
-    val swipeableState = rememberSwipeableState(SwipeDirection.Initial)
-    val scope = rememberCoroutineScope()
-    var enabledDeleteDialog by remember { mutableStateOf(false) }
-
-    if (swipeableState.isAnimationRunning) {
-        DisposableEffect(Unit) {
-            onDispose {
-                when (swipeableState.currentValue) {
-                    SwipeDirection.Right -> {
-                        callback.onUpdate(itemListAndCategory)
-                    }
-                    SwipeDirection.Left -> {
-                        enabledDeleteDialog = true
-                    }
-                    else -> {
-                        return@onDispose
-                    }
-                }
-                scope.launch {
-                    swipeableState.animateTo(SwipeDirection.Initial)
-                }
-            }
-        }
-    }
-
-    fun doToPix(dpValue: Float): Float {
-        return dpValue * context.resources.displayMetrics.density
-    }
-
-    val anchors = mapOf(
-        0f to SwipeDirection.Initial,
-        -doToPix(squareSize) to SwipeDirection.Left,
-        doToPix(squareSize) to SwipeDirection.Right
-    )
-
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Horizontal
-            )
-            .background(text_secondary)
-    ) {
-        Box() {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(background_text_field_dardk)
-                        .fillMaxWidth(.6f)
-                        .fillMaxHeight()
-                        .padding(start = 4.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("EDITAR", fontFamily = LatoRegular)
-                }
-                Column(
-                    modifier = Modifier
-                        .background(message_error)
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .padding(end = 4.dp),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("REMOVER", fontFamily = LatoRegular)
-                }
-
-            }
-
-        }
-        if(enabledDeleteDialog){
-            Dialog(
-                onDismissRequest = { },
-                content = {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = text_secondary,
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth().padding(top = 16.dp)
-                                .background(text_secondary)
-
-                        ) {
-
-                            Row(modifier = Modifier.background(text_title_secondary).fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
-                                Icon(
-                                    imageVector = Icons.Rounded.Warning,
-                                    contentDescription = null,
-                                    tint = text_secondary)
-
-                                Text("Deseja remover o item $product da lista?", fontFamily = LatoRegular)
-
-                            }
-
-                            ButtonsFooterContent(
-                                isClickable = true,
-                                btnTextCancel = "CANCELAR",
-                                btnTextAccept = "SALVAR",
-                                onClickCancel = {
-                                    enabledDeleteDialog = false
-                                },
-                                onClickAccept = {
-                                    callback.onDelete()
-                                    enabledDeleteDialog = false
-                                })
-                        }
-                    }
-                })
-        }
-        BoxItemListComponent(
-            modifier = Modifier.offset {
-                IntOffset(
-                    swipeableState.offset.value.roundToInt(),
-                    0
-                )
-            },
-            context,
-            isCheck,
-            idItem,
-            category,
-            product,
-            backgroundColor,
-            callback
-        )
     }
 }

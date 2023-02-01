@@ -10,6 +10,11 @@ object MaskUtils {
     fun convertValueStringToDouble(value: String): Double{
         var valueFormated: String = value.replace(",", ".")
 
+        if(valueFormated.count { it == '.' } > 1){
+            val index = valueFormated.indexOf('.')
+            valueFormated = valueFormated.removeRange(index,(index+1))
+        }
+
         return valueFormated.toDouble()
     }
 

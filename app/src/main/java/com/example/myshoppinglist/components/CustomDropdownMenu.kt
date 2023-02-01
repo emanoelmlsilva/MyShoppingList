@@ -33,7 +33,7 @@ fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: 
         }
     }
 
-        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_text_field_dardk, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary),
+        Card(elevation = 2.dp, shape = RoundedCornerShape(6.dp), backgroundColor = background_text_field_dark, border = BorderStroke(1.dp, if(error!!) message_error else text_secondary),
             modifier = Modifier
                 .padding(0.dp, 16.dp, 16.dp, 16.dp)
                 .clickable(enabled = isEnableClick!!, onClick = {
@@ -64,15 +64,4 @@ fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: 
 
     }
 
-}
-
-@ExperimentalMaterialApi
-@Preview(showBackground = true)
-@Composable
-fun PreviewCustomDropdownMenu(){
-//    CustomDropdownMenu(listOf<String>("Cartões", "Card 1", "Card 2", "Card 3"), object : CustomTextFieldOnClick{
-//        override fun onChangeValeu(newValue: String) {
-//
-//        }
-//    })
 }

@@ -1,10 +1,6 @@
 package com.example.myshoppinglist.screen
 
-import android.app.DatePickerDialog
-import android.content.Context
 import android.os.Handler
-import android.util.Log
-import android.widget.DatePicker
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +42,6 @@ import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
@@ -58,11 +53,11 @@ import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.CardUtils.getNameCard
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -412,9 +407,12 @@ fun PurchaseAndPaymentComponent(
     val cardCreditCollection =
         creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
-    creditCardViewModel.getAll()
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
+
+    LaunchedEffect(Unit){
+        creditCardViewModel.getAll()
+    }
 
     Card(
         elevation = 0.dp,
@@ -471,10 +469,10 @@ fun PurchaseAndPaymentComponent(
 
                     })
                 DatePickerCustom(
-                    registerTextFieldViewModel,
-                    reset && !isBlock.value!!,
-                    isBlock.value!!,
-                    context
+                    registerTextFieldViewModel = registerTextFieldViewModel,
+                    reset = reset && !isBlock.value!!,
+                    isEnableClick = isBlock.value!!,
+                    context = context
                 )
             }
             CustomDropdownMenu(
@@ -491,21 +489,6 @@ fun PurchaseAndPaymentComponent(
             )
         }
     }
-
-}
-
-fun getNameCard(creditCardColelction: List<CreditCard>): HashMap<String, Long> {
-    val cardCreditFormated: HashMap<String, Long> = HashMap<String, Long>()
-
-    creditCardColelction.forEachIndexed { index, creditCard ->
-        cardCreditFormated.put(
-            creditCard.cardName,
-            creditCard.id
-        )
-    }
-
-    return cardCreditFormated.entries.sortedBy { it.value }
-        .associate { it.toPair() } as HashMap<String, Long>
 
 }
 
@@ -529,84 +512,6 @@ fun CustomButton(callback: Callback, icon: Int, modifier: Modifier = Modifier) {
         }
     }
 
-}
-
-@ExperimentalComposeUiApi
-@Composable
-fun DatePickerCustom(
-    registerTextFieldViewModel: RegisterTextFieldViewModel,
-    reset: Boolean,
-    isEnableClick: Boolean? = false,
-    context: Context
-) {
-
-    val calendar = Calendar.getInstance()
-    calendar.time = Date()
-
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-
-    val formatedDate = FormatUtils().getDateFormatted(formatPtBR = true)
-
-    val date = remember { mutableStateOf(formatedDate) }
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            date.value = FormatUtils().getDateFormatted(dayOfMonth, month, year, true)
-            registerTextFieldViewModel.onChangeDateCurrent(
-                FormatUtils().getDateFormatted(
-                    dayOfMonth,
-                    month,
-                    year
-                )
-            )
-        },
-        year,
-        month,
-        dayOfMonth
-    )
-
-    datePickerDialog.datePicker.maxDate = calendar.time.time
-
-    LaunchedEffect(Unit) {
-        registerTextFieldViewModel.onChangeDateCurrent(
-            FormatUtils().getDateFormatted(
-                dayOfMonth,
-                month,
-                year,
-            )
-        )
-    }
-
-    registerTextFieldViewModel.dateCurrent.observeForever {
-        if (it.isNotBlank()) {
-            date.value = FormatUtils().getDateFromatted(Date(it.toString().replace("-", "/")))
-        }
-    }
-
-    TextInputComponent(
-        backgroundColor = text_secondary_light,
-        label = "Data da Compra",
-        reset = reset,
-        value = date.value,
-        maxChar = 30,
-        isEnableClick = false,
-        modifier = Modifier.fillMaxWidth(.98f),
-        customOnClick = object : CustomTextFieldOnClick {
-            override fun onClick() {
-                if (!isEnableClick!!) {
-                    val splitedDate = date.value.split("/")
-                    datePickerDialog.updateDate(
-                        splitedDate[2].toInt(),
-                        splitedDate[1].toInt() - 1,
-                        splitedDate[0].toInt()
-                    )
-                    datePickerDialog.show()
-                }
-            }
-        })
 }
 
 @ExperimentalComposeUiApi

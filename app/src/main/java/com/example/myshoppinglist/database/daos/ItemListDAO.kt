@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCateogry
+import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 
 @Dao
 interface ItemListDAO {
@@ -22,5 +22,5 @@ interface ItemListDAO {
     fun deleteItemList(itemList: ItemList)
 
     @Query("SELECT * FROM itemLists, category WHERE category.id = itemLists.categoryOwnerIdItem AND itemLists.creditCardOwnerIdItem = :idCard")
-    fun getAll(idCard: Long): List<ItemListAndCateogry>
+    fun getAll(idCard: Long): List<ItemListAndCategory>
 }

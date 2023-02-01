@@ -5,13 +5,13 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCateogry
+import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.repositories.ItemListRepository
 
 class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
 
     private val repository: ItemListRepository
-    val searchItemListResult: MutableLiveData<List<ItemListAndCateogry>>
+    val searchItemListResult: MutableLiveData<List<ItemListAndCategory>>
     private var userViewModel: UserViewModel
     private var mLifecycleOwner: LifecycleOwner
 
