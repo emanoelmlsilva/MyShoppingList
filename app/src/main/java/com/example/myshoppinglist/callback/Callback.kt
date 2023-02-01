@@ -8,11 +8,15 @@ interface Callback {
 
     }
 
+    fun onChangeValue(newValue: Boolean){
+
+    }
+
     fun onChangeValue(value: Int){
 
     }
 
-    fun onChangeValue(newMonth: String){
+    fun onChangeValue(newValue: String){
 
     }
 }
