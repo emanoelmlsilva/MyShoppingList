@@ -13,8 +13,8 @@ android {
         applicationId "com.example.myshoppinglist"
         minSdk 21
         targetSdk 33
-        versionCode 6
-        versionName "1.0.6-Beta"
+        versionCode 7
+        versionName "1.0.7-Beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
