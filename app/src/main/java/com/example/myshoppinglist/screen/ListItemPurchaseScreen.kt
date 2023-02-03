@@ -145,9 +145,9 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         }
 
                         override fun onUpdate(item: ItemListAndCategory) {
-                            itemListViewModel.updateItemList(item.itemList)
-                            itemListViewModel.getAll(idCard)
                             scope.launch {
+                                itemListViewModel.updateItemList(item.itemList)
+                                itemListViewModel.getAll(idCard)
                                 enabledDialog = false
                             }
 
@@ -311,6 +311,7 @@ fun RegisterItemList(
     fun reset() {
         categoryChoice = -1L
         item = ""
+        checkRemoved = false
     }
 
     if (enabledDialog) {
