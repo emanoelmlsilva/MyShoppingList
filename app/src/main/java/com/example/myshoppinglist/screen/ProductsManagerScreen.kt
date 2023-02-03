@@ -890,8 +890,8 @@ fun ChoicePrice(
     callbackMin: CustomTextFieldOnClick,
     callbackMax: CustomTextFieldOnClick
 ) {
-    var maxStepCurrent by remember { mutableStateOf(maxStepDefault) }
-    var sliderPosition by remember { mutableStateOf(priceMin!!..maxStepDefault) }
+    var maxStepCurrent by remember { mutableStateOf(priceMax ?: maxStepDefault) }
+    var sliderPosition by remember { mutableStateOf(priceMin!!..if (priceMax!! > 0f) priceMax else maxStepDefault) }
     var valueMin by remember { mutableStateOf(priceMin) }
     var valueMax by remember { mutableStateOf(if (priceMax!! > 0f) priceMax else maxStepDefault) }
     var enableEditMaxStep by remember { mutableStateOf(false) }
@@ -900,7 +900,7 @@ fun ChoicePrice(
             MaskUtils.maskValue(
                 String.format(
                     "%.2f",
-                    maxStepDefault
+                    if (priceMax!! > 0f) priceMax else maxStepDefault
                 )
             )
         )
