@@ -31,8 +31,8 @@ import kotlinx.coroutines.launch
 
 @ExperimentalComposeUiApi
 @Composable
-fun NumberInputComponent(modifier: Modifier? = null, value: String? = "", maxChar: Int? = 250, error: Boolean? = false, focusRequester: FocusRequester? = FocusRequester(), keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false,  reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
-    var isKilogram by remember { mutableStateOf(false)}
+fun NumberInputComponent(modifier: Modifier? = null, isKilogram: Boolean = false, value: String? = "", maxChar: Int? = 250, error: Boolean? = false, focusRequester: FocusRequester? = FocusRequester(), keyboardType: KeyboardType? = KeyboardType.Text, hasIcon: Boolean? = false, label: String, isMandatory: Boolean? = false,  reset: Boolean = false, customOnClick: CustomTextFieldOnClick){
+    var isKilogram by remember { mutableStateOf(isKilogram)}
     val keyboardController = LocalSoftwareKeyboardController.current
     var isErrorQuantOrKilo by remember { mutableStateOf(false) }
     val customModifier = modifier?:Modifier.fillMaxWidth()

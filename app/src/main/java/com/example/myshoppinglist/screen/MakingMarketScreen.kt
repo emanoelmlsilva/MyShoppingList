@@ -221,13 +221,11 @@ fun MakingMarketScreen(
                                     val isChecked = itemCheckCollection.indexOf(idCard) != -1
 
                                     if (isChecked) {
-                                        if (marketItem.type == TypeProduct.QUANTITY) {
-                                            valueTotal -= (marketItem.price * marketItem.amount.toInt())
-                                        }
+                                        valueTotal -= (marketItem.price * if(marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
                                         itemCheckCollection.remove(idCard)
                                         checkAll = false
                                     } else if (checkFieldProduct(marketItem)) {
-                                        valueTotal += (marketItem.price * marketItem.amount.toInt())
+                                        valueTotal += (marketItem.price * if(marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
                                         itemCheckCollection.add(idCard)
                                         checkAll =
                                             itemCheckCollection.size == marketItemCollection.size
