@@ -59,7 +59,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
     val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
 
 //    LaunchedEffect(Unit){
-        userViewModel.getUserCurrent()
+    userViewModel.getUserCurrent()
 //    }
 
     LaunchedEffect(key1 = hasToolbar){
@@ -244,7 +244,7 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, hasToo
             .fillMaxWidth()
             .padding(top = 28.dp), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TextInputComponent(modifier = Modifier.fillMaxWidth(), isEnableClick = !hasToolbar, value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
+        TextInputComponent(modifier = Modifier.fillMaxWidth(), isEnableClick = hasToolbar, value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
             onNext = {
                 focusManager.moveFocus(FocusDirection.Down)
             }

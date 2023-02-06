@@ -181,6 +181,7 @@ fun MakingMarketScreen(
                     context,
                     lifecycleOwner,
                     navController,
+                    idCard,
                     marketItemCollection,
                     itemCheckCollection,
                     object : Callback {
@@ -267,6 +268,7 @@ fun DialogSaveProduct(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     navController: NavHostController,
+    idCard: Long,
     marketItemCollection: List<MarketItem>,
     itemCheckCollection: List<Long>,
     callback: Callback
@@ -289,14 +291,13 @@ fun DialogSaveProduct(
         visibilityDialog = visibility
     }
 
+    LaunchedEffect(key1 = idCard){
+        registerTextFieldViewModel.onChangeIdCard(idCard)
+    }
+
     creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
         cardCreditCollection.removeAll(cardCreditCollection)
         cardCreditCollection.addAll(it)
-
-        if (it.isNotEmpty()) {
-            val idInitial = it[0].id
-            registerTextFieldViewModel.idCard.value = idInitial
-        }
     }
 
     fun checkFields(): Boolean {
