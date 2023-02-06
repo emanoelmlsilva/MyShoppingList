@@ -40,12 +40,13 @@ fun NavController(
             CreateUserScreen(navHostController)
         }
         composable(
-            "${Screen.CreateCards.name}?hasToolbar={hasToolbar}",
-            arguments = listOf(navArgument("hasToolbar") { type = NavType.BoolType })
+            "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?nameUser={nameUser}",
+            arguments = listOf(navArgument("hasToolbar") { type = NavType.BoolType }, navArgument("nameUser") {type = NavType.StringType})
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
-            CreateCardScreen(navHostController, hasToolbar ?: false)
+            val nameUser = navBackStack.arguments?.getString("nameUser")
+            CreateCardScreen(navHostController, hasToolbar ?: false, nameUser!!)
         }
         composable(Screen.Home.name) {
             callback.onChangeVisible(true)
