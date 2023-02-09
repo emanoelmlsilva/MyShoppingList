@@ -18,6 +18,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -33,10 +34,7 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
-import com.example.myshoppinglist.ui.theme.primary_dark
-import com.example.myshoppinglist.ui.theme.primary_light
-import com.example.myshoppinglist.ui.theme.text_primary
-import com.example.myshoppinglist.ui.theme.text_secondary
+import com.example.myshoppinglist.ui.theme.*
 
 @ExperimentalAnimationApi
 @Composable
@@ -69,19 +67,17 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
         contentBase = {
             Box(
                 Modifier
-                    .background(primary_light)
                     .height(100.dp)
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 16.dp, bottom = 3.dp, end = 8.dp)
             ) {
                 Row(
                     Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
+                    Row(
                         Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(0.9f), verticalArrangement = Arrangement.SpaceBetween
+                            .fillMaxWidth(.9f), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically
                     ) {
 
                         Image(
@@ -96,7 +92,7 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
                         )
                         Text(
                             text = "Ola, $name",
-                            Modifier.padding(0.dp, 4.dp),
+                            Modifier.padding(start = 12.dp),
                             color = text_primary
                         )
                     }

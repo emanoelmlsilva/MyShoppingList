@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
 
                 val screenBarCollection = listOf(
                     Screen.Home,
-                    Screen.CreditCollection,
                     Screen.Categories,
                     Screen.ProductsManager
                 )

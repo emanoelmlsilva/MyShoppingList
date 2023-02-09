@@ -181,8 +181,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
 
 @Composable
 fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
-    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag, CardCreditFlag.APPLE.flag, CardCreditFlag.DINERS.flag, CardCreditFlag.GOOGLE.flag,
-        CardCreditFlag.INTERAC.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.STRIPE.flag, CardCreditFlag.VERIFONE.flag, CardCreditFlag.VISA.flag)
+    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag,
+        CardCreditFlag.ELO.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.HIPER.flag, CardCreditFlag.VISA.flag)
 
     Column(modifier = Modifier
         .fillMaxSize()

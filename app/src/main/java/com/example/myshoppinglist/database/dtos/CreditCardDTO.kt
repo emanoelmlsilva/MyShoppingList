@@ -13,8 +13,22 @@ class CreditCardDTO(
     var value: Float = 0F,
     var colorCard: Int = card_blue.toArgb(),
     var typeCard: TypeCard = TypeCard.CREDIT,
-    var flag: Int = CardCreditFlag.MONEY.flag) {
+    var flag: Int = CardCreditFlag.MONEY.flag,
+    var flagBlack: Int = CardCreditFlag.MONEY.flagBlack){
+
      fun fromCreditCardDTO(creditCard: CreditCard): CreditCardDTO{
-        return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag)
+        return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag))
+    }
+
+    private fun fromFlagBlack(int: Int): Int{
+        return when(int){
+            CardCreditFlag.ELO.flag -> CardCreditFlag.ELO.flagBlack
+            CardCreditFlag.HIPER.flag -> CardCreditFlag.HIPER.flagBlack
+            CardCreditFlag.MASTER.flag -> CardCreditFlag.MASTER.flagBlack
+            CardCreditFlag.AMEX.flag -> CardCreditFlag.AMEX.flagBlack
+            CardCreditFlag.PAY_PAL.flag -> CardCreditFlag.PAY_PAL.flagBlack
+            CardCreditFlag.VISA.flag -> CardCreditFlag.VISA.flagBlack
+            else -> CardCreditFlag.MONEY.flagBlack
+        }
     }
 }

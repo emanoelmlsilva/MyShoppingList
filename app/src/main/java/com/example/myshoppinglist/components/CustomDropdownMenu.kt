@@ -26,14 +26,14 @@ fun CustomDropdownMenu(backgroundColor: Color = text_secondary, idCardEditable: 
     var items = valueCollection
     var nameCard by remember { mutableStateOf("") }
 
-    LaunchedEffect(key1 = valueCollection, key2 = idCardEditable){
+    LaunchedEffect(key1 = valueCollection){
         val itemCard = items.entries.find { it.value == selectedValue }
         if(itemCard != null) {
             nameCard = itemCard.key
         }
     }
 
-    LaunchedEffect(key1 = idCardEditable){
+    LaunchedEffect(key1 = idCardEditable, key2 = items){
         val itemCard = items.entries.find { it.value == idCardEditable }
         if(itemCard != null) {
             nameCard = itemCard.key

@@ -50,12 +50,7 @@ fun NavController(
         }
         composable(Screen.Home.name) {
             callback.onChangeVisible(true)
-            window.statusBarColor = primary_light.hashCode()
             HomeScreen(navHostController)
-        }
-        composable(Screen.CreditCollection.name) {
-            callback.onChangeVisible(true)
-            CreditCollectionScreen(navHostController)
         }
         composable(
             "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}",
