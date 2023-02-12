@@ -46,6 +46,7 @@ import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 
@@ -76,7 +77,7 @@ fun CreateUserScreen(navController: NavController?) {
                 val category = Category(it.category, it.idImage, it.color)
                 categoryViewModel.insertCategory(category)
             }
-            navController?.navigate("createCards?hasToolbar=${false}")
+            navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?nameUser=${name.trim()}")
         }
     }
 

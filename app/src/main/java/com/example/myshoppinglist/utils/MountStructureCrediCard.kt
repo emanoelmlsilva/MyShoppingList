@@ -5,12 +5,12 @@ import com.example.myshoppinglist.database.entities.CreditCard
 
 class MountStructureCrediCard {
 
-    fun mountSpedingDate(creditCardCollection: List<CreditCard>): List<List<CreditCardDTO>> {
+    fun mountSpedingDate(creditCardCollection: List<CreditCard>): List<CreditCardDTO> {
         val MAX_ITEM = 3
         var countIndex = 0
         val SIZE_COLLECTION = creditCardCollection.size
         var spedingCollection = mutableListOf<CreditCardDTO>()
-        val spedingDateCollection = mutableListOf<List<CreditCardDTO>>()
+        val spedingDateCollection = mutableListOf<CreditCardDTO>()
 
         if (creditCardCollection.isEmpty()) return spedingDateCollection
 
@@ -24,7 +24,7 @@ class MountStructureCrediCard {
             countIndex++
 
             if (countIndex == MAX_ITEM || (MAX_ITEM > SIZE_COLLECTION && countIndex == SIZE_COLLECTION) || (countSizeCollection == SIZE_COLLECTION)) {
-                spedingDateCollection.add(spedingCollection)
+                spedingDateCollection.addAll(spedingCollection)
                 spedingCollection = mutableListOf()
                 countIndex = 0
 

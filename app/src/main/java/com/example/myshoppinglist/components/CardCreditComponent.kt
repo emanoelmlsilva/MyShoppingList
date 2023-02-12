@@ -31,6 +31,7 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.enums.CardCreditFlag
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
@@ -104,7 +105,7 @@ fun CustomCardCredit(
             .fillMaxWidth(.85f)
             .fillMaxHeight(.9f)
             .clickable(isClicable) {
-                navController?.navigate("createCards?hasToolbar=${true}")
+                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${true}?nameUser=${""}")
             },
         elevation = 2.dp, shape = RoundedCornerShape(28.dp)
     ) {

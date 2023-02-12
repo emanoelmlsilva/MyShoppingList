@@ -177,6 +177,7 @@ fun BoxItemInfo(isMarket: Boolean, newPrice: Float?, newQuantOrKilo: String?, ne
                 NumberInputComponent(
                     maxChar = 11,
                     hasIcon = true,
+                    isKilogram = type == TypeProduct.KILO,
                     value = quantOrKilo,
                     error = quantOrKiloError,
                     isMandatory = false,
