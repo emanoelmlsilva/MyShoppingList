@@ -19,7 +19,7 @@ class User {
     var nickName: String = ""
 
     @ColumnInfo(name = "idAvatar")
-    var idAvatar:Int = R.drawable.default_avatar
+    var idAvatar:Int = R.drawable.resource_default
 
     constructor()
 

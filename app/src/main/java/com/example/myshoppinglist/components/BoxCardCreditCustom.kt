@@ -106,7 +106,7 @@ fun BoxCardCreditCustom(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(.55f)
+                        .fillMaxHeight(.65f)
                 ) {
                     CustomButtonRounded(isDotted = true,
                         top = .25f,
