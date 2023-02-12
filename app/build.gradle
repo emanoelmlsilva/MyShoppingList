@@ -14,8 +14,7 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 8
-        versionName "1.1.1-Beta"
-
+        versionName "1.1.2-Beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true

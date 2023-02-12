@@ -21,12 +21,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -174,9 +176,8 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
         R.drawable.clover,
         R.drawable.docinho,
         R.drawable.flapjack,
-        R.drawable.jack,
+        R.drawable.clover,
         R.drawable.kuki,
-        R.drawable.mabel,
         R.drawable.marceline,
         R.drawable.patolino,
         R.drawable.san,
@@ -186,7 +187,7 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
     @Composable
     fun itemImage(idAvatar: Int) {
         Image(
-            painterResource(idAvatar),
+            imageVector = ImageVector.vectorResource(id = idAvatar),
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -223,12 +224,12 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
             )
             Column {
                 Row {
-                    idsAvatar.subList(0, 6).map { idAvatar ->
+                    idsAvatar.subList(0, 5).map { idAvatar ->
                         itemImage(idAvatar)
                     }
                 }
                 Row(modifier = Modifier.padding(bottom = 6.dp)) {
-                    idsAvatar.subList(6, idsAvatar.size).map { idAvatar ->
+                    idsAvatar.subList(5, idsAvatar.size).map { idAvatar ->
                         itemImage(idAvatar)
                     }
                 }
