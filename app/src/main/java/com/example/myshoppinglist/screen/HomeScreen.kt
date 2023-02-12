@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,7 +33,6 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.ui.theme.LatoBold
-import com.example.myshoppinglist.ui.theme.card_pink
 import com.example.myshoppinglist.ui.theme.text_secondary
 import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -100,8 +98,8 @@ fun HomeScreen(navController: NavController?) {
                 count = creditCardCollection.size,
                 parentModifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.49f),
-                contentHeight = 300.dp,
+                    .fillMaxHeight(.4f),
+                contentHeight = 265.dp,
                 content = { modifier, index ->
                     val creditCardDTO = creditCardCollection[index]
 
@@ -151,7 +149,7 @@ fun Carousel(
 
     val listState = rememberLazyListState(count / 2)
 
-    LaunchedEffect(key1 = count){
+    LaunchedEffect(key1 = count) {
         listState.animateScrollToItem(count)
     }
 
@@ -167,7 +165,7 @@ fun Carousel(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(),
-                    verticalArrangement = Arrangement.spacedBy(-contentHeight / 2),
+                    verticalArrangement = Arrangement.spacedBy(-contentHeight / 3f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(
@@ -183,7 +181,7 @@ fun Carousel(
                                     (1f - minOf(
                                         1f,
                                         abs(currentItem.offset + (currentItem.size / 2) - halfRowWidth).toFloat() / halfRowWidth
-                                    ) * 0.25f)
+                                    ) * 0.3f)
                                 }
                             }
 
