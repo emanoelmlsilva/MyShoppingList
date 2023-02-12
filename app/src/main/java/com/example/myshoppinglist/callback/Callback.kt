@@ -19,4 +19,8 @@ interface Callback {
     fun onChangeValue(newValue: String){
 
     }
+
+    fun onSucess(){}
+
+    fun onCancel(){}
 }

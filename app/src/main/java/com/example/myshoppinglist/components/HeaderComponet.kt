@@ -96,13 +96,13 @@ fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, cal
                             color = text_primary
                         )
                     }
-                    IconButton(onClick = { }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_baseline_miscellaneous_services_24),
-                            contentDescription = "help",
-                            tint = text_primary,
-                        )
-                    }
+//                    IconButton(onClick = { }) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.ic_baseline_miscellaneous_services_24),
+//                            contentDescription = "help",
+//                            tint = text_primary,
+//                        )
+//                    }
                 }
             }
         }
