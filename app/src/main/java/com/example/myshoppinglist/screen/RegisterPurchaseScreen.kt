@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import android.os.Handler
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,6 +75,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val purchaseInfoCollection = registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value//remember { mutableStateListOf<PurchaseInfo>() }
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
+    var visibilityBackHandler by remember{ mutableStateOf(false) }
 
     LaunchedEffect(key1 = idCardCurrent) {
         categoryViewModel.getAll()
@@ -103,6 +105,17 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
         purcharseSaveCoroutine.await()
     }
 
+    BackHandler {
+        visibilityBackHandler = true
+    }
+
+    DialogBackCustom(visibilityBackHandler, {
+        visibilityBackHandler = false
+        navController?.popBackStack()
+    }, {
+        visibilityBackHandler = false
+    }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
+
     Box {
 
         BottomSheetScaffold(
@@ -111,7 +124,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(.94f)
+                        .fillMaxHeight()
                         .padding(top = 16.dp, bottom = 70.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -185,7 +198,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                 TopAppBar(
                     title = {},
                     navigationIcon = {
-                        IconButton(onClick = { navController?.popBackStack() }) {
+                        IconButton(onClick = { visibilityBackHandler = true }) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = null,
@@ -299,7 +312,9 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                 isClickable = countProduct > 0,
                 btnTextCancel = "CANCELAR",
                 btnTextAccept = "SALVAR",
-                onClickCancel = { navController?.popBackStack() },
+                onClickCancel = {
+                    visibilityBackHandler = true
+                     },
                 onClickAccept = {
                     coroutineScope.launch {
                         savePurchases()

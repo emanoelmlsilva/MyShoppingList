@@ -25,6 +25,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 @Composable
 fun TopAppBarScreen(
     content: @Composable (() -> Unit?)?,
+    contentHeader: @Composable (() -> Unit?)? = {},
     onClickIcon: (() -> Unit)? = null,
     onClickIconDone: (() -> Unit)? = null,
     isScrollable: Boolean = false,
@@ -71,6 +72,10 @@ fun TopAppBarScreen(
                         backgroundColor = text_secondary,
                         elevation = 0.dp
                     )
+                }
+
+                if(contentHeader != null) {
+                    contentHeader()
                 }
             },
             modifier = Modifier.padding(bottom = paddingFloatingButton),

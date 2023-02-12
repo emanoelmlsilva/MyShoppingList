@@ -2,18 +2,14 @@ package com.example.myshoppinglist.enums
 
 import com.example.myshoppinglist.R
 
-enum class CardCreditFlag(val flag: Int) {
+enum class CardCreditFlag(val flag: Int, val flagBlack: Int) {
 
-    MASTER(R.drawable.master),
-    AMEX(R.drawable.amex),
-    APPLE(R.drawable.apple_pay),
-    DINERS(R.drawable.diners_club),
-    GOOGLE(R.drawable.google_pay),
-    INTERAC(R.drawable.interac),
-    PAY_PAL(R.drawable.pay_pal),
-    STRIPE(R.drawable.stripe),
-    VERIFONE(R.drawable.verifone),
-    VISA(R.drawable.visa),
-    MONEY(R.drawable.icon_add)
+    ELO(R.drawable.elo, R.drawable.elo_black),
+    HIPER(R.drawable.hiper, R.drawable.hiper_black),
+    MASTER(R.drawable.master, R.drawable.master_black),
+    AMEX(R.drawable.amex, R.drawable.amex_black),
+    PAY_PAL(R.drawable.pay_pal, R.drawable.pay_pal_black),
+    VISA(R.drawable.visa, R.drawable.visa_black),
+    MONEY(R.drawable.icon_add, R.drawable.cash_black)
 
 }
