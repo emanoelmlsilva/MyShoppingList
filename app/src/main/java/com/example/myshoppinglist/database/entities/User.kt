@@ -32,9 +32,4 @@ class User {
     override fun toString(): String {
         return "User(name='$name', nickName='$nickName', idAvatar=$idAvatar)"
     }
-
-    fun toParseUserDTO(): UserDTO{
-        return UserDTO()
-    }
-
 }

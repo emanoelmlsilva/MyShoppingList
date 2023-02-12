@@ -49,8 +49,8 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
-import kotlinx.coroutines.CoroutineExceptionHandler
 
 
 @ExperimentalComposeUiApi
@@ -79,6 +79,7 @@ fun CreateUserScreen(navController: NavController?) {
                 val category = Category(it.category, it.idImage, it.color)
                 categoryViewModel.insertCategory(category)
             }
+            UserInstanceImpl.reset()
             navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?nameUser=${name.trim()}")
         }
     }
@@ -176,7 +177,6 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
         R.drawable.clover,
         R.drawable.docinho,
         R.drawable.flapjack,
-        R.drawable.clover,
         R.drawable.kuki,
         R.drawable.marceline,
         R.drawable.patolino,

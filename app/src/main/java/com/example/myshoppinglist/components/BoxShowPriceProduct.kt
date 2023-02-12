@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -16,6 +17,7 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun BoxShowPriceProduct(speding: String, amount: String) {
     val sizeIcon = 25.dp
@@ -47,8 +49,8 @@ fun BoxShowPriceProduct(speding: String, amount: String) {
                     Text(
                         text = "R$ ${
                             MaskUtils.maskValue(
-                                MaskUtils.convertValueDoubleToString(
-                                    speding.toDouble()
+                                MaskUtils.convertValueString(
+                                    speding
                                 )
                             )
                         }",

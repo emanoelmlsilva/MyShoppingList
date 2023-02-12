@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
@@ -32,6 +33,7 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_secondary
 import com.example.myshoppinglist.utils.MountStructureCrediCard
@@ -49,19 +51,22 @@ fun HomeScreen(navController: NavController?) {
     val userViewModel = UserViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
     val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
-    val price = remember { mutableStateOf<Double>(0.0) }
     val visibleAnimation = remember { mutableStateOf(true) }
     val creditCardCollection = remember { mutableStateListOf<CreditCardDTO>() }
+    var idAvatar by remember {
+        mutableStateOf(R.drawable.resource_default)
+    }
+    var name by remember {
+        mutableStateOf("")
+    }
 
     LaunchedEffect(Unit) {
-        userViewModel.getUserCurrent()
         creditCardViewModel.getAllWithSum()
-        purchaseViewModel.sumPriceAllCard()
-        purchaseViewModel.getPurchasesWeek()
-        purchaseViewModel.getPurchasesAndCategoryWeek()
     }
-    purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner.value) {
-        price.value = it
+
+    UserInstanceImpl.getUserViewModelCurrent().searchResult.observe(lifecycleOwner.value){
+        idAvatar = it.idAvatar;
+        name = it.name
     }
 
     purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
@@ -72,6 +77,8 @@ fun HomeScreen(navController: NavController?) {
 
     creditCardViewModel.searchCollectionResult.observe(lifecycleOwner.value) { creditCollection ->
         if (creditCollection.isNotEmpty()) {
+            purchaseViewModel.getPurchasesAndCategoryWeek()
+
             creditCardCollection.removeAll(creditCardCollection)
             creditCardCollection.add(CreditCardDTO())
             creditCardCollection.addAll(MountStructureCrediCard().mountSpedingDate(creditCollection))
@@ -87,7 +94,7 @@ fun HomeScreen(navController: NavController?) {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, visibleAnimation.value, object : Callback {
+            HeaderComponent(userViewModel, idAvatar, name, visibleAnimation.value, object : Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }

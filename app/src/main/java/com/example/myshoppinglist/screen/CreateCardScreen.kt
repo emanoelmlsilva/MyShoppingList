@@ -43,6 +43,7 @@ import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
 @ExperimentalComposeUiApi
@@ -83,6 +84,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
                     )
                 )
                 if (typeCard == TypeCard.MONEY) {
+                    UserInstanceImpl.getInstance(context)
                     navController?.navigate(Screen.Home.name) {
                         popUpTo(0)
                     }

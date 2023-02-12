@@ -27,16 +27,8 @@ import com.example.myshoppinglist.ui.theme.text_primary
 
 @ExperimentalAnimationApi
 @Composable
-fun HeaderComponent(userViewModel: UserViewModel, visibleAnimation: Boolean, callBack: Callback) {
-    var name by remember { mutableStateOf("") }
-    var idAvatar by remember { mutableStateOf(R.drawable.resource_default) }
+fun HeaderComponent(userViewModel: UserViewModel, idAvatar: Int, name: String, visibleAnimation: Boolean, callBack: Callback) {
     val animatedProgress = remember { Animatable(1f) }
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-
-    userViewModel.searchResult.observe(lifecycleOwner) {
-        idAvatar = it.idAvatar;
-        name = it.name
-    }
 
     LaunchedEffect(animatedProgress) {
         animatedProgress.animateTo(

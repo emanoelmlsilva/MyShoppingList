@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val context = LocalContext.current
                 val userViewModel: UserViewModel = UserViewModel(context)
-                val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
+                val bottomBarState = rememberSaveable { (mutableStateOf(false)) }
 
                 val route = if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
 
