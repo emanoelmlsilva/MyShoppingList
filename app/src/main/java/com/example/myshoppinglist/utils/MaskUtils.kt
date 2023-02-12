@@ -71,7 +71,7 @@ object MaskUtils {
                 sizeValue
             )
         }"
-        val rounded = String.format("%.2f", valueFormat.toFloat())
+        var rounded = String.format("%.2f", valueFormat.toFloat())
         var valueFormatCompleted = decimalFormat.format(rounded.replace(",", ".").toFloat())
 
 
@@ -82,7 +82,22 @@ object MaskUtils {
             }
             valueFormatCompleted
         } else {
-            rounded.replace(".", ",")
+            var indexComma = rounded.indexOf(',')
+
+            if(indexComma == -1 && rounded.length > 7){
+                indexComma = rounded.indexOf('.')
+            }
+
+            if(indexComma > -1 && rounded.substring(0, indexComma).length > 3){
+                rounded = rounded.replace(".", ",")
+                val indexCommaLast = valueFormatCompleted.lastIndexOf(".")
+                var size = if(indexCommaLast == -1) 1 else rounded.substring(0, indexCommaLast).length
+                val indexDotted = if(size > 3) size - 3 else size
+                rounded = rounded.substring(0, indexDotted) + "." + rounded.substring(indexDotted)
+                rounded
+            }else{
+                rounded.replace(".", ",")
+            }
         }
 
     }

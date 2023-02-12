@@ -59,7 +59,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
     val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
 
 //    LaunchedEffect(Unit){
-        userViewModel.getUserCurrent()
+    userViewModel.getUserCurrent()
 //    }
 
     LaunchedEffect(key1 = hasToolbar){
@@ -181,8 +181,8 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
 
 @Composable
 fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
-    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag, CardCreditFlag.APPLE.flag, CardCreditFlag.DINERS.flag, CardCreditFlag.GOOGLE.flag,
-        CardCreditFlag.INTERAC.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.STRIPE.flag, CardCreditFlag.VERIFONE.flag, CardCreditFlag.VISA.flag)
+    val flagCollection = arrayOf(CardCreditFlag.MONEY.flag, CardCreditFlag.AMEX.flag, CardCreditFlag.MASTER.flag,
+        CardCreditFlag.ELO.flag, CardCreditFlag.PAY_PAL.flag, CardCreditFlag.HIPER.flag, CardCreditFlag.VISA.flag)
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -244,7 +244,7 @@ fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, hasToo
             .fillMaxWidth()
             .padding(top = 28.dp), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TextInputComponent(modifier = Modifier.fillMaxWidth(), isEnableClick = !hasToolbar, value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
+        TextInputComponent(modifier = Modifier.fillMaxWidth(), isEnableClick = hasToolbar, value = name, label = "Titular", isMandatory = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), keyboardActions = KeyboardActions(
             onNext = {
                 focusManager.moveFocus(FocusDirection.Down)
             }
