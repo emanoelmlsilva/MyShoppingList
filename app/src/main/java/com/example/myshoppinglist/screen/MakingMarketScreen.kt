@@ -241,7 +241,6 @@ fun MakingMarketScreen(
                     )
                 ), marketItemCollection, object : Callback {
                     override fun onSucess() {
-                        visibilityShowDialog = false
                         visibility = true
                     }
 
@@ -561,20 +560,6 @@ fun DialogSaveProduct(
                         context = context
                     )
                 }
-                CustomDropdownMenu(
-                    backgroundColor = background_text_field,
-                    idCardEditable = registerTextFieldViewModel.idCard.observeAsState().value,
-                    valueCollection = getNameCard(cardCreditCollection),
-                    error = false,
-                    isEnableClick = true,
-                    callback = object : CustomTextFieldOnClick {
-                        override fun onChangeValueLong(newValue: Long) {
-                            registerTextFieldViewModel.onChangeIdCard(
-                                newValue
-                            )
-                        }
-                    }, reset = false
-                )
 
                 Spacer(
                     Modifier

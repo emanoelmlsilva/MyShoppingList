@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,10 +9,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -21,14 +18,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,8 +44,8 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
-import kotlinx.coroutines.CoroutineExceptionHandler
 
 
 @ExperimentalComposeUiApi
@@ -79,6 +74,7 @@ fun CreateUserScreen(navController: NavController?) {
                 val category = Category(it.category, it.idImage, it.color)
                 categoryViewModel.insertCategory(category)
             }
+            UserInstanceImpl.reset()
             navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?nameUser=${name.trim()}")
         }
     }
@@ -170,38 +166,27 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
 @ExperimentalFoundationApi
 @Composable
 fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
-    val idAvatarCurrent: Int by createUserViewModel.idAvatar.observeAsState(R.drawable.clover)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
-    var idsAvatar: List<Int> = listOf(
-        R.drawable.clover,
-        R.drawable.docinho,
-        R.drawable.flapjack,
-        R.drawable.clover,
-        R.drawable.kuki,
-        R.drawable.marceline,
-        R.drawable.patolino,
-        R.drawable.san,
-        R.drawable.snoopy
-    )
+    var idAvatarCurrent: Int by remember {
+        mutableStateOf(R.drawable.clover)
+    }
 
-    @Composable
-    fun itemImage(idAvatar: Int) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = idAvatar),
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .padding(3.dp)
-                .size(50.dp)
-                .clip(CircleShape)
-                .border(
-                    2.dp,
-                    (if (idAvatarCurrent == idAvatar) primary else text_primary),
-                    CircleShape
-                )
-                .clickable {
-                    createUserViewModel.onChangeIdAvatar(idAvatar)
-                }
+    createUserViewModel.idAvatar.observe(lifecycleOwner) {
+        idAvatarCurrent = it
+    }
+
+    val idsAvatar = remember {
+        mutableStateListOf(
+            R.drawable.default_avatar,
+            R.drawable.clover,
+            R.drawable.docinho,
+            R.drawable.flapjack,
+            R.drawable.kuki,
+            R.drawable.marceline,
+            R.drawable.patolino,
+            R.drawable.san,
+            R.drawable.snoopy
         )
     }
 
@@ -225,18 +210,40 @@ fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
             Column {
                 Row {
                     idsAvatar.subList(0, 5).map { idAvatar ->
-                        itemImage(idAvatar)
+                        itemImage(idAvatar, idAvatarCurrent, createUserViewModel)
+
                     }
                 }
                 Row(modifier = Modifier.padding(bottom = 6.dp)) {
                     idsAvatar.subList(5, idsAvatar.size).map { idAvatar ->
-                        itemImage(idAvatar)
+                        itemImage(idAvatar, idAvatarCurrent, createUserViewModel)
                     }
                 }
-
             }
         }
     }
+}
+
+
+@Composable
+fun itemImage(idAvatar: Int, idAvatarCurrent: Int, createUserViewModel: CreateUserFieldViewModel) {
+    Image(
+        painter = painterResource(id = idAvatar),
+        contentDescription = "",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .padding(3.dp)
+            .size(50.dp)
+            .clip(CircleShape)
+            .border(
+                2.dp,
+                (if (idAvatarCurrent == idAvatar) primary else text_primary),
+                CircleShape
+            )
+            .clickable {
+                createUserViewModel.onChangeIdAvatar(idAvatar)
+            }
+    )
 }
 
 @ExperimentalComposeUiApi

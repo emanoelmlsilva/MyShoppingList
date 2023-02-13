@@ -6,11 +6,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -36,13 +34,16 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
 @ExperimentalComposeUiApi
@@ -50,26 +51,33 @@ import com.example.myshoppinglist.ui.theme.*
 fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUser: String) {
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
-    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
     val userViewModel = UserViewModel(context)
     val name: String by createCardCreditViewModel.name.observeAsState(if(hasToolbar) nameUser else "")
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
     val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
+    var userDTO by remember {
+        mutableStateOf<UserDTO?>(null)
+    }
 
-//    LaunchedEffect(Unit){
-    userViewModel.getUserCurrent()
-//    }
+    LaunchedEffect(Unit){
+        userViewModel.getUserCurrent()
+    }
 
     LaunchedEffect(key1 = hasToolbar){
         createCardCreditViewModel.onChangeName(nameUser)
     }
 
+    userViewModel.searchResult.observe(lifecycleOwner) {
+        userDTO = UserDTO(it)
+    }
+
     val typeCard = if(hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
 
     fun saveCreditCard() {
-        userViewModel.searchResult.observeForever {
+        if(userDTO != null){
             if (createCardCreditViewModel.checkFileds()) {
                 creditCardViewModel.insertCreditCard(
                     CreditCard(
@@ -78,11 +86,12 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
                         0F,
                         colorCurrent.toArgb(),
                         typeCard,
-                        it.name,
+                        userDTO!!.name,
                         flagCurrent
                     )
                 )
                 if (typeCard == TypeCard.MONEY) {
+                    UserInstanceImpl.getInstance(context)
                     navController?.navigate(Screen.Home.name) {
                         popUpTo(0)
                     }
@@ -150,7 +159,7 @@ fun CreateCardScreen(navController: NavController?, hasToolbar: Boolean, nameUse
                         Text(text = "Dados do Cartão", fontFamily = LatoBold)
                         Divider(color = divider, modifier = Modifier.padding(top = 8.dp))
                     }
-                    TextFieldContent(createCardCreditViewModel, hasToolbar, object : Callback {
+                    TextFieldContent(lifecycleOwner, createCardCreditViewModel, hasToolbar, object : Callback {
                         override fun onClick() {
                             saveCreditCard()
                         }
@@ -196,13 +205,13 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
                     ItemFlag(flagIdCurrent, flag, callback)
                 }
             }
-            Row(modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly){
-                flagCollection.slice(((flagCollection.size/2)+1) until flagCollection.size).map{ flag ->
-                    ItemFlag(flagIdCurrent, flag, callback)
-                }
-            }
+//            Row(modifier = Modifier
+//                .fillMaxSize()
+//                .padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly){
+//                flagCollection.slice(((flagCollection.size/2)+1) until flagCollection.size).map{ flag ->
+//                    ItemFlag(flagIdCurrent, flag, callback)
+//                }
+//            }
         }
 
     }
@@ -231,12 +240,29 @@ fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback){
 
 @ExperimentalComposeUiApi
 @Composable
-fun TextFieldContent(cardCreditViewModel: CreateCardCreditFieldViewModel, hasToolbar: Boolean, callback: Callback) {
-    val name: String by cardCreditViewModel.name.observeAsState("")
-    val nameCard: String by cardCreditViewModel.nameCard.observeAsState(initial = "")
-    val isErrorName by cardCreditViewModel.isErrorName.observeAsState(initial = false)
-    val isErrorNameCard by cardCreditViewModel.isErrorNameCard.observeAsState(initial = false)
+fun TextFieldContent(lifecycleOwner: LifecycleOwner, cardCreditViewModel: CreateCardCreditFieldViewModel, hasToolbar: Boolean, callback: Callback) {
+    var name: String by remember{ mutableStateOf("") }
+    var nameCard: String by remember{ mutableStateOf("") }
+    var isErrorName by remember{ mutableStateOf(false) }
+    var isErrorNameCard by remember{ mutableStateOf(false) }
+
     val focusManager = LocalFocusManager.current
+
+    cardCreditViewModel.name.observe(lifecycleOwner){
+        name = it
+    }
+
+    cardCreditViewModel.nameCard.observe(lifecycleOwner){
+        nameCard = it
+    }
+
+    cardCreditViewModel.isErrorName.observe(lifecycleOwner){
+        isErrorName = it
+    }
+
+    cardCreditViewModel.isErrorNameCard.observe(lifecycleOwner){
+        isErrorNameCard = it
+    }
 
     Column(
         Modifier

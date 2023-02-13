@@ -20,7 +20,16 @@ object MaskUtils {
 
     @JvmStatic
     fun convertValueDoubleToString(value: Double): String{
-        return "%.2f".format(value)
+        var valueFormated: String = value.toString().replace(",", ".")
+
+        return "%.2f".format(valueFormated.toDouble())
+    }
+
+    @JvmStatic
+    fun convertValueString(value: String): String{
+        var valueFormated: String = value.replace(",", ".")
+
+        return "%.2f".format(valueFormated.toDouble())
     }
 
     @JvmStatic

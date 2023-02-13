@@ -19,7 +19,7 @@ class User {
     var nickName: String = ""
 
     @ColumnInfo(name = "idAvatar")
-    var idAvatar:Int = R.drawable.resource_default
+    var idAvatar:Int = R.drawable.default_avatar
 
     constructor()
 
@@ -32,9 +32,4 @@ class User {
     override fun toString(): String {
         return "User(name='$name', nickName='$nickName', idAvatar=$idAvatar)"
     }
-
-    fun toParseUserDTO(): UserDTO{
-        return UserDTO()
-    }
-
 }
