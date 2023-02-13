@@ -201,17 +201,10 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback){
             .fillMaxSize()
             .padding(top = 8.dp)){
             Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly){
-                flagCollection.slice(0..(flagCollection.size/2)).map{ flag ->
+                flagCollection.map{ flag ->
                     ItemFlag(flagIdCurrent, flag, callback)
                 }
             }
-//            Row(modifier = Modifier
-//                .fillMaxSize()
-//                .padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly){
-//                flagCollection.slice(((flagCollection.size/2)+1) until flagCollection.size).map{ flag ->
-//                    ItemFlag(flagIdCurrent, flag, callback)
-//                }
-//            }
         }
 
     }
