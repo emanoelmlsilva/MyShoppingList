@@ -20,7 +20,7 @@ class SplashScreenActivity: ComponentActivity()  {
         super.onCreate(savedInstanceState)
         lifecycleScope.launchWhenCreated {
 
-//            UserInstanceImpl.getInstance(applicationContext)
+            UserInstanceImpl.getInstance(applicationContext)
 
             delay(3000)
 
