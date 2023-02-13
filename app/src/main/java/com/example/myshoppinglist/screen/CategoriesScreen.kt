@@ -107,7 +107,6 @@ fun CategoriesScreen(navController: NavHostController?) {
                     }
                 })
             BaseLazyColumnScroll(
-                visibleAnimation = visibleAnimation,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 36.dp),
