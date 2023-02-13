@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
@@ -63,7 +64,7 @@ fun HeaderComponent(userViewModel: UserViewModel, idAvatar: Int, name: String, v
                     ) {
 
                         Image(
-                            imageVector = ImageVector.vectorResource(id = idAvatar),
+                            painter = painterResource(id = idAvatar),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

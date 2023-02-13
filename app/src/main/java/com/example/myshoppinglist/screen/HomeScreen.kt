@@ -54,7 +54,7 @@ fun HomeScreen(navController: NavController?) {
     val visibleAnimation = remember { mutableStateOf(true) }
     val creditCardCollection = remember { mutableStateListOf<CreditCardDTO>() }
     var idAvatar by remember {
-        mutableStateOf(R.drawable.resource_default)
+        mutableStateOf(R.drawable.default_avatar)
     }
     var name by remember {
         mutableStateOf("")

@@ -16,10 +16,11 @@ class SplashScreenActivity: ComponentActivity()  {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.SplashScreenTheme)
 
-        UserInstanceImpl.getInstance(this)
 
         super.onCreate(savedInstanceState)
         lifecycleScope.launchWhenCreated {
+
+//            UserInstanceImpl.getInstance(applicationContext)
 
             delay(3000)
 

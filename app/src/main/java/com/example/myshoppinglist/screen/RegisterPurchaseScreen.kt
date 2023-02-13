@@ -490,18 +490,6 @@ fun PurchaseAndPaymentComponent(
                     context = context
                 )
             }
-            CustomDropdownMenu(
-                backgroundColor = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else background_text_field,
-                idCardEditable = registerTextFieldViewModel.idCard.observeAsState().value,
-                valueCollection = getNameCard(cardCreditCollection),
-                error = error,
-                isEnableClick = !isBlock.value!!,
-                callback = object : CustomTextFieldOnClick {
-                    override fun onChangeValueLong(newValue: Long) {
-                        registerTextFieldViewModel.onChangeIdCard(newValue)
-                    }
-                }, reset = reset && !isBlock.value!!
-            )
         }
     }
 
