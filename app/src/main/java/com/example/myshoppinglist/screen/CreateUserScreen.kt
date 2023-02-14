@@ -109,12 +109,12 @@ fun CreateUserScreen(navController: NavController?) {
 
 @Composable
 fun HeaderText() {
-    val textWelcome = "Bem Vindo"
-    val textBody = " ao seu gerenciado de compras.\n" +
+    val textWelcome = "Bem-vindo"
+    val textBody = " ao seu gerenciador de compras.\n" +
             "\n" +
             "Aqui você vai poder ver todos os seus gastos durante os meses.\n" +
             "\n" +
-            "Vai poder visualizar de uma forma simples quais os produtos que você mais utiliza."
+            "Vai poder visualizar de forma simples os produtos que mais utiliza."
     Text(
         text = AnnotatedString(
             text = textWelcome,

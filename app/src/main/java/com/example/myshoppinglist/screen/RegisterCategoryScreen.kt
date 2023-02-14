@@ -123,14 +123,16 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
         val newCategory = Category(categoryCurrent, idCurrent, colorCurrent)
 
-        if (idCategory != null && idCategory > 0) {
-            newCategory.id = idCategory
-            updateCategory(newCategory)
-        }else{
-            saveCategory(newCategory)
-        }
+        if(newCategory.category.isNotBlank()){
+            if (idCategory != null && idCategory > 0) {
+                newCategory.id = idCategory
+                updateCategory(newCategory)
+            }else{
+                saveCategory(newCategory)
+            }
 
-        goBackNavigation()
+            goBackNavigation()
+        }
     }, hasToolbar = true, hasBackButton = false, content = {
 
         Column(
