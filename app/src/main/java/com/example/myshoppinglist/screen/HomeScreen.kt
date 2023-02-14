@@ -56,7 +56,7 @@ fun HomeScreen(navController: NavController?) {
     var idAvatar by remember {
         mutableStateOf(R.drawable.default_avatar)
     }
-    var name by remember {
+    var nickName by remember {
         mutableStateOf("")
     }
 
@@ -66,7 +66,7 @@ fun HomeScreen(navController: NavController?) {
 
     UserInstanceImpl.getUserViewModelCurrent().searchResult.observe(lifecycleOwner.value){
         idAvatar = it.idAvatar;
-        name = it.name
+        nickName = it.nickName
     }
 
     purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
@@ -94,7 +94,7 @@ fun HomeScreen(navController: NavController?) {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, idAvatar, name, visibleAnimation.value, object : Callback {
+            HeaderComponent(userViewModel, idAvatar, nickName, visibleAnimation.value, object : Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
