@@ -53,6 +53,7 @@ import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.enums.PositionDialog
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
@@ -131,7 +132,6 @@ fun ProductsManagerScreen(navController: NavController?) {
     }
 }
 
-@SuppressLint("CheckResult")
 @OptIn(ExperimentalAnimationApi::class)
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
@@ -336,7 +336,7 @@ fun SearchProduct(
                                 var splitValueText = productItem.split(",")
                                 label = splitValueText[3]
                                 icon = splitValueText[2].trim().toInt()
-                            }else if(productItem.startsWith("%category%")){
+                            } else if (productItem.startsWith("%category%")) {
                                 var splitValuesCategory = productItem.split(",")
                                 val idSplit = splitValuesCategory[1].trim().toLong()
                                 val categorySplit = splitValuesCategory[2].trim()
@@ -385,7 +385,8 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
                 val purchaseMultCollection: MutableList<PurchaseAndCategory> =
                     purchaseFilterCollection.map { it } as MutableList<PurchaseAndCategory>
 
-                val valueSum = purchaseMultCollection.sumOf { it.purchase.price * if(it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
+                val valueSum =
+                    purchaseMultCollection.sumOf { it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
 
                 val purchaseInfo = PurchaseInfo(
                     purchase.name, category.idImage, valueSum, Color(category.color),
@@ -680,203 +681,207 @@ fun AlertDialogFilter(
         month = filter.month
     }
 
-    if (enableDialog) {
-        Dialog(
-            onDismissRequest = { },
-            content = {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
+    DialogCustom(visibilityDialog = enableDialog, position = PositionDialog.TOP, percentHeight = 1.4f, shape = RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = 0.dp,
+        bottomEnd = 16.dp,
+        bottomStart = 16.dp
+    )) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp)
+            ) {
+                Text(
+                    text = "Filtros",
+                    fontFamily = LatoBold,
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(top = 25.dp)
+                )
+                Divider(
+                    color = divider,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                )
+                Spacer(Modifier.size(44.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxHeight(.2f)
+                        .fillMaxWidth(),
+                    elevation = 0.dp,
+                    shape = RoundedCornerShape(8.dp),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 18.dp)
+                            .fillMaxHeight()
                     ) {
-                        Text(
-                            text = "Filtros",
-                            fontFamily = LatoBold,
-                            fontSize = 24.sp,
-                            modifier = Modifier.padding(top = 25.dp)
-                        )
-                        Divider(
-                            color = divider,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                        )
-                        Spacer(Modifier.size(44.dp))
                         Card(
                             modifier = Modifier
-                                .fillMaxHeight(.2f)
+                                .fillMaxHeight(.4f)
                                 .fillMaxWidth(),
                             elevation = 0.dp,
-                            shape = RoundedCornerShape(8.dp),
+                            backgroundColor = primary_dark,
+                            shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
                         ) {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight()
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Card(
+                                Text(
+                                    text = "Categorias:",
+                                    fontFamily = LatoBlack,
+                                    fontSize = 18.sp,
+                                    color = text_primary_light,
+                                    modifier = Modifier.padding(start = 12.dp)
+                                )
+                            }
+                        }
+                        LazyRow(
+                            modifier = Modifier
+                                .background(background_card_gray_light)
+                                .fillMaxHeight(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(categoryCollections) { category ->
+                                val isChoiceCurrent =
+                                    categoryChoices.find { categoryChoice ->
+                                        categoryChoice == category
+                                    } != null
+                                Card(backgroundColor = (if (isChoiceCurrent) background_card_light else background_card),
                                     modifier = Modifier
-                                        .fillMaxHeight(.4f)
-                                        .fillMaxWidth(),
-                                    elevation = 0.dp,
-                                    backgroundColor = primary_dark,
-                                    shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
+                                        .padding(2.dp)
+                                        .clip(CircleShape)
+                                        .clickable {
+                                            val isChoiceOld =
+                                                categoryChoices.find { categoryChoice ->
+                                                    categoryChoice == category
+                                                } != null
+                                            if (isChoiceOld) {
+                                                categoryChoices.remove(category)
+                                            } else {
+                                                categoryChoices.add(category)
+                                            }
+                                        }
                                 ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.Center
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceAround,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "Categorias:",
-                                            fontFamily = LatoBlack,
-                                            fontSize = 18.sp,
-                                            color = text_primary_light,
-                                            modifier = Modifier.padding(start = 12.dp)
-                                        )
-                                    }
-                                }
-                                LazyRow(
-                                    modifier = Modifier
-                                        .background(background_card_gray_light)
-                                        .fillMaxHeight(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    items(categoryCollections) { category ->
-                                        val isChoiceCurrent =
-                                            categoryChoices.find { categoryChoice ->
-                                                categoryChoice == category
-                                            } != null
-                                        Card(backgroundColor = (if (isChoiceCurrent) background_card_light else background_card),modifier = Modifier
-                                            .padding(2.dp)
-                                            .clip(CircleShape)
-                                            .clickable {
-                                                val isChoiceOld =
-                                                    categoryChoices.find { categoryChoice ->
-                                                        categoryChoice == category
-                                                    } != null
-                                                if (isChoiceOld) {
-                                                    categoryChoices.remove(category)
-                                                } else {
-                                                    categoryChoices.add(category)
-                                                }
-                                            }
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceAround,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                IconCategoryComponent(
-                                                    modifier = Modifier.padding(
-                                                        horizontal = 8.dp,
-                                                        vertical = 4.dp
-                                                    ),
-                                                    iconCategory = AssetsUtils.readIconBitmapById(
-                                                        context,
-                                                        category.idImage
-                                                    )!!
-                                                        .asImageBitmap(),
-                                                    colorIcon = Color(category.color),
-                                                    size = 23.dp,
-                                                    enableClick = true,
-                                                    enabledBackground = true,
-                                                    callback = object : Callback {
-                                                        override fun onClick() {
-                                                            val isChoiceOld =
-                                                                categoryChoices.find { categoryChoice ->
-                                                                    categoryChoice == category
-                                                                } != null
-                                                            if (isChoiceOld) {
-                                                                categoryChoices.remove(category)
-                                                            } else {
-                                                                categoryChoices.add(category)
-                                                            }
-                                                        }
+                                        IconCategoryComponent(
+                                            modifier = Modifier.padding(
+                                                horizontal = 8.dp,
+                                                vertical = 4.dp
+                                            ),
+                                            iconCategory = AssetsUtils.readIconBitmapById(
+                                                context,
+                                                category.idImage
+                                            )!!
+                                                .asImageBitmap(),
+                                            colorIcon = Color(category.color),
+                                            size = 23.dp,
+                                            enableClick = true,
+                                            enabledBackground = true,
+                                            callback = object : Callback {
+                                                override fun onClick() {
+                                                    val isChoiceOld =
+                                                        categoryChoices.find { categoryChoice ->
+                                                            categoryChoice == category
+                                                        } != null
+                                                    if (isChoiceOld) {
+                                                        categoryChoices.remove(category)
+                                                    } else {
+                                                        categoryChoices.add(category)
                                                     }
-                                                )
-
-                                                Text(
-                                                    text = category.category,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(end = if (isChoiceCurrent) 8.dp else 18.dp)
-                                                )
-
-                                                if (isChoiceCurrent) {
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.Done,
-                                                        contentDescription = null,
-                                                        tint = text_primary,
-                                                        modifier = Modifier
-                                                            .size(23.dp)
-                                                            .padding(end = 8.dp)
-                                                    )
                                                 }
                                             }
+                                        )
+
+                                        Text(
+                                            text = category.category,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(end = if (isChoiceCurrent) 8.dp else 18.dp)
+                                        )
+
+                                        if (isChoiceCurrent) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.Done,
+                                                contentDescription = null,
+                                                tint = text_primary,
+                                                modifier = Modifier
+                                                    .size(23.dp)
+                                                    .padding(end = 8.dp)
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
-                        ChoicePrice(
-                            priceMin,
-                            priceMax,
-                            callbackMin = object : CustomTextFieldOnClick {
-                                override fun onChangeValueFloat(newValue: Float) {
-                                    priceMin = newValue
-                                }
-                            },
-                            callbackMax = object : CustomTextFieldOnClick {
-                                override fun onChangeValueFloat(newValue: Float) {
-                                    priceMax = newValue
-                                }
-                            })
-
-                        ChoiceCard(
-                            filter.cardFilter.id,
-                            creditCardDTOCollection,
-                            object : CallbackCreditCard {
-                                override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
-                                    idCardCredit = cardCreditFilter.id
-                                    currentCardCreditFilter = cardCreditFilter
-                                }
-                            })
-
-                        ChoiceData(idCardCredit, filter.month, lifecycleOwner, object : Callback {
-                            override fun onChangeValue(newMonth: String) {
-                                month = newMonth
-                            }
-                        })
-
-                        Column {
-                            ButtonsFooterContent(
-                                btnTextCancel = "CANCELAR",
-                                onClickCancel = { callback.onClick() },
-                                btnTextAccept = "SALVAR",
-                                onClickAccept = {
-
-                                    val saveFilter = ObjectFilter(
-                                        categoryCollection = categoryChoices,
-                                        priceMin = priceMin,
-                                        priceMax = priceMax,
-                                        idCard = idCardCredit,
-                                        month = month,
-                                        cardFilter = currentCardCreditFilter
-                                    )
-                                    callback.onChangeObjectFilter(saveFilter)
-                                    callback.onClick()
-                                })
-                        }
-
                     }
                 }
-            },
-        )
+                ChoicePrice(
+                    priceMin,
+                    priceMax,
+                    callbackMin = object : CustomTextFieldOnClick {
+                        override fun onChangeValueFloat(newValue: Float) {
+                            priceMin = newValue
+                        }
+                    },
+                    callbackMax = object : CustomTextFieldOnClick {
+                        override fun onChangeValueFloat(newValue: Float) {
+                            priceMax = newValue
+                        }
+                    })
+
+                ChoiceCard(
+                    filter.cardFilter.id,
+                    creditCardDTOCollection,
+                    object : CallbackCreditCard {
+                        override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
+                            idCardCredit = cardCreditFilter.id
+                            currentCardCreditFilter = cardCreditFilter
+                        }
+                    })
+
+                ChoiceData(idCardCredit, filter.month, lifecycleOwner, object : Callback {
+                    override fun onChangeValue(newMonth: String) {
+                        month = newMonth
+                    }
+                })
+            }
+            ButtonsFooterContent(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                btnTextCancel = "CANCELAR",
+                onClickCancel = { callback.onClick() },
+                btnTextAccept = "SALVAR",
+                onClickAccept = {
+
+                    val saveFilter = ObjectFilter(
+                        categoryCollection = categoryChoices,
+                        priceMin = priceMin,
+                        priceMax = priceMax,
+                        idCard = idCardCredit,
+                        month = month,
+                        cardFilter = currentCardCreditFilter
+                    )
+                    callback.onChangeObjectFilter(saveFilter)
+                    callback.onClick()
+                })
+        }
     }
 }
 

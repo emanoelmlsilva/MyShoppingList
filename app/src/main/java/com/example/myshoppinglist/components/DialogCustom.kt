@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.myshoppinglist.enums.PositionDialog
 import com.example.myshoppinglist.ui.theme.background_card
 import com.example.myshoppinglist.ui.theme.background_card_gray_light
 
@@ -22,6 +23,14 @@ import com.example.myshoppinglist.ui.theme.background_card_gray_light
 @Composable
 fun DialogCustom(
     visibilityDialog: Boolean,
+    position: PositionDialog? = PositionDialog.BOTTOM,
+    percentHeight: Float? = 1.8f,
+    shape: RoundedCornerShape? = RoundedCornerShape(
+        topStart = 16.dp,
+        topEnd = 16.dp,
+        bottomEnd = 0.dp,
+        bottomStart = 0.dp
+    ),
     content: @Composable() (() -> Unit)
 ) {
     val context = LocalContext.current
@@ -47,7 +56,7 @@ fun DialogCustom(
                 onDismissRequest = { },
                 content = {
                     Column(
-                        verticalArrangement = Arrangement.Bottom,
+                        verticalArrangement = if(position == PositionDialog.TOP) Arrangement.Top else Arrangement.Bottom,
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth()
@@ -56,13 +65,8 @@ fun DialogCustom(
                             backgroundColor = background_card,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .requiredSize(width, (height / 1.8f)),
-                            shape = RoundedCornerShape(
-                                topStart = 16.dp,
-                                topEnd = 16.dp,
-                                bottomEnd = 0.dp,
-                                bottomStart = 0.dp
-                            ),
+                                .requiredSize(width, (height / percentHeight!!)),
+                            shape = shape!!,
                         ) {
                             content()
                         }
