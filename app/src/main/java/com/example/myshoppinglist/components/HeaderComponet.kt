@@ -7,6 +7,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -20,15 +22,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.text_primary
 
 @ExperimentalAnimationApi
 @Composable
-fun HeaderComponent(userViewModel: UserViewModel, idAvatar: Int, name: String, visibleAnimation: Boolean, callBack: Callback) {
+fun HeaderComponent(navController: NavController, idAvatar: Int, nickName: String, visibleAnimation: Boolean, callBack: Callback) {
     val animatedProgress = remember { Animatable(1f) }
 
     LaunchedEffect(animatedProgress) {
@@ -74,18 +79,18 @@ fun HeaderComponent(userViewModel: UserViewModel, idAvatar: Int, name: String, v
                         )
 
                         Text(
-                            text = "Ola, $name",
+                            text = "Ola, $nickName",
                             Modifier.padding(start = 12.dp),
                             color = text_primary
                         )
                     }
-//                    IconButton(onClick = { }) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.ic_baseline_miscellaneous_services_24),
-//                            contentDescription = "help",
-//                            tint = text_primary,
-//                        )
-//                    }
+                    IconButton(onClick = { navController.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}") }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_miscellaneous_services_24),
+                            contentDescription = "help",
+                            tint = text_primary,
+                        )
+                    }
                 }
             }
         }

@@ -41,7 +41,9 @@ fun NavController(
         }
         composable(
             "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?nameUser={nameUser}",
-            arguments = listOf(navArgument("hasToolbar") { type = NavType.BoolType }, navArgument("nameUser") {type = NavType.StringType})
+            arguments = listOf(
+                navArgument("hasToolbar") { type = NavType.BoolType },
+                navArgument("nameUser") { type = NavType.StringType })
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
@@ -110,6 +112,18 @@ fun NavController(
             val itemListCollection = navBackStack.arguments?.getString("itemListCollection")
 
             MakingMarketScreen(navHostController, idCard!!, itemListCollection!!)
+        }
+        composable("${Screen.SettingsScreen.name}?idAvatar={idAvatar}?nickName={nickName}",
+            arguments = listOf(
+                navArgument("idAvatar") { type = NavType.IntType },
+                navArgument("nickName") { type = NavType.StringType }
+            )) { navBackStack ->
+            callback.onChangeVisible(false)
+
+            val idAvatar = navBackStack.arguments?.getInt("idAvatar")
+            val nickName = navBackStack.arguments?.getString("nickName")
+
+            SettingsScreen(navHostController, idAvatar!!, nickName!!)
         }
     }
 }

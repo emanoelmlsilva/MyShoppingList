@@ -145,7 +145,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     }
 
-    TopAppBarScreen(hasBackButton = true, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
+    TopAppBarScreen(hasBackButton = true, hasDoneButton = true, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             BoxSpendingFromMonth(
                 spendingTextFieldViewModel,

@@ -94,7 +94,7 @@ fun HomeScreen(navController: NavController?) {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, idAvatar, nickName, visibleAnimation.value, object : Callback {
+            HeaderComponent(navController!!, idAvatar, nickName, visibleAnimation.value, object : Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
