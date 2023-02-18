@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -52,7 +54,7 @@ fun BaseLazyColumnScroll(
 
     LazyColumn(
         state = listState,
-        modifier = (modifier ?: modifierDefault).nestedScroll(nestedScrollConnection)
+        modifier = (modifier ?: modifierDefault).nestedScroll(nestedScrollConnection), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         content()
     }

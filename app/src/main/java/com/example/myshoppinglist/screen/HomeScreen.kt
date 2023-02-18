@@ -111,7 +111,7 @@ fun HomeScreen(navController: NavController?) {
                     val creditCardDTO = creditCardCollection[index]
 
                     Column(modifier = modifier) {
-                        BoxCardCreditCustom(creditCardDTO, navController!!)
+                        BoxCardCreditCustom(creditCardDTO, navController)
                     }
                 }
             )

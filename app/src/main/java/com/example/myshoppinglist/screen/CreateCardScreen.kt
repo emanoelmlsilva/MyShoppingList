@@ -36,7 +36,6 @@ import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -45,6 +44,7 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
+import org.burnoutcrew.reorderable.ItemPosition
 
 @ExperimentalComposeUiApi
 @Composable
@@ -295,6 +295,20 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
     var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
+    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTO>> = MutableLiveData(mutableListOf())
+
+    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTO>){
+        creditCardCollection.value = newTesteList
+    }
+
+    fun onTaskReordered(creditCardCollectionUpdate: MutableList<CreditCardDTO>, fromPos: ItemPosition, toPos: ItemPosition){
+        val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
+
+        auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
+        auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
+
+        updateCreditCardCollection(auxCreditCardCollection)
+    }
 
     fun onChangeFlagCurrent(newFlagCurrent: Int) {
         flagCurrent.value = newFlagCurrent
