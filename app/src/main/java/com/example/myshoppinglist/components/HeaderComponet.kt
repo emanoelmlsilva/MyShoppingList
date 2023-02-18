@@ -53,7 +53,7 @@ fun HeaderComponent(navController: NavController, idAvatar: Int, nickName: Strin
                 Modifier
                     .height(100.dp)
                     .fillMaxWidth()
-                    .padding(start = 16.dp, top = 16.dp, bottom = 3.dp, end = 8.dp)
+                    .padding(start = 24.dp, top = 16.dp, bottom = 3.dp, end = 18.dp)
             ) {
                 Row(
                     Modifier
