@@ -94,6 +94,7 @@ dependencies {
     implementation 'com.godaddy.android.colorpicker:compose-color-picker:0.4.2'
     implementation 'com.godaddy.android.colorpicker:compose-color-picker-android:0.4.2'
     implementation 'com.squareup.moshi:moshi-kotlin:1.11.0'
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.7.0")
 
     // Extensions = ViewModel + LiveData
     implementation "android.arch.lifecycle:extensions:1.1.0"

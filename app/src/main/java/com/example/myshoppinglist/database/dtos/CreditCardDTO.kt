@@ -14,10 +14,12 @@ class CreditCardDTO(
     var colorCard: Int = card_blue.toArgb(),
     var typeCard: TypeCard = TypeCard.CREDIT,
     var flag: Int = CardCreditFlag.MONEY.flag,
-    var flagBlack: Int = CardCreditFlag.MONEY.flagBlack){
+    var flagBlack: Int = CardCreditFlag.MONEY.flagBlack,
+    var position: Int = 0,
+    var userId: String = ""){
 
      fun fromCreditCardDTO(creditCard: CreditCard): CreditCardDTO{
-        return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag))
+        return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag), creditCard.position, creditCard.cardUserId)
     }
 
     private fun fromFlagBlack(int: Int): Int{
@@ -30,5 +32,12 @@ class CreditCardDTO(
             CardCreditFlag.VISA.flag -> CardCreditFlag.VISA.flagBlack
             else -> CardCreditFlag.MONEY.flagBlack
         }
+    }
+
+    fun toCreditCard(): CreditCard{
+        val creditCard = CreditCard(holderName, cardName, value, colorCard, typeCard, userId, flag, position)
+        creditCard.id = idCard
+
+        return creditCard
     }
 }

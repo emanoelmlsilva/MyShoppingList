@@ -26,6 +26,7 @@ class UserInstanceImpl{
 
         fun reset(){
             instance = null
+            userViewModel = null
         }
     }
 

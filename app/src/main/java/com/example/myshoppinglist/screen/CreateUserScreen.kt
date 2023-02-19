@@ -47,11 +47,14 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
-
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUserScreen(navController: NavController?) {
+fun CreateUserScreen(
+    navController: NavController?,
+    isUpdate: Boolean? = false,
+    hasToolbar: Boolean? = false
+) {
     var createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
@@ -67,44 +70,81 @@ fun CreateUserScreen(navController: NavController?) {
         Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
     )
 
-    fun saveUser() {
-        if (createUserViewModel.checkFileds()) {
-            userViewModel.insertUser(User(name.trim(), nickName.trim(), idAvatar))
-            categoryCollections.forEach {
-                val category = Category(it.category, it.idImage, it.color)
-                categoryViewModel.insertCategory(category)
-            }
-            UserInstanceImpl.reset()
-            navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?nameUser=${name.trim()}")
+    LaunchedEffect(key1 = isUpdate) {
+        if (isUpdate!!) {
+            userViewModel.getUserCurrent()
         }
     }
 
-    TopAppBarScreen(isScrollable = true, content = {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    userViewModel.searchResult.observe(lifecycleOwner) { userDTO ->
+        createUserViewModel.onChangeName(userDTO.name)
 
-           Column{
-               HeaderText()
-               HeaderImage(createUserViewModel)
-               ContentAvatares(createUserViewModel)
-               TextFieldContent(createUserViewModel, object : Callback {
-                   override fun onClick() {
-                       saveUser()
-                   }
-               })
-           }
-            ButtonsFooterContent(
-                btnTextAccept = "PROXIMO",
-                iconAccept = Icons.Filled.ArrowForward,
-                onClickAccept = {
-                    saveUser()
-                })
+        createUserViewModel.onChangeNickName(userDTO.nickName)
+
+        createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
+    }
+
+    fun saveUser() {
+        if (createUserViewModel.checkFileds()) {
+            val user = User(name.trim(), nickName.trim(), idAvatar)
+
+            if (!isUpdate!!) {
+                userViewModel.insertUser(user)
+                categoryCollections.forEach {
+                    val category = Category(it.category, it.idImage, it.color)
+                    categoryViewModel.insertCategory(category)
+                }
+                UserInstanceImpl.reset()
+                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+            } else {
+                userViewModel.updateUser(user)
+                UserInstanceImpl.reset()
+                UserInstanceImpl.getInstance(context)
+                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+                {
+                    popUpTo(Screen.Home.name) { inclusive = false }
+                }
+            }
         }
-    })
+    }
+
+    TopAppBarScreen(
+        hasBackButton = !hasToolbar!!,
+        hasToolbar = hasToolbar,
+        isScrollable = true,
+        hasDoneButton = hasToolbar,
+        onClickIcon = { navController?.popBackStack() },
+        onClickIconDone = {  saveUser() },
+        content = {
+            Column(
+                modifier = Modifier
+                    .padding(start = 28.dp, end = 28.dp, top = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column {
+                    if (!hasToolbar) {
+                        HeaderText()
+                    }
+                    HeaderImage(createUserViewModel)
+                    ContentAvatares(createUserViewModel)
+                    TextFieldContent(createUserViewModel, object : Callback {
+                        override fun onClick() {
+                            saveUser()
+                        }
+                    })
+                }
+
+                if (!hasToolbar) {
+                    ButtonsFooterContent(
+                        btnTextAccept = "PROXIMO",
+                        iconAccept = Icons.Filled.ArrowForward,
+                        onClickAccept = {
+                            saveUser()
+                        })
+                }
+            }
+        })
 }
 
 @Composable

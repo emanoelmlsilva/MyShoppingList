@@ -12,6 +12,12 @@ class UserRepository(private val userDao: UserDao) {
     val seachResult = MutableLiveData<User>()
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    fun updateUser(newUser: User){
+        coroutineScope.launch(Dispatchers.IO) {
+            userDao.updateUser(newUser)
+        }
+    }
+
     fun insertUser(newUser: User){
         coroutineScope.launch(Dispatchers.IO) {
             userDao.insertUser(newUser)

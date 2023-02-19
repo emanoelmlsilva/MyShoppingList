@@ -35,6 +35,7 @@ import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.Purchase
@@ -100,7 +101,7 @@ fun MakingMarketScreen(
 
     LaunchedEffect(key1 = idCard, key2 = itemListJson) {
         itemListViewModel.getAll(idCard)
-        ConversionUtils.fromJson(itemListJson)!!.forEach { itemList ->
+        ConversionUtils<ItemListAndCategoryDTO>().fromJson(itemListJson)!!.forEach { itemList ->
             val marketItem =
                 MarketItem(0F, "0", TypeProduct.QUANTITY, itemList.toItemListAndCategory())
             marketItemCollection.add(marketItem)
@@ -172,6 +173,7 @@ fun MakingMarketScreen(
     }
 
     TopAppBarScreen(
+        hasDoneButton = true,
         contentHeader = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -235,7 +237,7 @@ fun MakingMarketScreen(
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
-                DialogShowPurchase(context, visibilityShowDialog,   MaskUtils.maskValue(
+                DialogShowPurchase(context, visibilityShowDialog, MaskUtils.maskValue(
                     MaskUtils.convertValueDoubleToString(
                         valueTotal.toDouble()
                     )
@@ -615,7 +617,8 @@ fun DialogShowPurchase(
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .background(background_card),
-                        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
 
                         Spacer(
@@ -641,10 +644,11 @@ fun DialogShowPurchase(
                                 .height(1.dp)
                         )
 
-                        BaseLazyColumnScroll(modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(.9f)
-                            .background(background_card),
+                        BaseLazyColumnScroll(verticalArrangement = Arrangement.Top,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(.9f)
+                                .background(background_card),
                             callback = object : VisibleCallback() {
                                 override fun onChangeVisible(visible: Boolean) {
                                 }

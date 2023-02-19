@@ -14,4 +14,8 @@ class UserDTO() {
         nickName = user.nickName
         idAvatar = user.idAvatar
     }
+
+    fun fromUser(): User{
+        return User(this.name, this.nickName, this.idAvatar)
+    }
 }

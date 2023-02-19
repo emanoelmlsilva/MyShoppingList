@@ -145,7 +145,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     }
 
-    TopAppBarScreen(hasBackButton = true, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
+    TopAppBarScreen(hasBackButton = true, hasDoneButton = false, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             BoxSpendingFromMonth(
                 spendingTextFieldViewModel,
@@ -240,7 +240,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
             if (purchaseInfoCollection.isNotEmpty()) {
                 BaseLazyColumnScroll(
-                    visibleAnimation = visibleAnimation.value,
                     modifier = Modifier.fillMaxWidth(),
                     callback = object : VisibleCallback() {
                         override fun onChangeVisible(visible: Boolean) {

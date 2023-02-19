@@ -133,7 +133,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
             goBackNavigation()
         }
-    }, hasToolbar = true, hasBackButton = false, content = {
+    }, hasToolbar = true, hasDoneButton = true, hasBackButton = false, content = {
 
         Column(
             modifier = Modifier
