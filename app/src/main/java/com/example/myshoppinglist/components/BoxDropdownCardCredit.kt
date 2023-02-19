@@ -56,31 +56,3 @@ fun BoxDropdownCardCredit(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewBoxDropdownCardCredit() {
-    BoxDropdownCardCredit(
-        listOf(
-            CreditCard(
-                "Emanoel S. Medeiros",
-                "Nubank asdf",
-                0.0F,
-                card_blue_dark.toArgb(),
-                TypeCard.CREDIT,
-                "emanoel",
-                CardCreditFlag.MONEY.flag
-            )
-        ),
-        CreditCard(
-            "Emanoel S. Medeiros",
-            "Nubank asdfd eeee",
-            0.0F,
-            card_blue_dark.toArgb(),
-            TypeCard.CREDIT,
-            "emanoel",
-            CardCreditFlag.MONEY.flag
-        ),
-        object : CallbackCreditCard {
-        })
-}

@@ -91,7 +91,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
 
     TopAppBarScreen(
         hasBackButton = true,
-        hasDoneButton = true,
+        hasDoneButton = false,
         hasToolbar = true,
         onClickIcon = { navController.popBackStack() },
         paddingFloatingButton = 12.dp,

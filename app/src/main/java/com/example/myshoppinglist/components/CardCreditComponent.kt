@@ -2,40 +2,35 @@ package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Card
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
-import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 
 @Composable

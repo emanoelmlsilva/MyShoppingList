@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,6 +37,7 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.DialogBackCustom
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
@@ -49,22 +51,21 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
     var visibilityBackHandler by remember { mutableStateOf(false) }
-    val creditCardCollection = remember {
-        mutableStateListOf<CreditCardDTO>()
-    }
     var visibleAnimation by remember {
         mutableStateOf(true)
     }
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
-    val state = rememberReorderState() // 1.
-    val tasks by createCardCreditViewModel.creditCardCollection.observeAsState(creditCardCollection)
+    val state = rememberReorderState()
+    val creditCardCollection by createCardCreditViewModel.creditCardCollection.observeAsState(
+        mutableListOf()
+    )
 
     LaunchedEffect(key1 = idAvatar) {
         creditCardViewModel.getAll()
     }
 
     creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        creditCardCollection.addAll(it.map { creditCard ->
+        creditCardCollection?.addAll(it.map { creditCard ->
             CreditCardDTO().fromCreditCardDTO(
                 creditCard
             )
@@ -94,61 +95,50 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
         },
         onClickIconDone = { visibilityBackHandler = true },
         content = {
-            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
                 BaseAnimationComponent(
                     visibleAnimation = visibleAnimation,
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 22.dp)
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(start = 65.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.Top,
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                        Column(
+                            modifier = Modifier.padding(top = 24.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column(modifier = Modifier.padding(top = 24.dp, start = 24.dp)) {
-                                Image(
-                                    painter = painterResource(id = idAvatar),
-                                    contentDescription = "",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(135.dp)
-                                        .clip(CircleShape)
-                                        .border(1.5.dp, text_primary, CircleShape)
-                                )
-                            }
+                            Image(
+                                painter = painterResource(id = idAvatar),
+                                contentDescription = "",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(135.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, text_primary, CircleShape)
+                            )
 
-                            IconButton(onClick = {}) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_outline_brightness_6_24),
-                                    contentDescription = null,
-                                    tint = text_primary
-                                )
-                            }
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
                             Text(
                                 text = nickName,
-                                Modifier.padding(start = 34.dp),
+                                Modifier.padding(vertical = 12.dp),
                                 color = text_primary,
                                 fontFamily = LatoBlack
                             )
+                        }
 
-                            IconButton(onClick = {
-                                navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}")
-                            }, modifier = Modifier.padding(start = 16.dp)) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = text_primary
-                                )
-                            }
+                        IconButton(onClick = {
+                            navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}?hasToolbar=${true}")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = text_primary
+                            )
                         }
                     }
                 }
@@ -167,12 +157,20 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                         modifier = Modifier.padding(start = 18.dp, top = 18.dp, bottom = 18.dp)
                     )
 
-                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         BaseLazyColumnScroll(
                             modifier = Modifier
                                 .fillMaxWidth(.9f)
                                 .reorderable(state, { fromPos, toPos ->
-                                    createCardCreditViewModel.onTaskReordered(tasks, fromPos, toPos)
+                                    createCardCreditViewModel.onTaskReordered(
+                                        creditCardViewModel,
+                                        creditCardCollection,
+                                        fromPos,
+                                        toPos
+                                    )
                                 })
                                 .detectReorderAfterLongPress(state),
                             listState = state.listState, callback = object : VisibleCallback() {
@@ -180,7 +178,9 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                     visibleAnimation = visible
                                 }
                             }) {
-                            items(tasks, key = { task -> task.idCard }) { creditCardDTO ->
+                            items(
+                                creditCardCollection,
+                                key = { creditCard -> creditCard.idCard }) { creditCardDTO ->
                                 BoxItemCard(creditCardDTO, state, object : Callback {
                                     override fun onClick() {
                                         navController.navigate(
@@ -231,7 +231,11 @@ fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack:
                 fontFamily = LatoBlack,
                 color = text_secondary,
                 fontSize = 24.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(.7f)
             )
+
             IconButton(onClick = {
                 callBack.onClick()
             }) {

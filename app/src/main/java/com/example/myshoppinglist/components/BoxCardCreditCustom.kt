@@ -163,7 +163,7 @@ fun ButtonDotted(maxHeight: Float = .22f, navController: NavController) {
         Card(
             onClick = {
                 navController.navigate(
-                    "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${""}?isUpdate=${false}}?creditCardDTO=${""}"
+                    "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${""}?isUpdate=${false}?creditCardDTO=${""}"
                 )
             },
             elevation = 0.dp,

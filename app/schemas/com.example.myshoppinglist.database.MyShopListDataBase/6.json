@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "d88931f6a37aec7a1a77122fa0aee7c8",
+    "identityHash": "10afbb1642040c634a6d6652d4496c87",
     "entities": [
       {
         "tableName": "users",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "credit_cards",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idCard` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `holderName` TEXT NOT NULL, `cardName` TEXT NOT NULL, `value` REAL NOT NULL, `colorCard` INTEGER NOT NULL, `typeCard` TEXT NOT NULL, `cardUserId` TEXT NOT NULL, `flag` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`idCard` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `holderName` TEXT NOT NULL, `cardName` TEXT NOT NULL, `value` REAL NOT NULL, `colorCard` INTEGER NOT NULL, `typeCard` TEXT NOT NULL, `cardUserId` TEXT NOT NULL, `flag` INTEGER NOT NULL, `position` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -87,6 +87,13 @@
             "columnName": "flag",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -262,7 +269,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd88931f6a37aec7a1a77122fa0aee7c8')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '10afbb1642040c634a6d6652d4496c87')"
     ]
   }
 }

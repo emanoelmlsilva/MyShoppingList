@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -48,11 +47,14 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
-
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUserScreen(navController: NavController?, isUpdate: Boolean? = false) {
+fun CreateUserScreen(
+    navController: NavController?,
+    isUpdate: Boolean? = false,
+    hasToolbar: Boolean? = false
+) {
     var createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
@@ -106,32 +108,43 @@ fun CreateUserScreen(navController: NavController?, isUpdate: Boolean? = false) 
         }
     }
 
-    TopAppBarScreen(isScrollable = true, content = {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Column {
-                HeaderText()
-                HeaderImage(createUserViewModel)
-                ContentAvatares(createUserViewModel)
-                TextFieldContent(createUserViewModel, object : Callback {
-                    override fun onClick() {
-                        saveUser()
+    TopAppBarScreen(
+        hasBackButton = !hasToolbar!!,
+        hasToolbar = hasToolbar,
+        isScrollable = true,
+        hasDoneButton = hasToolbar,
+        onClickIcon = { navController?.popBackStack() },
+        onClickIconDone = {  saveUser() },
+        content = {
+            Column(
+                modifier = Modifier
+                    .padding(start = 28.dp, end = 28.dp, top = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column {
+                    if (!hasToolbar) {
+                        HeaderText()
                     }
-                })
+                    HeaderImage(createUserViewModel)
+                    ContentAvatares(createUserViewModel)
+                    TextFieldContent(createUserViewModel, object : Callback {
+                        override fun onClick() {
+                            saveUser()
+                        }
+                    })
+                }
+
+                if (!hasToolbar) {
+                    ButtonsFooterContent(
+                        btnTextAccept = "PROXIMO",
+                        iconAccept = Icons.Filled.ArrowForward,
+                        onClickAccept = {
+                            saveUser()
+                        })
+                }
             }
-            ButtonsFooterContent(
-                btnTextAccept = "PROXIMO",
-                iconAccept = Icons.Filled.ArrowForward,
-                onClickAccept = {
-                    saveUser()
-                })
-        }
-    })
+        })
 }
 
 @Composable

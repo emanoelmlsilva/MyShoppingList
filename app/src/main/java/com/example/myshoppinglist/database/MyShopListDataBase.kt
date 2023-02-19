@@ -6,10 +6,10 @@ import androidx.room.migration.AutoMigrationSpec
 import com.example.myshoppinglist.database.daos.*
 import com.example.myshoppinglist.database.entities.*
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 5, exportSchema = true
+@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 6, exportSchema = true
 , autoMigrations = [AutoMigration (
-    from = 4,
-    to = 5,
+    from = 5,
+    to = 6,
     spec = MyShopListDataBase.MyAutoMigration::class
 )])
 abstract class MyShopListDataBase : RoomDatabase() {

@@ -35,24 +35,27 @@ fun NavController(
     callback: VisibleCallback
 ) {
     NavHost(navController = navHostController, startDestination = routeInitial) {
-        composable(Screen.CreateUser.name){
+        composable(Screen.CreateUser.name) {
             callback.onChangeVisible(false)
-            CreateUserScreen(navHostController, false)
+            CreateUserScreen(navHostController, isUpdate = false, hasToolbar = false)
         }
-        composable("${Screen.CreateUser.name}?isUpdate={isUpdate}",
-                        arguments = listOf(
-                            navArgument("isUpdate") { type = NavType.BoolType })) { navBackStack ->
+        composable("${Screen.CreateUser.name}?isUpdate={isUpdate}?hasToolbar={hasToolbar}",
+            arguments = listOf(
+                navArgument("isUpdate") { type = NavType.BoolType },
+                navArgument("hasToolbar") { type = NavType.BoolType }
+            )) { navBackStack ->
             callback.onChangeVisible(false)
             val isUpdate = navBackStack.arguments?.getBoolean("isUpdate")
-            CreateUserScreen(navHostController, isUpdate?:false)
+            val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
+            CreateUserScreen(navHostController, isUpdate ?: false, hasToolbar)
         }
         composable(
             "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?holderName={holderName}?isUpdate={isUpdate}?creditCardDTO={creditCardDTO}",
             arguments = listOf(
                 navArgument("hasToolbar") { type = NavType.BoolType },
-                navArgument("holderName") { type = NavType.StringType},
+                navArgument("holderName") { type = NavType.StringType },
                 navArgument("creditCardDTO") { type = NavType.StringType },
-                navArgument("isUpdate") {type = NavType.BoolType})
+                navArgument("isUpdate") { type = NavType.BoolType })
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
@@ -60,8 +63,10 @@ fun NavController(
             val creditCardDTO = navBackStack.arguments?.getString("creditCardDTO")
             val isUpdate = navBackStack.arguments?.getBoolean("isUpdate")
 
-            CreateCardScreen(navHostController, hasToolbar ?: false,
-                isUpdate!!, holderName!!, creditCardDTO!!)
+            CreateCardScreen(
+                navHostController, hasToolbar ?: false,
+                isUpdate!!, holderName!!, creditCardDTO!!
+            )
         }
         composable(Screen.Home.name) {
             callback.onChangeVisible(true)

@@ -29,8 +29,8 @@ class CreditCard {
     var cardUserId: String = ""
     @ColumnInfo(name = "flag")
     var flag: Int = CardCreditFlag.MONEY.flag
-
-    //add field position and visibleCard
+    @ColumnInfo(name = "position", defaultValue = 0.toString())
+    var position: Int = 0
 
     constructor()
 
@@ -41,7 +41,8 @@ class CreditCard {
         colorCard: Int,
         typeCard: TypeCard,
         cardUserId: String,
-        flag: Int
+        flag: Int,
+        position: Int
     ) {
         this.holderName = holderName
         this.cardName = cardName
@@ -50,10 +51,11 @@ class CreditCard {
         this.typeCard = typeCard
         this.cardUserId = cardUserId
         this.flag = flag
+        this.position = position
     }
 
     override fun toString(): String {
-        return "CreditCard(id=$id, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag)"
+        return "CreditCard(id=$id, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag, position=$position"
     }
 
 }

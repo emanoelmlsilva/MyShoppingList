@@ -26,7 +26,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
@@ -39,7 +38,7 @@ import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
@@ -48,7 +47,6 @@ import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
-import org.burnoutcrew.reorderable.ItemPosition
 
 @ExperimentalComposeUiApi
 @Composable
@@ -68,13 +66,17 @@ fun CreateCardScreen(
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
     val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
-
     var userDTO by remember {
         mutableStateOf<UserDTO?>(null)
     }
 
     LaunchedEffect(Unit) {
         userViewModel.getUserCurrent()
+        creditCardViewModel.getAll()
+    }
+
+    LaunchedEffect(key1 = holderNameUser){
+        createCardCreditViewModel.onChangeName(holderNameUser)
     }
 
     LaunchedEffect(key1 = creditCardDTOJson) {
@@ -89,6 +91,7 @@ fun CreateCardScreen(
             createCardCreditViewModel.onChangeFlagCurrent(creditCardDTO.flag)
             createCardCreditViewModel.onChangeTypeCard(creditCardDTO.typeCard)
             createCardCreditViewModel.onChangeIdCreditCard(creditCardDTO.idCard)
+            createCardCreditViewModel.onChangeLastPosition(creditCardDTO.position)
         }
     }
 
@@ -96,11 +99,18 @@ fun CreateCardScreen(
         userDTO = UserDTO(it)
     }
 
+    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner){
+        if(creditCardDTOJson.isBlank()){
+            createCardCreditViewModel.onChangeLastPosition(it.size)
+        }
+    }
+
     val typeCard = if (hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
 
     fun saveCreditCard() {
         if (userDTO != null) {
             if (createCardCreditViewModel.checkFileds()) {
+                val lastPosition = createCardCreditViewModel.lastPosition.value
                 val valueCreditCard = createCardCreditViewModel.value.value
                 val typeCardRecover = createCardCreditViewModel.typeCard.value
                 val idCreditCard = createCardCreditViewModel.idCreditCard.value
@@ -112,7 +122,8 @@ fun CreateCardScreen(
                     colorCurrent.toArgb(),
                     (if(!isUpdate) typeCard else typeCardRecover)!!,
                     userDTO!!.name,
-                    flagCurrent
+                    flagCurrent,
+                    lastPosition!!
                 )
 
                 if(!isUpdate){
@@ -139,7 +150,10 @@ fun CreateCardScreen(
     }
 
     TopAppBarScreen(
+        hasBackButton = !hasToolbar,
+        hasDoneButton = hasToolbar,
         onClickIcon = { navController?.popBackStack() },
+        onClickIconDone = { saveCreditCard() },
         hasToolbar = hasToolbar,
         isScrollable = true,
         content = {
@@ -223,12 +237,14 @@ fun CreateCardScreen(
                     }
                 }
 
-                ButtonsFooterContent(
-                    modifierButton = Modifier.padding(top = 26.dp),
-                    btnTextAccept = "SALVAR",
-                    onClickAccept = {
-                        saveCreditCard()
-                    })
+                if(!hasToolbar){
+                    ButtonsFooterContent(
+                        modifierButton = Modifier.padding(top = 26.dp),
+                        btnTextAccept = "SALVAR",
+                        onClickAccept = {
+                            saveCreditCard()
+                        })
+                }
             }
 
         }
@@ -370,87 +386,4 @@ fun TextFieldContent(
             })
     }
 
-}
-
-class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
-    var name: MutableLiveData<String> = MutableLiveData("")
-    var nameCard: MutableLiveData<String> = MutableLiveData("")
-    var colorCurrent: MutableLiveData<Color> = MutableLiveData(card_blue)
-    var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
-    var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
-    var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
-    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTO>> =
-        MutableLiveData(mutableListOf())
-    var value: MutableLiveData<Float> = MutableLiveData(0F)
-    var typeCard: MutableLiveData<TypeCard> = MutableLiveData(TypeCard.MONEY)
-    var idCreditCard: MutableLiveData<Long> = MutableLiveData()
-
-    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTO>) {
-        creditCardCollection.value = newTesteList
-    }
-
-    fun onTaskReordered(
-        creditCardCollectionUpdate: MutableList<CreditCardDTO>,
-        fromPos: ItemPosition,
-        toPos: ItemPosition
-    ) {
-        val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
-
-        auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
-        auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
-
-        updateCreditCardCollection(auxCreditCardCollection)
-    }
-
-    fun onChangeIdCreditCard(newIdCreditCard: Long){
-        idCreditCard.value = newIdCreditCard
-    }
-
-    fun onChangeTypeCard(newTypeCard: TypeCard){
-        typeCard.value = newTypeCard
-    }
-
-    fun onChangeValue(newValue: Float){
-        value.value = newValue
-    }
-
-    fun onChangeFlagCurrent(newFlagCurrent: Int) {
-        flagCurrent.value = newFlagCurrent
-    }
-
-    fun onChangeColorCurrent(newColorCurrent: Color) {
-        colorCurrent.value = newColorCurrent
-    }
-
-    fun onChangeName(newName: String) {
-        onChangeIsErrorName(newName.isBlank())
-        name.value = newName
-    }
-
-    fun onChangeNameCard(newNameCard: String) {
-        onChangeIsErrorNameCard(newNameCard.isBlank())
-        nameCard.value = newNameCard
-    }
-
-    fun onChangeIsErrorName(newIsError: Boolean) {
-        isErrorName.value = newIsError
-    }
-
-    fun onChangeIsErrorNameCard(newIsError: Boolean) {
-        isErrorNameCard.value = newIsError
-    }
-
-    override fun checkFileds(): Boolean {
-        if (name.value!!.isBlank()) {
-            onChangeIsErrorName(true)
-            return false
-        }
-
-        if (nameCard.value!!.isBlank()) {
-            onChangeIsErrorNameCard(true)
-            return false
-        }
-
-        return true
-    }
 }
