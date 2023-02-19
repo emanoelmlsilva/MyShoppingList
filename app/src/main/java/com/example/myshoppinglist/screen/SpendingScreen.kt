@@ -240,7 +240,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
             if (purchaseInfoCollection.isNotEmpty()) {
                 BaseLazyColumnScroll(
-                    visibleAnimation = visibleAnimation.value,
                     modifier = Modifier.fillMaxWidth(),
                     callback = object : VisibleCallback() {
                         override fun onChangeVisible(visible: Boolean) {

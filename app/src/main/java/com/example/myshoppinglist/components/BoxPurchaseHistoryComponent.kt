@@ -38,7 +38,6 @@ fun BoxPurchaseHistoryComponent(
     if (purchaseColleciton.isNotEmpty()) {
         BaseLazyColumnScroll(
             modifier = Modifier.padding(bottom = 0.dp, start = 24.dp, end = 24.dp),
-            visibleAnimation = visibleAnimation,
             callback = callback
         ) {
             itemsIndexed(purchaseColleciton) { index, purchaseAndCategory ->

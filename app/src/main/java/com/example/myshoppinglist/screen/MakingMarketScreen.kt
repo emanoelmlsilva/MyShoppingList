@@ -108,7 +108,7 @@ fun MakingMarketScreen(
         }
     }
 
-    itemListViewModel.searchItemListResult .observe(lifecycleOwner) { itemListAndCategoryCollection ->
+    itemListViewModel.searchItemListResult.observe(lifecycleOwner) { itemListAndCategoryCollection ->
 
         if (updateItemList) {
             val itemListAndCategory = itemListAndCategoryCollection.last()
@@ -237,7 +237,7 @@ fun MakingMarketScreen(
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
-                DialogShowPurchase(context, visibilityShowDialog,   MaskUtils.maskValue(
+                DialogShowPurchase(context, visibilityShowDialog, MaskUtils.maskValue(
                     MaskUtils.convertValueDoubleToString(
                         valueTotal.toDouble()
                     )
@@ -617,7 +617,8 @@ fun DialogShowPurchase(
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .background(background_card),
-                        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
 
                         Spacer(
@@ -643,10 +644,11 @@ fun DialogShowPurchase(
                                 .height(1.dp)
                         )
 
-                        BaseLazyColumnScroll(modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(.9f)
-                            .background(background_card),
+                        BaseLazyColumnScroll(verticalArrangement = Arrangement.Top,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(.9f)
+                                .background(background_card),
                             callback = object : VisibleCallback() {
                                 override fun onChangeVisible(visible: Boolean) {
                                 }

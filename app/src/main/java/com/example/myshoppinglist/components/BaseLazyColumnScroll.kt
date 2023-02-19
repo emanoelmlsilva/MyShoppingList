@@ -21,7 +21,8 @@ import com.example.myshoppinglist.callback.VisibleCallback
 @Composable
 fun BaseLazyColumnScroll(
     listState: LazyListState = rememberLazyListState(),
-    visibleAnimation: Boolean = true,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Center,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     callback: VisibleCallback?,
     modifier: Modifier? = null,
     content: LazyListScope.() -> Unit
@@ -54,7 +55,9 @@ fun BaseLazyColumnScroll(
 
     LazyColumn(
         state = listState,
-        modifier = (modifier ?: modifierDefault).nestedScroll(nestedScrollConnection), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
+        modifier = (modifier ?: modifierDefault).nestedScroll(nestedScrollConnection),
+        verticalArrangement = verticalArrangement,
+        horizontalAlignment = horizontalAlignment
     ) {
         content()
     }
