@@ -35,6 +35,7 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.screen.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 
 @Composable
@@ -105,7 +106,9 @@ fun CustomCardCredit(
             .fillMaxWidth(.85f)
             .fillMaxHeight(.9f)
             .clickable(isClicable) {
-                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${true}?nameUser=${""}")
+                navController?.navigate(
+                    "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${cardCreditDTO.holderName}?isUpdate=${false}?creditCardDTO=${""}"
+                )
             },
         elevation = 2.dp, shape = RoundedCornerShape(28.dp)
     ) {

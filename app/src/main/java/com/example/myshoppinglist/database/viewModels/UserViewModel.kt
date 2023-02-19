@@ -21,6 +21,10 @@ class UserViewModel(context: Context): ViewModel() {
         searchResult = repository.seachResult
     }
 
+    fun updateUser(user: User){
+        repository.updateUser(user)
+    }
+
     fun insertUser(user: User) {
         repository.insertUser(user)
     }

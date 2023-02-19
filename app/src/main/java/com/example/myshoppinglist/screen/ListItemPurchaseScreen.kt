@@ -103,7 +103,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         backgroundColor = text_secondary,
                         onClick = {
                             if(itemCheckCollection.isNotEmpty()){
-                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils.toJson(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
+                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils<ItemListAndCategoryDTO>().toJson(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
                             }else{
                                 Toast.makeText(context, "Selecione pelo menos um produto!", Toast.LENGTH_SHORT).show()
                             }

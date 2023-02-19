@@ -30,6 +30,7 @@ import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
@@ -161,7 +162,9 @@ fun ButtonDotted(maxHeight: Float = .22f, navController: NavController) {
     ) {
         Card(
             onClick = {
-                navController.navigate("${Screen.CreateCards.name}?hasToolbar=${true}?nameUser=${""}")
+                navController.navigate(
+                    "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${""}?isUpdate=${false}}?creditCardDTO=${""}"
+                )
             },
             elevation = 0.dp,
             shape = RoundedCornerShape(28.dp),

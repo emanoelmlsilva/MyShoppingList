@@ -23,6 +23,7 @@ fun ButtonsFooterContent(
     onClickAccept: (() -> Unit)? = null,
     onClickCancel: (() -> Unit)? = null,
     callback: Callback? = null,
+    modifierButton: Modifier = Modifier.padding(start = 6.dp, bottom = 16.dp, end = 6.dp),
     modifier: Modifier = Modifier
         .fillMaxWidth().padding(0.dp, if (btnTextCancel != null) 12.dp else 0.dp),
 ) {
@@ -32,8 +33,8 @@ fun ButtonsFooterContent(
     ) {
         if (btnTextCancel != null) {
             OutlinedButton(
-                modifier = Modifier
-                    .padding(start = 6.dp, bottom = 8.dp, end = 6.dp),
+                modifier = modifierButton,
+//                    .padding(start = 6.dp, bottom = 8.dp, end = 6.dp),
                 onClick = {
                     if (onClickCancel != null) {
                         onClickCancel()
@@ -52,8 +53,7 @@ fun ButtonsFooterContent(
         }
 
         Button(colors = ButtonDefaults.buttonColors(backgroundColor = if (isClickable!!) primary else secondary_light),
-            modifier = Modifier
-                .padding(start = 6.dp, bottom = 16.dp, end = 6.dp)
+            modifier = modifierButton
                 .clickable(onClick = {
                 }), onClick = {
                 if (onClickAccept != null) {

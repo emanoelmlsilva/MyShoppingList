@@ -30,6 +30,8 @@ class CreditCard {
     @ColumnInfo(name = "flag")
     var flag: Int = CardCreditFlag.MONEY.flag
 
+    //add field position and visibleCard
+
     constructor()
 
     constructor(

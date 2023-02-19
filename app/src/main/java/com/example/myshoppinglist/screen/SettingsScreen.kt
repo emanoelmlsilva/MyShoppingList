@@ -2,16 +2,10 @@
 
 package com.example.myshoppinglist.screen
 
-import android.util.Log
-import android.view.MotionEvent
-import android.view.View
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -20,35 +14,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.DialogBackCustom
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
-import kotlinx.coroutines.flow.observeOn
+import com.example.myshoppinglist.utils.ConversionUtils
 import org.burnoutcrew.reorderable.*
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -88,7 +79,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 
     DialogBackCustom(visibilityBackHandler, {
         visibilityBackHandler = false
-//        navController.navigate()
+        navController.popBackStack()
     }, {
         visibilityBackHandler = false
     }, "Sair", "Deseja sair do aplicativo?")
@@ -98,10 +89,12 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
         hasDoneButton = true,
         colorDoneButton = text_primary_light,
         iconDone = R.drawable.ic_baseline_logout_24,
-        onClickIcon = { navController.popBackStack() },
+        onClickIcon = {
+            navController.popBackStack()
+        },
         onClickIconDone = { visibilityBackHandler = true },
         content = {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
 
                 BaseAnimationComponent(
                     visibleAnimation = visibleAnimation,
@@ -147,7 +140,9 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                 fontFamily = LatoBlack
                             )
 
-                            IconButton(onClick = {}, modifier = Modifier.padding(start = 16.dp)) {
+                            IconButton(onClick = {
+                                navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}")
+                            }, modifier = Modifier.padding(start = 16.dp)) {
                                 Icon(
                                     imageVector = Icons.Outlined.Edit,
                                     contentDescription = null,
@@ -172,20 +167,32 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                         modifier = Modifier.padding(start = 18.dp, top = 18.dp, bottom = 18.dp)
                     )
 
-                    BaseLazyColumnScroll(modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .reorderable(state, { fromPos, toPos ->
-                            createCardCreditViewModel.onTaskReordered(tasks, fromPos, toPos)
-                        })
-                        .detectReorderAfterLongPress(state),
-                        listState = state.listState, callback = object : VisibleCallback() {
-                            override fun onChangeVisible(visible: Boolean) {
-                            visibleAnimation = visible
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        BaseLazyColumnScroll(
+                            modifier = Modifier
+                                .fillMaxWidth(.9f)
+                                .reorderable(state, { fromPos, toPos ->
+                                    createCardCreditViewModel.onTaskReordered(tasks, fromPos, toPos)
+                                })
+                                .detectReorderAfterLongPress(state),
+                            listState = state.listState, callback = object : VisibleCallback() {
+                                override fun onChangeVisible(visible: Boolean) {
+                                    visibleAnimation = visible
+                                }
+                            }) {
+                            items(tasks, key = { task -> task.idCard }) { creditCardDTO ->
+                                BoxItemCard(creditCardDTO, state, object : Callback {
+                                    override fun onClick() {
+                                        navController.navigate(
+                                            "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
+                                                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).toJson(
+                                                    listOf(creditCardDTO)
+                                                )
+                                            }"
+                                        )
+                                    }
+                                })
                             }
-                        }) {
-                        items(tasks, key = { task -> task.idCard }) { creditCardDTO ->
-                            BoxItemCard(creditCardDTO, state)
                         }
                     }
                 }
@@ -195,7 +202,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 }
 
 @Composable
-fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState) {
+fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack: Callback) {
     Card(
         backgroundColor = Color(creditCardDTO.colorCard),
         shape = RoundedCornerShape(8.dp),
@@ -225,7 +232,9 @@ fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState) {
                 color = text_secondary,
                 fontSize = 24.sp,
             )
-            IconButton(onClick = {}) {
+            IconButton(onClick = {
+                callBack.onClick()
+            }) {
                 Icon(
                     imageVector = Icons.Outlined.Edit,
                     contentDescription = null,

@@ -35,20 +35,33 @@ fun NavController(
     callback: VisibleCallback
 ) {
     NavHost(navController = navHostController, startDestination = routeInitial) {
-        composable(Screen.CreateUser.name) {
+        composable(Screen.CreateUser.name){
             callback.onChangeVisible(false)
-            CreateUserScreen(navHostController)
+            CreateUserScreen(navHostController, false)
+        }
+        composable("${Screen.CreateUser.name}?isUpdate={isUpdate}",
+                        arguments = listOf(
+                            navArgument("isUpdate") { type = NavType.BoolType })) { navBackStack ->
+            callback.onChangeVisible(false)
+            val isUpdate = navBackStack.arguments?.getBoolean("isUpdate")
+            CreateUserScreen(navHostController, isUpdate?:false)
         }
         composable(
-            "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?nameUser={nameUser}",
+            "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?holderName={holderName}?isUpdate={isUpdate}?creditCardDTO={creditCardDTO}",
             arguments = listOf(
                 navArgument("hasToolbar") { type = NavType.BoolType },
-                navArgument("nameUser") { type = NavType.StringType })
+                navArgument("holderName") { type = NavType.StringType},
+                navArgument("creditCardDTO") { type = NavType.StringType },
+                navArgument("isUpdate") {type = NavType.BoolType})
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
-            val nameUser = navBackStack.arguments?.getString("nameUser")
-            CreateCardScreen(navHostController, hasToolbar ?: false, nameUser!!)
+            val holderName = navBackStack.arguments?.getString("holderName")
+            val creditCardDTO = navBackStack.arguments?.getString("creditCardDTO")
+            val isUpdate = navBackStack.arguments?.getBoolean("isUpdate")
+
+            CreateCardScreen(navHostController, hasToolbar ?: false,
+                isUpdate!!, holderName!!, creditCardDTO!!)
         }
         composable(Screen.Home.name) {
             callback.onChangeVisible(true)
