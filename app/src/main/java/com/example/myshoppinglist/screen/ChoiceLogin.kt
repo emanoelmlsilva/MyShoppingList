@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,15 +8,17 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 
 @Composable
@@ -41,17 +42,20 @@ fun ChoiceLogin(navController: NavController) {
                 )
             }
 
-            Card(
-                backgroundColor = background_card_light,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(topStartPercent = 60, topEndPercent = 10)
+                    .fillMaxHeight()
+                    .paint(
+                        painterResource(id = R.drawable.background_shape),
+                        contentScale = ContentScale.FillBounds
+                    )
             ) {
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .fillMaxHeight()
                 ) {
 
@@ -64,7 +68,11 @@ fun ChoiceLogin(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth(.75f)
                                 .padding(vertical = 4.dp),
-                            onClick = { }) {
+                            onClick = {
+                                navController.navigate(Screen.Login.name) {
+                                    popUpTo(0) { inclusive = false }
+                                }
+                            }) {
                             Text(text = "LOGIN", fontFamily = LatoRegular, fontSize = 14.sp)
                         }
 

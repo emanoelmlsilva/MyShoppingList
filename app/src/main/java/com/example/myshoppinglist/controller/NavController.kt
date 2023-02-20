@@ -146,5 +146,8 @@ fun NavController(
         composable(Screen.ChoiceLogin.name){
             ChoiceLogin(navHostController)
         }
+        composable(Screen.Login.name){
+            Login(navHostController)
+        }
     }
 }
