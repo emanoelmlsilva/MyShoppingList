@@ -149,5 +149,8 @@ fun NavController(
         composable(Screen.Login.name){
             Login(navHostController)
         }
+        composable(Screen.Register.name){
+            Register(navHostController)
+        }
     }
 }

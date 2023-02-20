@@ -1,20 +1,14 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.example.myshoppinglist.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -38,40 +32,27 @@ import com.example.myshoppinglist.ui.theme.*
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Login(navController: NavController) {
+fun Register(navController: NavController) {
     var showPassword by remember { mutableStateOf(false) }
+    var showConfirmPassword by remember { mutableStateOf(false) }
 
     TopAppBarScreen(onClickIcon = { navController.popBackStack() }, content = {
         Column(
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Column(
-                verticalArrangement = Arrangement.Top,
+                verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.5f)
-                    .padding(top = 50.dp)
+                    .fillMaxHeight(.50f)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxHeight(.5f),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.my_shopping_list_logo_small),
-                        contentDescription = null
-                    )
-
-                    Text(
-                        text = "Bem vindo de volta!",
-                        fontFamily = LatoBlack,
-                        fontSize = 32.sp,
-                        color = text_primary_light
-                    )
-                }
+                Image(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.my_shopping_list_logo),
+                    contentDescription = null
+                )
             }
 
             Box(
@@ -87,14 +68,15 @@ fun Login(navController: NavController) {
                     modifier = Modifier
                         .fillMaxHeight()
                         .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.SpaceAround,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
                     Column(
-                        modifier = Modifier.fillMaxHeight(.50f),
+                        modifier = Modifier.fillMaxHeight(.65f),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
+
                         TextInputComponent(
                             label = "Email",
                             value = "",
@@ -134,19 +116,62 @@ fun Login(navController: NavController) {
                                     Icon(imageVector = image, null)
                                 }
                             })
+
+                        TextInputComponent(
+                            label = "Confirmar senha",
+                            value = "",
+                            reset = false,
+                            visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            maxChar = 45,
+                            isCountChar = true,
+                            isMandatory = true,
+                            error = false,
+                            customOnClick = object : CustomTextFieldOnClick {
+                                override fun onChangeValue(newValue: String) {
+
+                                }
+                            },
+                            trailingIcon = {
+                                val image = if (showConfirmPassword)
+                                    Icons.Filled.Visibility
+                                else Icons.Filled.VisibilityOff
+
+
+                                IconButton(onClick = {
+                                    showConfirmPassword = !showConfirmPassword
+                                }) {
+                                    Icon(imageVector = image, null)
+                                }
+                            })
                     }
 
                     Button(colors = ButtonDefaults.buttonColors(backgroundColor = primary),
                         modifier = Modifier
                             .padding(vertical = 4.dp),
                         onClick = { }) {
-                        Text(text = "ENTRAR", fontFamily = LatoRegular, fontSize = 14.sp)
+                        Text(text = "CRIAR", fontFamily = LatoRegular, fontSize = 14.sp)
                     }
 
-                    TextButton(modifier = Modifier.padding(bottom = 26.dp), onClick = { navController.navigate(
-                        Screen.Register.name) }) {
+                    Text(
+                        "ou",
+                        fontFamily = LatoRegular,
+                        fontSize = 10.sp,
+                        color = text_title_secondary,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Button(
+                        elevation = ButtonDefaults.elevation(0.dp),
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        onClick = {
+                            navController.navigate(Screen.Login.name)
+                        },
+                        border = BorderStroke(1.dp, text_primary),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = background_card)
+                    ) {
                         Text(
-                            text = "Não tem conta criada? Sign up",
+                            text = "Login",
                             fontFamily = LatoRegular,
                             fontSize = 16.sp,
                             color = Color(0xFF05290A),

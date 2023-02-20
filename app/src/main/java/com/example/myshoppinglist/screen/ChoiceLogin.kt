@@ -76,7 +76,7 @@ fun ChoiceLogin(navController: NavController) {
                             Text(text = "LOGIN", fontFamily = LatoRegular, fontSize = 14.sp)
                         }
 
-                        TextButton(onClick = { }) {
+                        TextButton(onClick = { navController.navigate(Screen.Register.name)}) {
                             Text(
                                 text = "Não tem conta criada? Sign up",
                                 fontFamily = LatoRegular,
