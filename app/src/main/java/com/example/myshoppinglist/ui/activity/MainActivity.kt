@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
                 val userViewModel: UserViewModel = UserViewModel(context)
                 val bottomBarState = rememberSaveable { (mutableStateOf(false)) }
 
-                val route = if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
+                val route = Screen.ChoiceLogin// if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
 
                 val screenBarCollection = listOf(
                     Screen.Home,
