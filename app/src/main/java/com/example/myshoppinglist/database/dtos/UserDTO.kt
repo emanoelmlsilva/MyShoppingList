@@ -5,6 +5,7 @@ import com.example.myshoppinglist.database.entities.User
 
 class UserDTO() {
 
+    var email: String = ""
     var name: String = ""
     var nickName: String = ""
     var idAvatar:Int = R.drawable.default_avatar

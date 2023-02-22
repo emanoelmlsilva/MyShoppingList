@@ -27,6 +27,7 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.Category
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.model.IconCategory
@@ -121,17 +122,21 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     }
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
-        val newCategory = Category(categoryCurrent, idCurrent, colorCurrent)
+        val email = UserLoggedShared.getEmailUserCurrent()
 
-        if (idCategory != null && idCategory > 0) {
-            newCategory.id = idCategory
-            updateCategory(newCategory)
-        }else{
-            saveCategory(newCategory)
+        val newCategory = Category(email, categoryCurrent, idCurrent, colorCurrent)
+
+        if(newCategory.category.isNotBlank()){
+            if (idCategory != null && idCategory > 0) {
+                newCategory.id = idCategory
+                updateCategory(newCategory)
+            }else{
+                saveCategory(newCategory)
+            }
+
+            goBackNavigation()
         }
-
-        goBackNavigation()
-    }, hasToolbar = true, hasBackButton = false, content = {
+    }, hasToolbar = true, hasDoneButton = true, hasBackButton = false, content = {
 
         Column(
             modifier = Modifier

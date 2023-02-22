@@ -25,6 +25,9 @@ import com.example.myshoppinglist.ui.theme.text_secondary
 @Composable
 fun TopAppBarScreen(
     content: @Composable (() -> Unit?)?,
+    iconDone: Int? = R.drawable.ic_baseline_done_24,
+    hasDoneButton: Boolean = false,
+    colorDoneButton: Color? = primary,
     contentHeader: @Composable (() -> Unit?)? = {},
     onClickIcon: (() -> Unit)? = null,
     onClickIconDone: (() -> Unit)? = null,
@@ -49,12 +52,12 @@ fun TopAppBarScreen(
                     TopAppBar(
                         title = {},
                         actions = {
-                            if(!hasBackButton){
+                            if(hasDoneButton){
                                 IconButton(onClick = { if (onClickIconDone != null) onClickIconDone()  }) {
                                     Icon(
-                                        imageVector = Icons.Filled.Done,
+                                        painter = painterResource(iconDone!!),
                                         contentDescription = null,
-                                        tint = primary
+                                        tint = colorDoneButton!!
                                     )
                                 }
                             }

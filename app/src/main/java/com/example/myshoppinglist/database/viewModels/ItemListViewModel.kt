@@ -7,6 +7,7 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.repositories.ItemListRepository
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 
 class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
 
@@ -19,7 +20,8 @@ class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Base
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val itemListDAO = myShopListDataBase.itemListDAO()
         userViewModel = UserViewModel(context)
-        userViewModel.getUserCurrent()
+        val email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email)
         repository = ItemListRepository(itemListDAO)
         searchItemListResult = repository.searchItemListResult
         mLifecycleOwner = lifecycleOwner

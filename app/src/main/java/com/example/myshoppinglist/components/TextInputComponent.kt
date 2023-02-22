@@ -14,6 +14,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,7 +29,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
     fun TextInputComponent(focusRequester: FocusRequester = FocusRequester(), textColor: Color? = text_primary, disabledTextColor: Color? = text_primary, backgroundColor: Color = background_text_field, modifier: Modifier? = Modifier,
                            value: String = "", maxChar: Int? = 250, label: String, isMandatory: Boolean? = false, isEnableClick: Boolean? = true, isCountChar: Boolean? = false,
                            reset: Boolean = false, error: Boolean? = false, customOnClick: CustomTextFieldOnClick, keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-                           keyboardActions: KeyboardActions = KeyboardActions(), leadingIcon:  @Composable (() -> Unit)? = null, trailingIcon: @Composable (() -> Unit)? = null){
+                           keyboardActions: KeyboardActions = KeyboardActions(), leadingIcon:  @Composable (() -> Unit)? = null, trailingIcon: @Composable (() -> Unit)? = null, visualTransformation: VisualTransformation = VisualTransformation.None){
 
     var isErrorNickName by remember { mutableStateOf(false) }
     val customModifier = modifier ?: Modifier.fillMaxWidth()
@@ -42,6 +43,7 @@ import com.example.myshoppinglist.ui.theme.text_secondary_light
             TextField(
                 leadingIcon = leadingIcon,
                 trailingIcon = trailingIcon,
+                visualTransformation = visualTransformation,
                 colors = TextFieldDefaults.textFieldColors(
                     textColor = textColor!!,
                     backgroundColor = backgroundColor,

@@ -12,12 +12,12 @@ interface CategoryDAO {
     @Update
     fun updateCategory(category: Category)
 
-    @Query("SELECT * FROM category WHERE category = :category")
-    fun getByCategory(category: String): Category
+    @Query("SELECT * FROM category, users WHERE category = :category AND users.email = :emailUser AND categoryUserId = users.email")
+    fun getByCategory(category: String, emailUser: String): Category
 
-    @Query("SELECT * FROM category WHERE id = :idCategory")
-    fun getById(idCategory: Long): Category
+    @Query("SELECT * FROM category, users WHERE id = :idCategory AND users.email = :emailUser AND categoryUserId = users.email")
+    fun getById(idCategory: Long, emailUser: String): Category
 
-    @Query("SELECT * FROM category")
-    fun getAll(): List<Category>
+    @Query("SELECT * FROM category, users WHERE users.email = :emailUser AND categoryUserId = users.email")
+    fun getAll(emailUser: String): List<Category>
 }

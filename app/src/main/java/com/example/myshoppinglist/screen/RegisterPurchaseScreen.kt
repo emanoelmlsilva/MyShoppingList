@@ -45,6 +45,7 @@ import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
@@ -72,17 +73,18 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
-    val purchaseInfoCollection = registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value//remember { mutableStateListOf<PurchaseInfo>() }
+    val purchaseInfoCollection =
+        registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value//remember { mutableStateListOf<PurchaseInfo>() }
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
-    var visibilityBackHandler by remember{ mutableStateOf(false) }
+    var visibilityBackHandler by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = idCardCurrent) {
         categoryViewModel.getAll()
         registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
     }
 
-    registerTextFieldViewModel.countProduct.observe(lifecycleOwner){
+    registerTextFieldViewModel.countProduct.observe(lifecycleOwner) {
         countProduct = it
     }
 
@@ -98,7 +100,8 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
 
         val purcharseSaveCoroutine = coroutineScope.async {
             purchaseInfoCollection.map { purchaseInfo ->
-                purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection.map { it.purchase }.toList())
+                purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection.map { it.purchase }
+                    .toList())
             }
         }
 
@@ -197,6 +200,23 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
             topBar = {
                 TopAppBar(
                     title = {},
+                    actions = {
+                        IconButton(onClick = {
+                            if (countProduct > 0) {
+                                coroutineScope.launch {
+                                    savePurchases()
+                                    navController!!.popBackStack()
+                                }
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_baseline_done_24),
+                                contentDescription = null,
+                                tint = primary
+                            )
+                        }
+
+                    },
                     navigationIcon = {
                         IconButton(onClick = { visibilityBackHandler = true }) {
                             Icon(
@@ -296,32 +316,32 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
             }
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .layout { measurable, constraints ->
-                    val placeable = measurable.measure(constraints)
-                    layout(placeable.width, placeable.height) {
-                        placeable.place(0, placeable.height / 2)
-                    }
-                }
-                .padding(bottom = 52.dp)
-                .background(text_secondary),
-        ) {
-            ButtonsFooterContent(
-                isClickable = countProduct > 0,
-                btnTextCancel = "CANCELAR",
-                btnTextAccept = "SALVAR",
-                onClickCancel = {
-                    visibilityBackHandler = true
-                     },
-                onClickAccept = {
-                    coroutineScope.launch {
-                        savePurchases()
-                        navController!!.popBackStack()
-                    }
-                })
-        }
+//        Row(
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .layout { measurable, constraints ->
+//                    val placeable = measurable.measure(constraints)
+//                    layout(placeable.width, placeable.height) {
+//                        placeable.place(0, placeable.height / 2)
+//                    }
+//                }
+//                .padding(bottom = 52.dp)
+//                .background(text_secondary),
+//        ) {
+//            ButtonsFooterContent(
+//                isClickable = countProduct > 0,
+//                btnTextCancel = "CANCELAR",
+//                btnTextAccept = "SALVAR",
+//                onClickCancel = {
+//                    visibilityBackHandler = true
+//                },
+//                onClickAccept = {
+//                    coroutineScope.launch {
+//                        savePurchases()
+//                        navController!!.popBackStack()
+//                    }
+//                })
+//        }
     }
 
 }
@@ -340,8 +360,8 @@ fun CategoryProduct(
     val context = LocalContext.current
 
 
-    fun onClick(category: Category){
-        registerTextFieldViewModel.onChangeCategory(category.id)
+    fun onClick(category: Category) {
+        registerTextFieldViewModel.onChangeCategory(category.id!!)
         registerTextFieldViewModel.onChangeCategoryCurrent(category)
     }
 
@@ -425,7 +445,7 @@ fun PurchaseAndPaymentComponent(
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         creditCardViewModel.getAll()
     }
 
@@ -519,7 +539,10 @@ fun CustomButton(callback: Callback, icon: Int, modifier: Modifier = Modifier) {
 
 @ExperimentalComposeUiApi
 @Composable
-fun BoxChoiceValue(lifecycleOwner: LifecycleOwner, registerTextFieldViewModel: RegisterTextFieldViewModel) {
+fun BoxChoiceValue(
+    lifecycleOwner: LifecycleOwner,
+    registerTextFieldViewModel: RegisterTextFieldViewModel
+) {
     var isMoney by remember { mutableStateOf(true) }
     var value by remember { mutableStateOf("") }
     var convertedValue = 0
@@ -644,6 +667,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     private val indexInfo: MutableLiveData<Int> = MutableLiveData(-1)
     val categoryCollection = MutableLiveData<MutableList<Category>>(mutableListOf())
 
+    val email = UserLoggedShared.getEmailUserCurrent()
+
     fun updateData(purchase: Purchase, newIndex: Int, newIndexInfo: Int) {
         product.value = purchase.name
         price.value = purchase.price.toString()
@@ -692,7 +717,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         return true
     }
 
-    private fun updatePurchaseInfoCollection(){
+    private fun updatePurchaseInfoCollection() {
         val auxPurchaseCollection = mutableListOf<PurchaseInfo>()
 
         auxPurchaseCollection.addAll(purchaseInfoCollection.value!!)
@@ -712,7 +737,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }
     }
 
-    fun onChangeCategoryCurrent(category: Category){
+    fun onChangeCategoryCurrent(category: Category) {
         this.categoryCurrent.value = category
     }
 
@@ -769,17 +794,20 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             MaskUtils.convertValueStringToDouble(
                 price.value!!
             ),
-            category.value!!
+            category.value!!,
+            email
         )
 
-        val purcharAndCategory = PurchaseAndCategory(purchase,
+        val purcharAndCategory = PurchaseAndCategory(
+            purchase,
             categoryCurrent.value!!
         )
 
         if (index.value != -1 && indexInfo.value != -1 && auxPurchaseCollection.size > 0) {
-            auxPurchaseCollection[indexInfo.value!!].purchaseCollection[index.value!!] = purcharAndCategory
+            auxPurchaseCollection[indexInfo.value!!].purchaseCollection[index.value!!] =
+                purcharAndCategory
 
-            if(auxPurchaseCollection[indexInfo.value!!].title != purcharAndCategory.purchase.locale){
+            if (auxPurchaseCollection[indexInfo.value!!].title != purcharAndCategory.purchase.locale) {
                 auxPurchaseCollection[indexInfo.value!!].title = purcharAndCategory.purchase.locale
             }
 

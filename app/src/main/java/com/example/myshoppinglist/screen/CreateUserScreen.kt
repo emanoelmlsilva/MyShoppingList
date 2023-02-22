@@ -40,6 +40,7 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -47,11 +48,14 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
-
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun CreateUserScreen(navController: NavController?) {
+fun CreateUserScreen(
+    navController: NavController?,
+    isUpdate: Boolean? = false,
+    hasToolbar: Boolean? = false
+) {
     var createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
@@ -66,55 +70,100 @@ fun CreateUserScreen(navController: NavController?) {
         Category("Comida", "food_bank.png", card_red_dark.toArgb()),
         Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
     )
+    var user by remember { mutableStateOf(User()) }
+
+    LaunchedEffect(Unit) {
+        val email = UserLoggedShared.getEmailUserCurrent()
+        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
+    }
+
+    UserInstanceImpl.userViewModel?.searchResult?.observe(lifecycleOwner) {
+        user = it
+
+        createUserViewModel.onChangeName(user.name)
+
+        createUserViewModel.onChangeNickName(user.nickName)
+
+        createUserViewModel.onChangeIdAvatar(user.idAvatar)
+    }
 
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
-            userViewModel.insertUser(User(name.trim(), nickName.trim(), idAvatar))
-            categoryCollections.forEach {
-                val category = Category(it.category, it.idImage, it.color)
-                categoryViewModel.insertCategory(category)
+            if (!isUpdate!!) {
+                categoryCollections.forEach {
+                    val category = Category(user.email, it.category, it.idImage, it.color)
+                    categoryViewModel.insertCategory(category)
+                }
             }
+            user.name = name.trim()
+            user.nickName = nickName.trim()
+            user.idAvatar = idAvatar
+
+            userViewModel.updateUser(user)
             UserInstanceImpl.reset()
-            navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?nameUser=${name.trim()}")
+            UserInstanceImpl.getInstance(context, user.email)
+
+            if (isUpdate) {
+                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+                {
+                    popUpTo(Screen.Home.name) { inclusive = false }
+                }
+            } else {
+                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+                {
+                    popUpTo(Screen.Home.name) { inclusive = false }
+                }
+            }
         }
     }
 
-    TopAppBarScreen(isScrollable = true, content = {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    TopAppBarScreen(
+        hasBackButton = !hasToolbar!!,
+        hasToolbar = hasToolbar,
+        isScrollable = true,
+        hasDoneButton = hasToolbar,
+        onClickIcon = { navController?.popBackStack() },
+        onClickIconDone = { saveUser() },
+        content = {
+            Column(
+                modifier = Modifier
+                    .padding(start = 28.dp, end = 28.dp, top = 16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column {
+                    if (!hasToolbar) {
+                        HeaderText()
+                    }
+                    HeaderImage(createUserViewModel)
+                    ContentAvatares(createUserViewModel)
+                    TextFieldContent(createUserViewModel, object : Callback {
+                        override fun onClick() {
+                            saveUser()
+                        }
+                    })
+                }
 
-           Column{
-               HeaderText()
-               HeaderImage(createUserViewModel)
-               ContentAvatares(createUserViewModel)
-               TextFieldContent(createUserViewModel, object : Callback {
-                   override fun onClick() {
-                       saveUser()
-                   }
-               })
-           }
-            ButtonsFooterContent(
-                btnTextAccept = "PROXIMO",
-                iconAccept = Icons.Filled.ArrowForward,
-                onClickAccept = {
-                    saveUser()
-                })
-        }
-    })
+                if (!hasToolbar) {
+                    ButtonsFooterContent(
+                        btnTextAccept = "PROXIMO",
+                        iconAccept = Icons.Filled.ArrowForward,
+                        onClickAccept = {
+                            saveUser()
+                        })
+                }
+            }
+        })
 }
 
 @Composable
 fun HeaderText() {
-    val textWelcome = "Bem Vindo"
-    val textBody = " ao seu gerenciado de compras.\n" +
+    val textWelcome = "Bem-vindo"
+    val textBody = " ao seu gerenciador de compras.\n" +
             "\n" +
             "Aqui você vai poder ver todos os seus gastos durante os meses.\n" +
             "\n" +
-            "Vai poder visualizar de uma forma simples quais os produtos que você mais utiliza."
+            "Vai poder visualizar de forma simples os produtos que mais utiliza."
     Text(
         text = AnnotatedString(
             text = textWelcome,

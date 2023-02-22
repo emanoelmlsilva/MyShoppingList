@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.repositories.CategoryRepository
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import kotlinx.coroutines.CoroutineExceptionHandler
 
 class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner): ViewModel() {
@@ -22,7 +23,8 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner): ViewM
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
             val categoryDAO = myShopListDataBase.categoryDAO()
         userViewModel = UserViewModel(context)
-        userViewModel.getUserCurrent()
+        val email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email)
         repository = CategoryRepository(categoryDAO)
         searchCollectionResult = repository.searchCollectionResult
         searchResult = repository.searchResult
@@ -38,26 +40,26 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner): ViewM
     }
 
     fun getAll(){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
-            nameUser = it.name
-            repository.getAll(nameUser)
+            emailUser = it.email
+            repository.getAll(emailUser)
         }
     }
 
     fun getCategoryById(idCategory: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
-            nameUser = it.name
-            repository.getCategoryById(nameUser, idCategory)
+            emailUser = it.email
+            repository.getCategoryById(emailUser, idCategory)
         }
     }
 
     fun getCategoryByCategory(category: String){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
-            nameUser = it.name
-            repository.getCategoryByCategory(nameUser, category)
+            emailUser = it.email
+            repository.getCategoryByCategory(emailUser, category)
         }
     }
 }

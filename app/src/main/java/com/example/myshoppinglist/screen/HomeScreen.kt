@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,6 +36,8 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.LatoBold
+import com.example.myshoppinglist.ui.theme.card_green
+import com.example.myshoppinglist.ui.theme.card_orange
 import com.example.myshoppinglist.ui.theme.text_secondary
 import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -56,7 +59,7 @@ fun HomeScreen(navController: NavController?) {
     var idAvatar by remember {
         mutableStateOf(R.drawable.default_avatar)
     }
-    var name by remember {
+    var nickName by remember {
         mutableStateOf("")
     }
 
@@ -66,7 +69,7 @@ fun HomeScreen(navController: NavController?) {
 
     UserInstanceImpl.getUserViewModelCurrent().searchResult.observe(lifecycleOwner.value){
         idAvatar = it.idAvatar;
-        name = it.name
+        nickName = it.nickName
     }
 
     purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
@@ -94,7 +97,7 @@ fun HomeScreen(navController: NavController?) {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(userViewModel, idAvatar, name, visibleAnimation.value, object : Callback {
+            HeaderComponent(navController!!, idAvatar, nickName, visibleAnimation.value, object : Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
@@ -111,7 +114,7 @@ fun HomeScreen(navController: NavController?) {
                     val creditCardDTO = creditCardCollection[index]
 
                     Column(modifier = modifier) {
-                        BoxCardCreditCustom(creditCardDTO, navController!!)
+                        BoxCardCreditCustom(creditCardDTO, navController)
                     }
                 }
             )
@@ -122,7 +125,7 @@ fun HomeScreen(navController: NavController?) {
                 text = "Histórico Semanal",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp),
+                    .padding(start = 24.dp),
                 fontFamily = LatoBold,
                 fontSize = 24.sp
             )
