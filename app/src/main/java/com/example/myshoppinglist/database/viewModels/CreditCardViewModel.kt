@@ -11,6 +11,7 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.entities.relations.UserWithCreditCards
 import com.example.myshoppinglist.database.repositories.CreditCardRepository
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.enums.TypeProduct
 
 class CreditCardViewModel(context: Context, lifecycleOwner: LifecycleOwner): ViewModel() {
@@ -25,7 +26,8 @@ class CreditCardViewModel(context: Context, lifecycleOwner: LifecycleOwner): Vie
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val creditCardDao = myShopListDataBase.creditCardDao()
         userViewModel = UserViewModel(context)
-        userViewModel.getUserCurrent()
+        val email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email)
         repository = CreditCardRepository(creditCardDao)
         searchResult = repository.searchResult
         searchCollectionResult = repository.searchCollectionResult
@@ -41,22 +43,22 @@ class CreditCardViewModel(context: Context, lifecycleOwner: LifecycleOwner): Vie
     }
 
     fun findCreditCardById(id: Long){
-        userViewModel.searchResult.observe(mLifecycleOwner) { repository.findCardCreditById(it.name, id) }
+        userViewModel.searchResult.observe(mLifecycleOwner) { repository.findCardCreditById(it.email, id) }
     }
 
     fun getAll() {
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner) {
-            nameUser = it.name
-            repository.getAll(nameUser)
+            emailUser = it.email
+            repository.getAll(emailUser)
         }
     }
 
     fun getAllWithSum(){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observe(mLifecycleOwner){
-            nameUser = it.name
-            repository.getAllWithSum(nameUser)
+            emailUser = it.email
+            repository.getAllWithSum(emailUser)
         }
     }
 }

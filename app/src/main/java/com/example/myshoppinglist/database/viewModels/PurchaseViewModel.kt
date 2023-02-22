@@ -9,7 +9,8 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
  import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
  import com.example.myshoppinglist.database.repositories.PurchaseRepository
-import com.example.myshoppinglist.utils.FormatUtils
+ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
+ import com.example.myshoppinglist.utils.FormatUtils
 import java.util.*
 
 class PurchaseViewModel(context: Context): ViewModel() {
@@ -29,7 +30,8 @@ class PurchaseViewModel(context: Context): ViewModel() {
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val purchaseDAO = myShopListDataBase.purchaseDAO()
         userViewModel = UserViewModel(context)
-        userViewModel.getUserCurrent()
+        val email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email)
         repository = PurchaseRepository(purchaseDAO)
         searchResult = repository.searchResult
         searchPurchaseAndCategory = repository.searchCollecitonPurchaseAndCategory
@@ -40,32 +42,37 @@ class PurchaseViewModel(context: Context): ViewModel() {
     }
 
     fun getPurchasesOfSearch(arguments: MutableList<Any>, condition: String){
+        val email = UserLoggedShared.getEmailUserCurrent()
 
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
 
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
-            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND date LIKE '%' || ? || '%'", arrayOf(
-                monthAndYearNumber
-            ))
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND date LIKE '%' || ? || '%' AND purchaseUserId = ?", arrayOf(monthAndYearNumber, email))
         }else{
-            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND $condition", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND $condition AND purchaseUserId = ?", arguments.toTypedArray())
         }
+
         repository.getPurchasesOfSearch(query)
     }
 
     fun getPurchasesSumOfSearch(arguments: MutableList<Any>, condition: String){
 
+        val email = UserLoggedShared.getEmailUserCurrent()
+
         arguments.add(0, "QUANTITY")
+
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
 
         if(arguments.size == 0 || condition.isBlank()){
             arguments.add(monthAndYearNumber)
         }
 
+        arguments.add(email)
+
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%'", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%' AND purchaseUserId = ?", arguments.toTypedArray())
         }else{
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ?", arguments.toTypedArray())
         }
         repository.getPurchasesSearchSum(query)
     }
@@ -75,90 +82,90 @@ class PurchaseViewModel(context: Context): ViewModel() {
     }
 
     fun getPurchaseAll() {
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchaseAll(nameUser)
+            emailUser = it.email
+            repository.getPurchaseAll(emailUser)
         }
     }
 
     fun getPurchaseAll(idCard: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchaseAll(nameUser, idCard)
+            emailUser = it.email
+            repository.getPurchaseAll(emailUser, idCard)
         }
     }
 
     fun getPurchaseByMonth(idCard: Long, date: String){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchaseByMonth(nameUser, date, idCard)
+            emailUser = it.email
+            repository.getPurchaseByMonth(emailUser, date, idCard)
         }
     }
 
     fun getPurchaseAllByIdCard(idCard: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchaseAllByIdCard(nameUser, idCard)
+            emailUser = it.email
+            repository.getPurchaseAllByIdCard(emailUser, idCard)
         }
     }
 
     fun getMonthByIdCard(idCard: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getMonthByIdCard(nameUser, idCard)
+            emailUser = it.email
+            repository.getMonthByIdCard(emailUser, idCard)
         }
     }
 
     fun getMonthDistinctByIdCard(idCard: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getMonthDistinctByIdCard(nameUser, idCard)
+            emailUser = it.email
+            repository.getMonthDistinctByIdCard(emailUser, idCard)
         }
     }
 
     fun sumPriceById(idCard: Long){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.sumPriceById(nameUser, idCard)
+            emailUser = it.email
+            repository.sumPriceById(emailUser, idCard)
         }
     }
 
     fun sumPriceAllCard(){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.sumPriceAllCard(nameUser)
+            emailUser = it.email
+            repository.sumPriceAllCard(emailUser)
         }
     }
 
     fun sumPriceByMonth(idCard: Long, date: String){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.sumPriceByMonth(nameUser, idCard, date)
+            emailUser = it.email
+            repository.sumPriceByMonth(emailUser, idCard, date)
         }
     }
 
     fun getPurchasesWeek(){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchasesWeek(nameUser)
+            emailUser = it.email
+            repository.getPurchasesWeek(emailUser)
         }
     }
 
     fun getPurchasesAndCategoryWeek(){
-        var nameUser = ""
+        var emailUser = ""
         userViewModel.searchResult.observeForever {
-            nameUser = it.name
-            repository.getPurchasesAndCategoryWeek(nameUser)
+            emailUser = it.email
+            repository.getPurchasesAndCategoryWeek(emailUser)
         }
     }
 }

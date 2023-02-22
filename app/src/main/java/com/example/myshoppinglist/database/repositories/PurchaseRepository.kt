@@ -25,78 +25,78 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
-    fun getPurchaseAll(nameUser: String){
+    fun getPurchaseAll(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
-//            searchCollecitonResult.value = asyncFindAll(nameUser).await()
+//            searchCollecitonResult.value = asyncFindAll(emailUser).await()
         }
     }
 
-    fun getPurchaseAll(nameUser: String, idCard: Long){
+    fun getPurchaseAll(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-//            searchCollecitonResult.value = asyncFindAllByUserAndIdCard(nameUser, idCard).await()
+//            searchCollecitonResult.value = asyncFindAllByUserAndIdCard(emailUser, idCard).await()
         }
     }
 
-    fun getPurchaseByMonth(nameUser: String, date: String, idCard: Long){
+    fun getPurchaseByMonth(emailUser: String, date: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonPurchaseAndCategory.value = asyncFindAllByMonth(date, nameUser, idCard)
+            searchCollecitonPurchaseAndCategory.value = asyncFindAllByMonth(date, emailUser, idCard)
         }
     }
 
-    fun getPurchaseAllByIdCard(nameUser: String, idCard: Long){
+    fun getPurchaseAllByIdCard(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-//            searchCollecitonResult.value = asyncFindAllByIdCard(nameUser, idCard).await()
+//            searchCollecitonResult.value = asyncFindAllByIdCard(emailUser, idCard).await()
         }
     }
 
-    fun getMonthByIdCard(nameUser: String, idCard: Long){
+    fun getMonthByIdCard(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchMonthsCollection. value = asyncFindAllMonthByIdCard(nameUser, idCard).await()
+            searchMonthsCollection. value = asyncFindAllMonthByIdCard(emailUser, idCard).await()
         }
     }
 
-    fun getMonthDistinctByIdCard(nameUser: String, idCard: Long){
+    fun getMonthDistinctByIdCard(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchMonthsCollection. value = asyncFindAllMonthDistinctByIdCard(nameUser, idCard).await()
+            searchMonthsCollection. value = asyncFindAllMonthDistinctByIdCard(emailUser, idCard).await()
         }
     }
 
-    fun sumPriceAllCard(nameUser: String){
+    fun sumPriceAllCard(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
-            val value = asyncSumPriceAllCard(nameUser).await()
+            val value = asyncSumPriceAllCard(emailUser).await()
             searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
         }
     }
 
-    fun sumPriceById(nameUser: String, idCard: Long){
+    fun sumPriceById(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            val value = asyncSumPriceById(idCard, nameUser).await()
+            val value = asyncSumPriceById(idCard, emailUser).await()
             searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
         }
     }
 
-    fun sumPriceByMonth(nameUser: String, idCard: Long, date: String){
+    fun sumPriceByMonth(emailUser: String, idCard: Long, date: String){
         coroutineScope.launch(Dispatchers.Main){
-            val value = asyncSumPriceByMonth(idCard, nameUser, date).await()
+            val value = asyncSumPriceByMonth(idCard, emailUser, date).await()
             searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
         }
     }
 
-    fun getPurchasesAndCategoryWeek(nameUser: String){
+    fun getPurchasesAndCategoryWeek(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.DAY_OF_YEAR, -7)
             val limitWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonPurchaseAndCategory.value = asyncGetPurchsesAndCategoryWeek(nameUser, limitWeek).await()
+            searchCollecitonPurchaseAndCategory.value = asyncGetPurchsesAndCategoryWeek(emailUser, limitWeek).await()
         }
     }
 
-    fun getPurchasesWeek(nameUser: String){
+    fun getPurchasesWeek(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.DAY_OF_YEAR, -7)
             val limitWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonPurchase.value = asyncGetPurchsesWeek(nameUser, limitWeek).await()
+            searchCollecitonPurchase.value = asyncGetPurchsesWeek(emailUser, limitWeek).await()
         }
     }
 
@@ -122,48 +122,48 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         return@async purchaseDAO.getPurchasesSearchSum(query)
     }
 
-    private fun asyncFindAll(nameUser: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchaseAll(nameUser)
+    private fun asyncFindAll(emailUser: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchaseAll(emailUser)
     }
 
-    private fun asyncFindAllByUserAndIdCard(name: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchaseAllByUserAndIdCard(name, idCard)
+    private fun asyncFindAllByUserAndIdCard(emailUser: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchaseAllByUserAndIdCard(emailUser, idCard)
     }
 
-    private suspend fun asyncFindAllByMonth(date: String, nameUser: String, idCard: Long): List<PurchaseAndCategory> =
+    private suspend fun asyncFindAllByMonth(date: String, emailUser: String, idCard: Long): List<PurchaseAndCategory> =
         coroutineScope.async(Dispatchers.IO){
-            return@async purchaseDAO.getPurchaseByMonth(date, nameUser, idCard)
+            return@async purchaseDAO.getPurchaseByMonth(date, emailUser, idCard)
         }.await()
 
-    private fun asyncFindAllByIdCard(nameUser: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchaseAllByIdCard(nameUser, idCard)
+    private fun asyncFindAllByIdCard(emailUser: String, idCard: Long): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchaseAllByIdCard(emailUser, idCard)
     }
 
-    private fun asyncFindAllMonthByIdCard(nameUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getMonthByIdCard(nameUser, idCard)
+    private fun asyncFindAllMonthByIdCard(emailUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getMonthByIdCard(emailUser, idCard)
     }
 
-    private fun asyncFindAllMonthDistinctByIdCard(nameUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getMonthDistinctByIdCard(nameUser, idCard)
+    private fun asyncFindAllMonthDistinctByIdCard(emailUser: String, idCard: Long): Deferred<List<String>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getMonthDistinctByIdCard(emailUser, idCard)
     }
 
-    private fun asyncSumPriceById(idCard: Long, nameUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.sumPriceById(nameUser, idCard)
+    private fun asyncSumPriceById(idCard: Long, emailUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceById(emailUser, idCard)
     }
 
-    private fun asyncSumPriceAllCard(nameUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.sumPriceAllCard(nameUser)
+    private fun asyncSumPriceAllCard(emailUser: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceAllCard(emailUser)
     }
 
-    private fun asyncSumPriceByMonth(idCard: Long, nameUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.sumPriceByMonth(nameUser, idCard, date = date)
+    private fun asyncSumPriceByMonth(idCard: Long, emailUser: String, date: String): Deferred<Double> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.sumPriceByMonth(emailUser, idCard, date = date)
     }
 
-    private fun asyncGetPurchsesAndCategoryWeek(nameUser: String, week: String): Deferred<List<PurchaseAndCategory>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchasesAndCategoryWeek(week, nameUser)
+    private fun asyncGetPurchsesAndCategoryWeek(emailUser: String, week: String): Deferred<List<PurchaseAndCategory>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesAndCategoryWeek(week, emailUser)
     }
 
-    private fun asyncGetPurchsesWeek(nameUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
-        return@async purchaseDAO.getPurchasesWeek(week, nameUser)
+    private fun asyncGetPurchsesWeek(emailUser: String, week: String): Deferred<List<Purchase>> = coroutineScope.async(Dispatchers.IO){
+        return@async purchaseDAO.getPurchasesWeek(week, emailUser)
     }
 }

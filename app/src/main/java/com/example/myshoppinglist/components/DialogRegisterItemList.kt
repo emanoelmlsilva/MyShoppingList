@@ -61,7 +61,7 @@ fun DialogRegisterItemList(
 
     LaunchedEffect(key1 = itemListUpdate) {
         if (itemListUpdate != null) {
-            categoryChoice = itemListUpdate.category.id
+            categoryChoice = itemListUpdate.category.id!!
             item = itemListUpdate.itemList.item
         }
     }
@@ -186,7 +186,7 @@ fun DialogRegisterItemList(
                                 .padding(2.dp)
                                 .clip(CircleShape)
                                 .clickable {
-                                    onClick(category.id)
+                                    onClick(category.id!!)
                                 }
                             ) {
                                 Row(
@@ -208,7 +208,7 @@ fun DialogRegisterItemList(
                                         enabledBackground = false,
                                         callback = object : Callback {
                                             override fun onClick() {
-                                                onClick(category.id)
+                                                onClick(category.id!!)
                                             }
                                         }
                                     )
