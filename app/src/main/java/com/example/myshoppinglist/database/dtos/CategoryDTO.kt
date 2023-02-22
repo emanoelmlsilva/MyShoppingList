@@ -16,7 +16,7 @@ class CategoryDTO () {
     var color: Int = 0
 
     fun toCategoryDTO(category: Category){
-        this.id = category.id
+        this.id = category.id!!
         this.category = category.category
         this.idImage = category.idImage
         this.color = category.color

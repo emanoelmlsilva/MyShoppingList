@@ -37,6 +37,7 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.DialogBackCustom
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.enums.Screen
@@ -79,21 +80,24 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     }
 
     DialogBackCustom(visibilityBackHandler, {
-        visibilityBackHandler = false
-        navController.popBackStack()
+        UserLoggedShared.logout()
+        navController.navigate(Screen.ChoiceLogin.name) {
+            popUpTo(0) { inclusive = false }
+        }
     }, {
         visibilityBackHandler = false
     }, "Sair", "Deseja sair do aplicativo?")
 
-    TopAppBarScreen(
-        hasToolbar = true,
+    TopAppBarScreen(hasToolbar = true,
         hasDoneButton = true,
         colorDoneButton = text_primary_light,
         iconDone = R.drawable.ic_baseline_logout_24,
         onClickIcon = {
             navController.popBackStack()
         },
-        onClickIconDone = { visibilityBackHandler = true },
+        onClickIconDone = {
+            visibilityBackHandler = true
+        },
         content = {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -145,8 +149,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 
                 Column() {
                     Divider(
-                        color = divider,
-                        modifier = Modifier
+                        color = divider, modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
                     )
@@ -161,25 +164,21 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        BaseLazyColumnScroll(
-                            modifier = Modifier
-                                .fillMaxWidth(.9f)
-                                .reorderable(state, { fromPos, toPos ->
-                                    createCardCreditViewModel.onTaskReordered(
-                                        creditCardViewModel,
-                                        creditCardCollection,
-                                        fromPos,
-                                        toPos
-                                    )
-                                })
-                                .detectReorderAfterLongPress(state),
-                            listState = state.listState, callback = object : VisibleCallback() {
+                        BaseLazyColumnScroll(modifier = Modifier
+                            .fillMaxWidth(.9f)
+                            .reorderable(state, { fromPos, toPos ->
+                                createCardCreditViewModel.onTaskReordered(
+                                    creditCardViewModel, creditCardCollection, fromPos, toPos
+                                )
+                            })
+                            .detectReorderAfterLongPress(state),
+                            listState = state.listState,
+                            callback = object : VisibleCallback() {
                                 override fun onChangeVisible(visible: Boolean) {
                                     visibleAnimation = visible
                                 }
                             }) {
-                            items(
-                                creditCardCollection,
+                            items(creditCardCollection,
                                 key = { creditCard -> creditCard.idCard }) { creditCardDTO ->
                                 BoxItemCard(creditCardDTO, state, object : Callback {
                                     override fun onClick() {

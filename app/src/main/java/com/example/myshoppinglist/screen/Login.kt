@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,13 +35,45 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
+import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Login(navController: NavController) {
+    val context = LocalContext.current
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    var isSuccess by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+    var errorLogin by remember { mutableStateOf(false) }
+    val userViewModel: UserViewModel = UserViewModel(context)
+
+    userViewModel.searchResult.observe(lifecycleOwner){
+        isSuccess = it != null && it.email.isNotBlank()
+
+        if (isSuccess) {
+            errorLogin = false
+            UserInstanceImpl.reset()
+            UserInstanceImpl.getInstance(context, email)
+            UserLoggedShared.insertUserLogged(email)
+            navController.navigate(Screen.Home.name){
+                popUpTo(Screen.Home.name) { inclusive = false }
+            }
+        }else{
+            errorLogin = true
+        }
+    }
+
+    LaunchedEffect(Unit){
+        UserLoggedShared.getInstance(context)
+    }
 
     TopAppBarScreen(onClickIcon = { navController.popBackStack() }, content = {
         Column(
@@ -97,31 +131,31 @@ fun Login(navController: NavController) {
                     ) {
                         TextInputComponent(
                             label = "Email",
-                            value = "",
+                            value = email,
                             reset = false,
                             maxChar = 45,
                             isCountChar = true,
                             isMandatory = true,
-                            error = false,
+                            error = emailError,
                             customOnClick = object : CustomTextFieldOnClick {
                                 override fun onChangeValue(newValue: String) {
-
+                                    email = newValue
                                 }
                             })
 
                         TextInputComponent(
                             label = "Senha",
-                            value = "",
+                            value = password,
                             reset = false,
                             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             maxChar = 45,
                             isCountChar = true,
                             isMandatory = true,
-                            error = false,
+                            error = passwordError,
                             customOnClick = object : CustomTextFieldOnClick {
                                 override fun onChangeValue(newValue: String) {
-
+                                    password = newValue
                                 }
                             },
                             trailingIcon = {
@@ -129,22 +163,37 @@ fun Login(navController: NavController) {
                                     Icons.Filled.Visibility
                                 else Icons.Filled.VisibilityOff
 
-
                                 IconButton(onClick = { showPassword = !showPassword }) {
                                     Icon(imageVector = image, null)
                                 }
                             })
                     }
 
+                    if(errorLogin){
+                        Text(text = "Email ou Senha incorreto!", fontFamily = LatoRegular, fontSize = 14.sp, color = message_error)
+                    }
+
                     Button(colors = ButtonDefaults.buttonColors(backgroundColor = primary),
                         modifier = Modifier
                             .padding(vertical = 4.dp),
-                        onClick = { }) {
+                        onClick = {
+                            emailError = email.isBlank()
+                            passwordError = password.isBlank()
+
+                            if(emailError || passwordError){
+                                return@Button
+                            }
+
+                            userViewModel.findUserByName(email)
+                        }) {
                         Text(text = "ENTRAR", fontFamily = LatoRegular, fontSize = 14.sp)
                     }
 
-                    TextButton(modifier = Modifier.padding(bottom = 26.dp), onClick = { navController.navigate(
-                        Screen.Register.name) }) {
+                    TextButton(modifier = Modifier.padding(bottom = 26.dp), onClick = {
+                        navController.navigate(
+                            Screen.Register.name
+                        )
+                    }) {
                         Text(
                             text = "Não tem conta criada? Sign up",
                             fontFamily = LatoRegular,

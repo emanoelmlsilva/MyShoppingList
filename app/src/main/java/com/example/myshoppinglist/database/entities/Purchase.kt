@@ -28,6 +28,8 @@ class Purchase {
     var price: Double = 0.0
     @ColumnInfo(name = "categoryOwnerId")
     var categoryOwnerId: Long = 0
+    @ColumnInfo(name = "purchaseUserId")
+    var purchaseUserId:String = ""
 
     constructor(name: String){
         this.name = name
@@ -44,7 +46,8 @@ class Purchase {
         typeProduct: TypeProduct,
         date: String,
         price: Double,
-        categoryOwnerId: Long
+        categoryOwnerId: Long,
+        purchaseUserId: String
     ) {
         this.name = name
         this.locale = locale
@@ -54,6 +57,7 @@ class Purchase {
         this.date = date
         this.price = price
         this.categoryOwnerId = categoryOwnerId
+        this.purchaseUserId = purchaseUserId
     }
 
     override fun toString(): String {

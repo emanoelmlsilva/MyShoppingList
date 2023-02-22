@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.controller.NavController
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
@@ -48,7 +49,9 @@ class MainActivity : ComponentActivity() {
                 val userViewModel: UserViewModel = UserViewModel(context)
                 val bottomBarState = rememberSaveable { (mutableStateOf(false)) }
 
-                val route = Screen.ChoiceLogin// if(userViewModel.hasExistUser()) Screen.Home else Screen.CreateUser
+                val email = UserLoggedShared.getEmailUserCurrent()
+
+                val route = if(userViewModel.hasExistUser(email)) Screen.Home else Screen.ChoiceLogin
 
                 val screenBarCollection = listOf(
                     Screen.Home,

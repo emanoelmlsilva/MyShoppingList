@@ -38,6 +38,7 @@ import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.CreditCard
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -69,9 +70,12 @@ fun CreateCardScreen(
     var userDTO by remember {
         mutableStateOf<UserDTO?>(null)
     }
-
+    var email by remember {
+        mutableStateOf("")
+    }
     LaunchedEffect(Unit) {
-        userViewModel.getUserCurrent()
+        email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email)
         creditCardViewModel.getAll()
     }
 
@@ -121,7 +125,7 @@ fun CreateCardScreen(
                     valueCreditCard!!,
                     colorCurrent.toArgb(),
                     (if(!isUpdate) typeCard else typeCardRecover)!!,
-                    userDTO!!.name,
+                    email,
                     flagCurrent,
                     lastPosition!!
                 )
@@ -129,7 +133,6 @@ fun CreateCardScreen(
                 if(!isUpdate){
                     creditCardViewModel.insertCreditCard(creditCard)
                     if (typeCard == TypeCard.MONEY) {
-                        UserInstanceImpl.getInstance(context)
                         navController?.navigate(Screen.Home.name) {
                             popUpTo(Screen.Home.name) { inclusive = false }
                         }

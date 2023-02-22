@@ -3,8 +3,10 @@ package com.example.myshoppinglist.database.sharedPreference
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 
 class UserLoggedShared private constructor(context: Context) {
+
     init {
         sharedPreference = context.getSharedPreferences("USER_LOGGED",Context.MODE_PRIVATE)
     }
@@ -12,7 +14,7 @@ class UserLoggedShared private constructor(context: Context) {
     companion object{
         @SuppressLint("StaticFieldLeak")
         private var instance: UserLoggedShared? = null
-        var sharedPreference: SharedPreferences = TODO()
+        lateinit var sharedPreference: SharedPreferences
         private const val USER_LOGGER = "user_logger"
 
         @JvmStatic
@@ -26,15 +28,20 @@ class UserLoggedShared private constructor(context: Context) {
 
         @JvmStatic
         fun insertUserLogged(emailUser: String){
-            var editor = sharedPreference.edit()
+            val editor = sharedPreference.edit()
 
             editor.putString(USER_LOGGER, emailUser)
             editor.apply()
         }
 
         @JvmStatic
+        fun getEmailUserCurrent(): String{
+            return sharedPreference.getString(USER_LOGGER, "")!!
+        }
+
+        @JvmStatic
         fun logout(){
-            var editor = sharedPreference.edit()
+            val editor = sharedPreference.edit()
             editor.clear()
             editor.apply()
         }

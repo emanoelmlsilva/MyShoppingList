@@ -240,6 +240,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
             if (purchaseInfoCollection.isNotEmpty()) {
                 BaseLazyColumnScroll(
+                    horizontalAlignment = Alignment.Start,
                     modifier = Modifier.fillMaxWidth(),
                     callback = object : VisibleCallback() {
                         override fun onChangeVisible(visible: Boolean) {

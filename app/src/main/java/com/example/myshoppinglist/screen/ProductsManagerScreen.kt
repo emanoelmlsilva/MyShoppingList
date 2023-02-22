@@ -1308,7 +1308,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
                 nameFields += "categoryOwnerId = ?"
-                collectionSeach.add(category.id)
+                collectionSeach.add(category.id!!)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " OR "

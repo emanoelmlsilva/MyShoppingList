@@ -26,36 +26,36 @@ class CategoryRepository(private val categoryDAO: CategoryDAO) {
         }
     }
 
-    fun getCategoryById(nameUser: String, idCategory: Long) {
+    fun getCategoryById(emailUser: String, idCategory: Long) {
         coroutineScope.launch(Dispatchers.Main) {
-            searchResult.value = asyncFindById(nameUser, idCategory)
+            searchResult.value = asyncFindById(emailUser, idCategory)
         }
     }
 
-    fun getCategoryByCategory(nameUser: String, category: String) {
+    fun getCategoryByCategory(emailUser: String, category: String) {
         coroutineScope.launch(Dispatchers.Main) {
-            searchResult.value = asyncFindByCategory(nameUser, category)
+            searchResult.value = asyncFindByCategory(emailUser, category)
         }
     }
 
-    fun getAll(nameUser: String) {
+    fun getAll(emailUser: String) {
         coroutineScope.launch(Dispatchers.Main) {
-            searchCollectionResult.value = asyncFindAll(nameUser)
+            searchCollectionResult.value = asyncFindAll(emailUser)
         }
     }
 
-    private suspend fun asyncFindById(name: String, idCategory: Long): Category =
+    private suspend fun asyncFindById(email: String, idCategory: Long): Category =
         coroutineScope.async(Dispatchers.IO) {
-            return@async categoryDAO.getById(idCategory)
+            return@async categoryDAO.getById(idCategory, email)
         }.await()
 
-    private suspend fun asyncFindByCategory(name: String, category: String): Category =
+    private suspend fun asyncFindByCategory(email: String, category: String): Category =
         coroutineScope.async(Dispatchers.IO) {
-            return@async categoryDAO.getByCategory(category)
+            return@async categoryDAO.getByCategory(category, email)
         }.await()
 
-    private suspend fun asyncFindAll(name: String): List<Category> =
+    private suspend fun asyncFindAll(email: String): List<Category> =
         coroutineScope.async(Dispatchers.IO) {
-            return@async categoryDAO.getAll()
+            return@async categoryDAO.getAll(email)
         }.await()
 }
