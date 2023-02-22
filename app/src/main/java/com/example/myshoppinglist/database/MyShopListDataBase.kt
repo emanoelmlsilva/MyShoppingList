@@ -6,12 +6,13 @@ import androidx.room.migration.AutoMigrationSpec
 import com.example.myshoppinglist.database.daos.*
 import com.example.myshoppinglist.database.entities.*
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 6, exportSchema = true
-, autoMigrations = [AutoMigration (
-    from = 5,
-    to = 6,
-    spec = MyShopListDataBase.MyAutoMigration::class
-)])
+@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 1, exportSchema = true
+//    , autoMigrations = [AutoMigration (
+//    from = 0,
+//    to = 1,
+//    spec = MyShopListDataBase.MyAutoMigration::class
+//)]
+)
 abstract class MyShopListDataBase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
@@ -20,12 +21,6 @@ abstract class MyShopListDataBase : RoomDatabase() {
     abstract fun categoryDAO(): CategoryDAO
     abstract fun itemListDAO(): ItemListDAO
 
-    @DeleteColumn(tableName = "purchases",columnName = "category")
-    @RenameColumn(
-        tableName = "purchases",
-        fromColumnName = "category",
-        toColumnName = "categoryOwnerId"
-    )
     class MyAutoMigration : AutoMigrationSpec{}
 
     companion object {

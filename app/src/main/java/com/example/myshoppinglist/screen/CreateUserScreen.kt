@@ -40,6 +40,7 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
@@ -69,38 +70,46 @@ fun CreateUserScreen(
         Category("Comida", "food_bank.png", card_red_dark.toArgb()),
         Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
     )
+    var user by remember { mutableStateOf(User()) }
 
-    LaunchedEffect(key1 = isUpdate) {
-        if (isUpdate!!) {
-            userViewModel.getUserCurrent()
-        }
+    LaunchedEffect(Unit) {
+        val email = UserLoggedShared.getEmailUserCurrent()
+        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
     }
 
-    userViewModel.searchResult.observe(lifecycleOwner) { userDTO ->
-        createUserViewModel.onChangeName(userDTO.name)
+    UserInstanceImpl.userViewModel?.searchResult?.observe(lifecycleOwner) {
+        user = it
 
-        createUserViewModel.onChangeNickName(userDTO.nickName)
+        createUserViewModel.onChangeName(user.name)
 
-        createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
+        createUserViewModel.onChangeNickName(user.nickName)
+
+        createUserViewModel.onChangeIdAvatar(user.idAvatar)
     }
 
     fun saveUser() {
         if (createUserViewModel.checkFileds()) {
-            val user = User(name.trim(), nickName.trim(), idAvatar)
-
             if (!isUpdate!!) {
-                userViewModel.insertUser(user)
                 categoryCollections.forEach {
-                    val category = Category(it.category, it.idImage, it.color)
+                    val category = Category(user.email, it.category, it.idImage, it.color)
                     categoryViewModel.insertCategory(category)
                 }
-                UserInstanceImpl.reset()
-                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
-            } else {
-                userViewModel.updateUser(user)
-                UserInstanceImpl.reset()
-                UserInstanceImpl.getInstance(context)
+            }
+            user.name = name.trim()
+            user.nickName = nickName.trim()
+            user.idAvatar = idAvatar
+
+            userViewModel.updateUser(user)
+            UserInstanceImpl.reset()
+            UserInstanceImpl.getInstance(context, user.email)
+
+            if (isUpdate) {
                 navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+                {
+                    popUpTo(Screen.Home.name) { inclusive = false }
+                }
+            } else {
+                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
                 {
                     popUpTo(Screen.Home.name) { inclusive = false }
                 }
@@ -114,7 +123,7 @@ fun CreateUserScreen(
         isScrollable = true,
         hasDoneButton = hasToolbar,
         onClickIcon = { navController?.popBackStack() },
-        onClickIconDone = {  saveUser() },
+        onClickIconDone = { saveUser() },
         content = {
             Column(
                 modifier = Modifier

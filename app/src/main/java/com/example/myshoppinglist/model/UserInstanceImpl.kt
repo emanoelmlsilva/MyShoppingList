@@ -9,12 +9,12 @@ class UserInstanceImpl{
         var userViewModel: UserViewModel? = null
         private var instance: UserInstanceImpl? = null
 
-        fun getInstance(context: Context): UserInstanceImpl {
+        fun getInstance(context: Context, email: String): UserInstanceImpl {
             userViewModel = UserViewModel(context)
 
             if (instance == null) {
                 instance = UserInstanceImpl()
-                userViewModel!!.getUserCurrent()
+                userViewModel!!.findUserByName(email)
             }
             return this.instance!!
         }

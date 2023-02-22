@@ -5,6 +5,7 @@ import com.example.myshoppinglist.database.entities.User
 
 class UserDTO() {
 
+    var email: String = ""
     var name: String = ""
     var nickName: String = ""
     var idAvatar:Int = R.drawable.default_avatar
@@ -13,9 +14,5 @@ class UserDTO() {
         name = user.name
         nickName = user.nickName
         idAvatar = user.idAvatar
-    }
-
-    fun fromUser(): User{
-        return User(this.name, this.nickName, this.idAvatar)
     }
 }

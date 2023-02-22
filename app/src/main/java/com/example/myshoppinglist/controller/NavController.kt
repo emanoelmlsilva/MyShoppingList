@@ -143,5 +143,14 @@ fun NavController(
 
             SettingsScreen(navHostController, idAvatar!!, nickName!!)
         }
+        composable(Screen.ChoiceLogin.name){
+            ChoiceLogin(navHostController)
+        }
+        composable(Screen.Login.name){
+            Login(navHostController)
+        }
+        composable(Screen.Register.name){
+            Register(navHostController)
+        }
     }
 }

@@ -15,5 +15,8 @@ enum class Screen(val id: Int) {
     RegisterCategory(R.drawable.default_avatar),
     ListPurchase(R.drawable.default_avatar),
     MakingMarketScreen(R.drawable.default_avatar),
-    SettingsScreen(R.drawable.default_avatar);
+    SettingsScreen(R.drawable.default_avatar),
+    ChoiceLogin(R.drawable.default_avatar),
+    Login(R.drawable.default_avatar),
+    Register(R.drawable.default_avatar)
 }

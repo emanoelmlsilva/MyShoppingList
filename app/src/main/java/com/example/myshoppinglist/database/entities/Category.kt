@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
 import org.jetbrains.annotations.NotNull
 
 @JsonClass(generateAdapter = true)
-@Entity(tableName = "category", indices = [Index(value = ["category"], unique = true)])
+@Entity(tableName = "category")
 class Category{
 
     @PrimaryKey(autoGenerate = true)
@@ -24,6 +24,9 @@ class Category{
     @ColumnInfo(name = "color")
     var color: Int = 0
 
+    @ColumnInfo(name = "categoryUserId")
+    var categoryUserId: String = ""
+
     constructor(): super(){
     }
 
@@ -34,6 +37,10 @@ class Category{
 
     constructor(category: String, idImage: String, color: Int):this(category, idImage){
         this.color = color
+    }
+
+    constructor(emailUser: String, category: String, idImage: String, color: Int):this(category, idImage, color){
+        this.categoryUserId = emailUser
     }
 
     override fun toString(): String {

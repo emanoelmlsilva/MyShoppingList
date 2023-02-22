@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.database.dtos.UserDTO
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "users")
@@ -12,7 +11,14 @@ class User {
 
     @PrimaryKey
     @NotNull
-    @ColumnInfo(name = "userId")
+    @ColumnInfo(name = "email")
+    var email: String = ""
+
+    @NotNull
+    @ColumnInfo(name = "password")
+    var password: String = ""
+
+    @ColumnInfo(name = "userName")
     var name: String = ""
 
     @ColumnInfo(name = "nickName")
@@ -23,13 +29,21 @@ class User {
 
     constructor()
 
-    constructor(name: String, nickName: String, idAvatar: Int) {
+    constructor(email: String, password: String): this() {
+        this.email = email
+        this.password = password
+    }
+
+    constructor(email: String, password: String, name: String, nickName: String, idAvatar: Int) {
+        this.email = email
+        this.password = password
         this.name = name
         this.nickName = nickName
         this.idAvatar = idAvatar
     }
 
     override fun toString(): String {
-        return "User(name='$name', nickName='$nickName', idAvatar=$idAvatar)"
+        return "User(email='$email', password='$password', name='$name', nickName='$nickName', idAvatar=$idAvatar)"
     }
+
 }

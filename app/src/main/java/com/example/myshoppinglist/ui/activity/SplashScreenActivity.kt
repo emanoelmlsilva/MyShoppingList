@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.model.UserInstanceImpl
 import kotlinx.coroutines.delay
 
@@ -20,7 +21,11 @@ class SplashScreenActivity: ComponentActivity()  {
         super.onCreate(savedInstanceState)
         lifecycleScope.launchWhenCreated {
 
-            UserInstanceImpl.getInstance(applicationContext)
+            UserLoggedShared.getInstance(applicationContext)
+
+            val email = UserLoggedShared.getEmailUserCurrent()
+
+            UserInstanceImpl.getInstance(applicationContext, email)
 
             delay(3000)
 

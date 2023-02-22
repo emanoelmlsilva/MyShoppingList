@@ -40,6 +40,7 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.ItemListViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
@@ -382,6 +383,7 @@ fun DialogSaveProduct(
     val coroutineScope = rememberCoroutineScope()
     val purchaseViewModel = PurchaseViewModel(context)
     val itemListViewModel = ItemListViewModel(context, lifecycleOwner)
+    val email = UserLoggedShared.getEmailUserCurrent()
 
     LaunchedEffect(Unit) {
         creditCardViewModel.getAll()
@@ -429,7 +431,8 @@ fun DialogSaveProduct(
                             MaskUtils.convertValueStringToDouble(
                                 it.price.toString()
                             ),
-                            category.id
+                            category.id,
+                            email
                         )
                         purchase
                     }

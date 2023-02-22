@@ -26,34 +26,34 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         }
     }
 
-    fun findCardCreditById(nameUser: String, id: Long){
+    fun findCardCreditById(emailUser: String, id: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchResult.value = asyncFind(nameUser, id).await()
+            searchResult.value = asyncFind(emailUser, id).await()
         }
     }
 
-    fun getAll(nameUser: String){
+    fun getAll(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollectionResult.value = asynFindAll(nameUser).await()
+            searchCollectionResult.value = asynFindAll(emailUser).await()
         }
     }
 
-    fun getAllWithSum(nameUser: String){
+    fun getAllWithSum(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollectionResult.value = ansyFindAllWithSum(nameUser).await()
+            searchCollectionResult.value = ansyFindAllWithSum(emailUser).await()
         }
     }
 
-    private fun asyncFind(name: String, id: Long): Deferred<CreditCard?> = coroutineScope.async(Dispatchers.IO){
-        return@async cardCreditCardDAO.findCreditCardById(name, id)
+    private fun asyncFind(emailUser: String, id: Long): Deferred<CreditCard?> = coroutineScope.async(Dispatchers.IO){
+        return@async cardCreditCardDAO.findCreditCardById(emailUser, id)
     }
 
-    private fun asynFindAll(name: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
-        return@async cardCreditCardDAO.getAll(name)
+    private fun asynFindAll(emailUser: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
+        return@async cardCreditCardDAO.getAll(emailUser)
     }
 
-    private fun ansyFindAllWithSum(name: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
+    private fun ansyFindAllWithSum(email: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
         val dateMonth = FormatUtils().getMonthAndYear()
-        return@async cardCreditCardDAO.getAllWithSum(name, dateMonth)
+        return@async cardCreditCardDAO.getAllWithSum(email, dateMonth)
     }
 }

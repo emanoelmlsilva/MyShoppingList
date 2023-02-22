@@ -16,7 +16,7 @@ class CreditCardDTO(
     var flag: Int = CardCreditFlag.MONEY.flag,
     var flagBlack: Int = CardCreditFlag.MONEY.flagBlack,
     var position: Int = 0,
-    var userId: String = ""){
+    var email: String = ""){
 
      fun fromCreditCardDTO(creditCard: CreditCard): CreditCardDTO{
         return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag), creditCard.position, creditCard.cardUserId)
@@ -35,7 +35,7 @@ class CreditCardDTO(
     }
 
     fun toCreditCard(): CreditCard{
-        val creditCard = CreditCard(holderName, cardName, value, colorCard, typeCard, userId, flag, position)
+        val creditCard = CreditCard(holderName, cardName, value, colorCard, typeCard, email, flag, position)
         creditCard.id = idCard
 
         return creditCard

@@ -45,6 +45,7 @@ import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
@@ -360,7 +361,7 @@ fun CategoryProduct(
 
 
     fun onClick(category: Category) {
-        registerTextFieldViewModel.onChangeCategory(category.id)
+        registerTextFieldViewModel.onChangeCategory(category.id!!)
         registerTextFieldViewModel.onChangeCategoryCurrent(category)
     }
 
@@ -666,6 +667,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     private val indexInfo: MutableLiveData<Int> = MutableLiveData(-1)
     val categoryCollection = MutableLiveData<MutableList<Category>>(mutableListOf())
 
+    val email = UserLoggedShared.getEmailUserCurrent()
+
     fun updateData(purchase: Purchase, newIndex: Int, newIndexInfo: Int) {
         product.value = purchase.name
         price.value = purchase.price.toString()
@@ -791,7 +794,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             MaskUtils.convertValueStringToDouble(
                 price.value!!
             ),
-            category.value!!
+            category.value!!,
+            email
         )
 
         val purcharAndCategory = PurchaseAndCategory(
