@@ -2,7 +2,8 @@ package com.example.myshoppinglist.database.viewModels
 
  import android.annotation.SuppressLint
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
+ import android.util.Log
+ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.myshoppinglist.database.MyShopListDataBase
@@ -34,7 +35,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         userViewModel.findUserByName(email)
         repository = PurchaseRepository(purchaseDAO)
         searchResult = repository.searchResult
-        searchPurchaseAndCategory = repository.searchCollecitonPurchaseAndCategory
+        searchPurchaseAndCategory = repository.searchCollectionPurchaseAndCategory
         searchPurchases = repository.searchCollecitonPurchase
         searchResultMonths = repository.searchMonthsCollection
         searchSumPriceResult = repository.searchPrice
@@ -42,16 +43,28 @@ class PurchaseViewModel(context: Context): ViewModel() {
     }
 
     fun getPurchasesOfSearch(arguments: MutableList<Any>, condition: String){
+        getPurchasesOfSearch(arguments, condition, null)
+    }
+
+    fun getPurchasesOfSearch(arguments: MutableList<Any>, condition: String, valueGroupBy: String?){
         val email = UserLoggedShared.getEmailUserCurrent()
 
-        val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
-
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
+            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
+
             SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND date LIKE '%' || ? || '%' AND purchaseUserId = ?", arrayOf(monthAndYearNumber, email))
         }else{
-            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND $condition AND purchaseUserId = ?", arguments.toTypedArray())
-        }
+            val argumentsToJson = arguments.map { it }.toMutableList()
+            var conditionGroupBy = ""
 
+            argumentsToJson.add(email)
+
+            if(valueGroupBy != null){
+                conditionGroupBy = valueGroupBy
+            }
+
+            SimpleSQLiteQuery("SELECT * FROM purchases, category WHERE category.id = categoryOwnerId AND $condition AND purchaseUserId = ? $conditionGroupBy", argumentsToJson.toTypedArray())
+        }
         repository.getPurchasesOfSearch(query)
     }
 
@@ -72,7 +85,7 @@ class PurchaseViewModel(context: Context): ViewModel() {
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
             SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%' AND purchaseUserId = ?", arguments.toTypedArray())
         }else{
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ?", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ? ", arguments.toTypedArray())
         }
         repository.getPurchasesSearchSum(query)
     }
