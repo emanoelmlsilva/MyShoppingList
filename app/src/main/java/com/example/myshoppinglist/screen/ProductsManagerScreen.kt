@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -38,7 +38,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
@@ -47,7 +46,6 @@ import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModel
@@ -77,7 +75,6 @@ fun ProductsManagerScreen(navController: NavController?) {
     val productManagerFieldViewModel: ProductManagerFieldViewModel =
         ProductManagerFieldViewModel(context)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-    val purchaseInfoFilterCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00") }
     var visibleAnimation by remember { mutableStateOf(true) }
@@ -98,8 +95,8 @@ fun ProductsManagerScreen(navController: NavController?) {
     productManagerFieldViewModel.purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner) {
         quantityPurchases =
             if (it.size > 100) it.size.toString() else if (it.size < 10) "00${it.size}" else "0${it.size}"
-        purchaseInfoFilterCollection.removeAll(purchaseInfoFilterCollection)
-        purchaseInfoFilterCollection.addAll(it)
+
+        productManagerFieldViewModel.onChangePurchaseInfoCollection(mountItemPurchase(it))
     }
 
     productManagerFieldViewModel.purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner) {
@@ -126,7 +123,7 @@ fun ProductsManagerScreen(navController: NavController?) {
                 quantityPurchases
             )
 
-            BoxPurchaseItens(context, purchaseInfoFilterCollection, productManagerFieldViewModel)
+            BoxPurchaseItens(context, lifecycleOwner, productManagerFieldViewModel.purchaseInfoCollection.observeAsState(initial = listOf()).value, productManagerFieldViewModel)
 
         }
     }
@@ -169,8 +166,13 @@ fun SearchProduct(
             )
         }
 
-        if (productItem == filter.text) {
-            filter.text = ""
+        if (filter.textCollection.indexOf(productItem) != -1) {
+            val indexProduct =
+                filter.textCollection.indexOf(productItem)
+            if (indexProduct != -1) {
+                filter.textCollection.removeAt(indexProduct)
+            }
+
         } else if (productItem == filter.month) {
             filter.month = ""
         } else if (productItem == "$formarValueMin á $formarValueMax") {
@@ -226,7 +228,13 @@ fun SearchProduct(
 
                         override fun onChangeObjectFilter(value: ObjectFilter) {
 
+                            value.textCollection = filter.textCollection
+
                             listProductText.removeAll(listProductText)
+
+                            filter.textCollection.forEach {
+                                listProductText.add(it)
+                            }
 
                             value.categoryCollection.forEach { category ->
                                 listProductText.add("%category%, ${category.id}, ${category.category}, ${category.idImage}, ${category.color}")
@@ -288,14 +296,16 @@ fun SearchProduct(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        filter.text = product.value
+                                        if(product.value.isNotBlank()){
+                                            filter.textCollection.add(product.value.trim())
 
-                                        productManagerFieldViewModel.mountObejctSearchDatabase(
-                                            filter
-                                        )
-                                        listProductText.add(product.value)
-                                        reset.value = true
-                                        productManagerFieldViewModel.onChangeProduct("")
+                                            productManagerFieldViewModel.mountObejctSearchDatabase(
+                                                filter
+                                            )
+                                            listProductText.add(product.value.trim())
+                                            reset.value = true
+                                            productManagerFieldViewModel.onChangeProduct("")
+                                        }
 
                                     }
                                 ),
@@ -409,21 +419,13 @@ fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
 @Composable
 fun BoxPurchaseItens(
     context: Context,
-    purchaseCollection: List<PurchaseAndCategory>,
+    lifecycleOwner: LifecycleOwner,
+    purchaseInfoCollection: List<PurchaseInfo>,
     productManagerFieldViewModel: ProductManagerFieldViewModel
 ) {
-    var purchaseInfoCollection = remember {
-        mutableStateListOf<PurchaseInfo>()
-    }
-    var listState: LazyListState = rememberLazyListState()
+    val listState: LazyListState = rememberLazyListState()
 
     val expandeds = remember { mutableStateListOf<Int>() }
-
-    LaunchedEffect(key1 = purchaseCollection.size) {
-        purchaseInfoCollection.removeAll(purchaseInfoCollection)
-        purchaseInfoCollection.addAll(mountItemPurchase(purchaseCollection))
-    }
-
 
     fun expandableContainer(index: Int) {
         val auxExpandeds = expandeds.toMutableList()
@@ -875,7 +877,7 @@ fun AlertDialogFilter(
                         priceMax = priceMax,
                         idCard = idCardCredit,
                         month = month,
-                        cardFilter = currentCardCreditFilter
+                        cardFilter = currentCardCreditFilter,
                     )
                     callback.onChangeObjectFilter(saveFilter)
                     callback.onClick()
@@ -1241,7 +1243,11 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
     var cardCreditCollection: MutableLiveData<List<CreditCardDTO>> =
         MutableLiveData(mutableListOf())
     var visibleAnimation: MutableLiveData<Boolean> = MutableLiveData(true)
+    var purchaseInfoCollection: MutableLiveData<List<PurchaseInfo>> = MutableLiveData(mutableListOf())
 
+    fun onChangePurchaseInfoCollection(newPurchaseInfoCollection: List<PurchaseInfo>){
+        purchaseInfoCollection.value = newPurchaseInfoCollection
+    }
     fun onChangeVisibleAnimation(newVisibleAnimation: Boolean) {
         this.visibleAnimation.value = newVisibleAnimation
     }
@@ -1263,9 +1269,20 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         var nameFields: String = ""
         var collectionSeach: MutableList<Any> = mutableListOf()
 
-        if (objectFilter.text.isNotBlank()) {
-            nameFields += "name LIKE '%' || ? || '%'"
-            collectionSeach.add(objectFilter.text)
+        if (objectFilter.textCollection.isNotEmpty()) {
+
+            if (collectionSeach.isNotEmpty()) {
+                nameFields += " AND "
+            }
+
+            objectFilter.textCollection.forEachIndexed { index, product ->
+                nameFields += "name LIKE '%' || ? || '%'"
+                collectionSeach.add(product.trim())
+
+                if (objectFilter.textCollection.size > 1 && index < objectFilter.textCollection.size - 1) {
+                    nameFields += " OR "
+                }
+            }
         }
 
         if (objectFilter.priceMin != null && objectFilter.priceMin!! >= 0) {
@@ -1308,7 +1325,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
                 nameFields += "categoryOwnerId = ?"
-                collectionSeach.add(category.id!!)
+                collectionSeach.add(category.id)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " OR "
@@ -1326,7 +1343,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         }
 
         purchaseViewModel.getPurchasesOfSearch(
-            collectionSeach, nameFields
+            collectionSeach, nameFields, if(objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
         )
 
         purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)

@@ -13,7 +13,7 @@ import java.util.*
 class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     val searchResult = MutableLiveData<Purchase>()
-    val searchCollecitonPurchaseAndCategory = MutableLiveData<List<PurchaseAndCategory>>()
+    val searchCollectionPurchaseAndCategory = MutableLiveData<List<PurchaseAndCategory>>()
     val searchCollecitonPurchase = MutableLiveData<List<Purchase>>()
     val searchMonthsCollection = MutableLiveData<List<String>>()
     val searchPrice = MutableLiveData<Double>()
@@ -39,7 +39,7 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     fun getPurchaseByMonth(emailUser: String, date: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonPurchaseAndCategory.value = asyncFindAllByMonth(date, emailUser, idCard)
+            searchCollectionPurchaseAndCategory.value = asyncFindAllByMonth(date, emailUser, idCard)
         }
     }
 
@@ -87,7 +87,7 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
             val calendar = Calendar.getInstance()
             calendar.add(Calendar.DAY_OF_YEAR, -7)
             val limitWeek = FormatUtils().getDateString(calendar.time)
-            searchCollecitonPurchaseAndCategory.value = asyncGetPurchsesAndCategoryWeek(emailUser, limitWeek).await()
+            searchCollectionPurchaseAndCategory.value = asyncGetPurchsesAndCategoryWeek(emailUser, limitWeek).await()
         }
     }
 
@@ -102,7 +102,7 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     fun getPurchasesOfSearch(query: SupportSQLiteQuery){
         coroutineScope.launch(Dispatchers.Main){
-            searchCollecitonPurchaseAndCategory.value = asyncGetPurchasesSearch(query)
+            searchCollectionPurchaseAndCategory.value = asyncGetPurchasesSearch(query)
         }
 
     }
