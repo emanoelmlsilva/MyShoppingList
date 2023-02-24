@@ -691,7 +691,7 @@ fun AlertDialogFilter(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
+                .fillMaxHeight().background(secondary)
                 .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
