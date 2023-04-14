@@ -6,7 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
@@ -40,6 +44,7 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
@@ -62,6 +67,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val creditCardCollection = remember { mutableListOf<CreditCard>() }
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null) }
     val visibleAnimation = remember { mutableStateOf(true) }
+    var idPurchaseEdit by remember{ mutableStateOf(0L) }
 
     LaunchedEffect(key1 = idCard) {
         creditCardViewModel.getAll()
@@ -145,129 +151,143 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     }
 
-    TopAppBarScreen(hasBackButton = true, hasDoneButton = false, hasToolbar = true ,onClickIcon = { navController?.popBackStack() }, content = {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            BoxSpendingFromMonth(
-                spendingTextFieldViewModel,
-                monthsCollection,
-                price.value,
-                currentCreditCard.value,
-                creditCardCollection,
-                object :
-                    CallbackCreditCard {
-                    override fun onChangeValueCreditCard(creditCard: CreditCard) {
-                        currentCreditCard.value = creditCard
+    TopAppBarScreen(
+        hasBackButton = true,
+        hasDoneButton = false,
+        hasToolbar = true,
+        onClickIcon = { navController?.popBackStack() },
+        content = {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                BoxSpendingFromMonth(
+                    spendingTextFieldViewModel,
+                    monthsCollection,
+                    price.value,
+                    currentCreditCard.value,
+                    creditCardCollection,
+                    object :
+                        CallbackCreditCard {
+                        override fun onChangeValueCreditCard(creditCard: CreditCard) {
+                            currentCreditCard.value = creditCard
 
-                        purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
+                            purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
 
-                        reset()
+                            reset()
 
-                    }
-                })
+                        }
+                    })
 
-            Spacer(
-                Modifier
-                    .height(35.dp)
-            )
+                Spacer(
+                    Modifier
+                        .height(35.dp)
+                )
 
-            BaseAnimationComponent(
-                visibleAnimation = visibleAnimation.value,
-                contentBase = {
-                    Column {
-                        Row {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Card(modifier = Modifier
-                                    .size(62.dp)
-                                    .clip(CircleShape),
-                                    backgroundColor = background_card,
-                                    onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(ButtonDefaults.IconSize)
-                                            .padding(18.dp),
+                BaseAnimationComponent(
+                    visibleAnimation = visibleAnimation.value,
+                    contentBase = {
+                        Column {
+                            Row {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Card(modifier = Modifier
+                                        .size(62.dp)
+                                        .clip(CircleShape),
+                                        backgroundColor = background_card,
+                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(ButtonDefaults.IconSize)
+                                                .padding(18.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = "Comprar",
+                                        fontFamily = LatoBlack,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
                                     )
                                 }
-                                Text(
-                                    text = "Comprar",
-                                    fontFamily = LatoBlack,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
 
+                                Spacer(
+                                    Modifier
+                                        .width(20.dp)
+                                )
+
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Card(modifier = Modifier
+                                        .size(62.dp)
+                                        .clip(CircleShape),
+                                        backgroundColor = background_card,
+                                        onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard.value?.id ?: idCard}") }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.list_view),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(ButtonDefaults.IconSize)
+                                                .padding(18.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = "Lista Mercado",
+                                        fontFamily = LatoBlack,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
                             Spacer(
                                 Modifier
-                                    .width(20.dp)
+                                    .height(15.dp)
                             )
 
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Card(modifier = Modifier
-                                    .size(62.dp)
-                                    .clip(CircleShape),
-                                    backgroundColor = background_card,
-                                    onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard.value?.id ?: idCard}") }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.list_view),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(ButtonDefaults.IconSize)
-                                            .padding(18.dp),
-                                    )
+                            Divider(
+                                color = divider,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                            )
+                        }
+                    })
+
+                if (purchaseInfoCollection.isNotEmpty()) {
+                    BaseLazyColumnScroll(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.fillMaxWidth(),
+                        callback = object : VisibleCallback() {
+                            override fun onChangeVisible(visible: Boolean) {
+                                if (visibleAnimation.value != visible) {
+                                    visibleAnimation.value = visible
                                 }
+                            }
+                        }
+                    ) {
+                        purchaseInfoCollection.map { purchaseInfo ->
+                            item {
                                 Text(
-                                    text = "Lista Mercado",
-                                    fontFamily = LatoBlack,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(top = 4.dp)
+                                    text = FormatUtils().getNameDay(purchaseInfo.title)
+                                        .capitalize(),
+                                    modifier = Modifier.padding(start = 8.dp, top = 24.dp),
+                                    color = text_title_secondary
                                 )
                             }
-                        }
-                        Spacer(
-                            Modifier
-                                .height(15.dp)
-                        )
 
-                        Divider(
-                            color = divider,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                        )
-                    }
-                })
-
-            if (purchaseInfoCollection.isNotEmpty()) {
-                BaseLazyColumnScroll(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxWidth(),
-                    callback = object : VisibleCallback() {
-                        override fun onChangeVisible(visible: Boolean) {
-                            if (visibleAnimation.value != visible) {
-                                visibleAnimation.value = visible
+                            items(purchaseInfo.purchaseCollection) { purchase ->
+                                BoxPurchaseSpeding(purchase, idPurchaseEdit, object: Callback{
+                                    override fun onClick() {
+                                        idPurchaseEdit = if(idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.id){
+                                            purchase.purchase.id
+                                        }else{
+                                            0L
+                                        }
+                                    }
+                                })
                             }
-                        }
-                    }
-                ) {
-                    purchaseInfoCollection.map { purchaseInfo ->
-                        item {
-                            Text(
-                                text = FormatUtils().getNameDay(purchaseInfo.title).capitalize(),
-                                modifier = Modifier.padding(start = 8.dp, top = 24.dp),
-                                color = text_title_secondary
-                            )
-                        }
-
-                        items(purchaseInfo.purchaseCollection) { purchase ->
-                            BoxPurchaseSpeding(purchase)
                         }
                     }
                 }
             }
-        }
 
-    })
+        })
 }
 
 @Composable
@@ -326,9 +346,10 @@ fun CustomDropDownMonth(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
-        .padding(6.dp, 16.dp, 16.dp, 16.dp)
-        .clickable(onClick = { expanded = true })
+    Card(
+        elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
+            .padding(6.dp, 16.dp, 16.dp, 16.dp)
+            .clickable(onClick = { expanded = true })
     ) {
 
         Row(horizontalArrangement = Arrangement.Center) {
@@ -353,12 +374,14 @@ fun CustomDropDownMonth(
 }
 
 @Composable
-fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory) {
+fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory, idPurchaseEdit: Long, callback: Callback) {
     val purchase = purchaseAndCategory.purchase ?: Purchase()
     val category = purchaseAndCategory.category ?: Category()
     val context = LocalContext.current
+    val options = idPurchaseEdit != 0L && purchase.id == idPurchaseEdit
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()
+        .clickable(onClick = { callback.onClick() })) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -375,9 +398,14 @@ fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory) {
             )
             Row(
                 modifier = Modifier
-                    .fillMaxWidth().padding(start = 16.dp), horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .padding(start = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth(.58f)) {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.fillMaxWidth(.58f)
+                ) {
                     Text(
                         text = purchase.name.capitalize(),
                         fontFamily = LatoBlack,
@@ -418,12 +446,84 @@ fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory) {
 
         }
 
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
+            Options(options, purchase.id, purchase.purchaseCardId, purchase.purchaseUserId)
+        }
+
         Divider(
             color = divider,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
         )
+    }
+}
+
+@Composable
+fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
+    if(options){
+        Card(
+            modifier = Modifier.padding(bottom = 14.dp),
+            elevation = 2.dp,
+            shape = RoundedCornerShape(8.dp),
+            backgroundColor = background_divider
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                IconButton(modifier = Modifier
+                    .padding(end = 4.dp),
+                    onClick = {
+
+                    })
+                {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = text_primary,
+                    )
+                }
+
+                Divider(
+                    color = divider,
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(45.dp)
+                )
+
+                IconButton(modifier = Modifier
+                    .padding(horizontal = 4.dp), onClick = {
+                })
+                {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = null,
+                        tint = text_primary,
+                    )
+                }
+
+                Divider(
+                    color = divider,
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(45.dp)
+                )
+
+                IconButton(modifier = Modifier
+                    .padding(start = 4.dp), onClick = {
+                })
+                {
+                    Icon(
+                        painter = painterResource(id = R.drawable.transfer),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(20.dp),
+                        tint = text_primary
+                    )
+                }
+            }
+        }
     }
 }
 
