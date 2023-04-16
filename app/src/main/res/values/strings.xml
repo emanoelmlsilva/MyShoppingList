@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Lista de Compras</string>
     <string name="message_info">Esse cartão serve para compras de débito por cédulas</string>
+    <string name="delete_message">A compra <b>%1$s</b> sera apagada e não permanecera disponivel para consulta.</string>
 </resources>

@@ -67,6 +67,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     var visibilityDialog by remember { mutableStateOf(false) }
     var reload by remember { mutableStateOf(false) }
     var purchaseCurrent by remember { mutableStateOf(Purchase()) }
+    var visibilityBackHandler by remember { mutableStateOf(false) }
 
     fun reset() {
         idPurchaseEdit = 0L
@@ -80,6 +81,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         idPurchaseEdit = 0L
         creditCardViewModel.getAll()
         creditCardViewModel.findCreditCardById(idCard)
+        purchaseViewModel.getPurchaseAll()
     }
 
 
@@ -160,6 +162,17 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                DialogBackCustom(visibilityBackHandler, {
+                    visibilityBackHandler = false
+
+                    purchaseViewModel.deletePurchase(purchaseCurrent)
+
+                    reset()
+
+                    reload = true
+                }, {
+                    visibilityBackHandler = false
+                }, "Deseja apagar compra do historico?", context.getString(R.string.delete_message, purchaseCurrent.name))
 
                 BoxSpendingFromMonth(
                     spendingTextFieldViewModel,
@@ -307,6 +320,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                 object : CallbackOptions{
                                     override fun onTransfer(value: Boolean, purchase: Purchase, idCardCurrent: Long) {
                                         visibilityDialog = value
+                                    }
+
+                                    override fun onDelete() {
+                                        visibilityBackHandler = true
                                     }
                                 })
                             }

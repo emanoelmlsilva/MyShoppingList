@@ -1,7 +1,7 @@
 package com.example.myshoppinglist.database.daos
 
-import android.content.Context
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.RawQuery
@@ -20,10 +20,13 @@ import java.util.*
 interface PurchaseDAO {
 
     @Insert
-    fun inserPurchase(purchase: List<Purchase>)
+    fun insetPurchase(purchase: List<Purchase>)
 
     @Update
     fun updatePurchase(purchase: Purchase)
+
+    @Delete
+    fun deletePurchaseById(purchase: Purchase)
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards  WHERE purchaseCardId = :idCard AND cardUserId = :emailUser ORDER BY date DESC")
