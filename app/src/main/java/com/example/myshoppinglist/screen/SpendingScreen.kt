@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.content.Context
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,14 +28,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.callback.CallbackCreditCard
-import com.example.myshoppinglist.callback.CustomTextFieldOnClick
-import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.components.BaseAnimationComponent
-import com.example.myshoppinglist.components.BaseLazyColumnScroll
-import com.example.myshoppinglist.components.BoxDropdownCardCredit
-import com.example.myshoppinglist.components.IconCategoryComponent
+import com.example.myshoppinglist.callback.*
+import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -44,7 +40,7 @@ import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.enums.TypeState
+import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
@@ -67,19 +63,25 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val creditCardCollection = remember { mutableListOf<CreditCard>() }
     val currentCreditCard = remember { mutableStateOf<CreditCard?>(null) }
     val visibleAnimation = remember { mutableStateOf(true) }
-    var idPurchaseEdit by remember{ mutableStateOf(0L) }
-
-    LaunchedEffect(key1 = idCard) {
-        creditCardViewModel.getAll()
-        creditCardViewModel.findCreditCardById(idCard)
-    }
+    var idPurchaseEdit by remember { mutableStateOf(0L) }
+    var visibilityDialog by remember { mutableStateOf(false) }
+    var reload by remember { mutableStateOf(false) }
+    var purchaseCurrent by remember { mutableStateOf(Purchase()) }
 
     fun reset() {
+        idPurchaseEdit = 0L
         monthCurrent.value = ""
         price.value = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
     }
+
+    LaunchedEffect(key1 = idCard, key2 = reload) {
+        idPurchaseEdit = 0L
+        creditCardViewModel.getAll()
+        creditCardViewModel.findCreditCardById(idCard)
+    }
+
 
     fun getInforPurchaseByMonth(month: String) {
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(month)
@@ -158,6 +160,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+
                 BoxSpendingFromMonth(
                     spendingTextFieldViewModel,
                     monthsCollection,
@@ -246,6 +249,23 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     .fillMaxWidth()
                                     .height(1.dp)
                             )
+
+                            DialogTransferPurchase(context, visibilityDialog, idCard, purchaseCurrent, object : CallbackOptions{
+                                override fun onTransfer(value: Boolean, purchase: Purchase, idCardCurrent: Long) {
+                                    visibilityDialog = false
+                                    if(idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent){
+                                        purchase.purchaseCardId = idCardCurrent
+                                        purchaseViewModel.updatePurchase(purchase)
+                                        reset()
+                                        reload = true
+                                    }
+
+                                }
+
+                                override fun onEditable(idCardCurrent: Long) {
+
+                                }
+                            })
                         }
                     })
 
@@ -272,13 +292,21 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                             }
 
                             items(purchaseInfo.purchaseCollection) { purchase ->
-                                BoxPurchaseSpeding(purchase, idPurchaseEdit, object: Callback{
+                                BoxPurchaseSpending(purchase, idPurchaseEdit, object : Callback {
                                     override fun onClick() {
-                                        idPurchaseEdit = if(idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.id){
-                                            purchase.purchase.id
-                                        }else{
-                                            0L
-                                        }
+                                        idPurchaseEdit =
+                                            if (idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.id) {
+                                                purchase.purchase.id
+                                            } else {
+                                                0L
+                                            }
+
+                                        purchaseCurrent = purchase.purchase
+                                    }
+                                },
+                                object : CallbackOptions{
+                                    override fun onTransfer(value: Boolean, purchase: Purchase, idCardCurrent: Long) {
+                                        visibilityDialog = value
                                     }
                                 })
                             }
@@ -342,14 +370,18 @@ fun BoxSpendingFromMonth(
 fun CustomDropDownMonth(
     callback: CustomTextFieldOnClick,
     monthCollection: List<String>,
-    monthCurrent: String
+    monthCurrent: String,
+    reset: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
         elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
             .padding(6.dp, 16.dp, 16.dp, 16.dp)
-            .clickable(onClick = { expanded = true })
+            .clickable(onClick = {
+                if(monthCollection.isNotEmpty()){
+                    expanded = true}
+            })
     ) {
 
         Row(horizontalArrangement = Arrangement.Center) {
@@ -374,14 +406,21 @@ fun CustomDropDownMonth(
 }
 
 @Composable
-fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory, idPurchaseEdit: Long, callback: Callback) {
+fun BoxPurchaseSpending(
+    purchaseAndCategory: PurchaseAndCategory,
+    idPurchaseEdit: Long,
+    callback: Callback,
+    callbackOptions: CallbackOptions
+) {
     val purchase = purchaseAndCategory.purchase ?: Purchase()
     val category = purchaseAndCategory.category ?: Category()
     val context = LocalContext.current
     val options = idPurchaseEdit != 0L && purchase.id == idPurchaseEdit
 
-    Column(modifier = Modifier.fillMaxWidth()
-        .clickable(onClick = { callback.onClick() })) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .clickable(onClick = { callback.onClick() })
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -446,8 +485,11 @@ fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory, idPurchaseEdit:
 
         }
 
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
-            Options(options, purchase.id, purchase.purchaseCardId, purchase.purchaseUserId)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Options(options, purchase.id, purchase.purchaseCardId, purchase.purchaseUserId, callbackOptions)
         }
 
         Divider(
@@ -460,8 +502,8 @@ fun BoxPurchaseSpeding(purchaseAndCategory: PurchaseAndCategory, idPurchaseEdit:
 }
 
 @Composable
-fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
-    if(options){
+fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String, callback: CallbackOptions) {
+    if (options) {
         Card(
             modifier = Modifier.padding(bottom = 14.dp),
             elevation = 2.dp,
@@ -475,7 +517,7 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
                 IconButton(modifier = Modifier
                     .padding(end = 4.dp),
                     onClick = {
-
+//                        callback.onEditable()
                     })
                 {
                     Icon(
@@ -494,10 +536,11 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
 
                 IconButton(modifier = Modifier
                     .padding(horizontal = 4.dp), onClick = {
+                    callback.onDelete()
                 })
                 {
                     Icon(
-                        imageVector = Icons.Outlined.DeleteOutline,
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = null,
                         tint = text_primary,
                     )
@@ -512,6 +555,7 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
 
                 IconButton(modifier = Modifier
                     .padding(start = 4.dp), onClick = {
+                        callback.onTransfer(true, Purchase(),0L)
                 })
                 {
                     Icon(
@@ -522,6 +566,115 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String) {
                         tint = text_primary
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun DialogTransferPurchase(context: Context, visibilityDialog: Boolean, idCard: Long, purchase: Purchase, callbackOptions: CallbackOptions) {
+    val creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
+    var idCardCurrent by remember { mutableStateOf(idCard) }
+
+    LaunchedEffect(Unit) {
+        creditCardViewModel.getAll()
+    }
+
+    fun reset(){
+        idCardCurrent = idCard
+    }
+
+    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
+        if (it.isNotEmpty()) {
+            creditCardDTOCollection.removeAll(creditCardDTOCollection)
+            creditCardDTOCollection.addAll(it.map { creditCard ->
+                CreditCardDTO().fromCreditCardDTO(
+                    creditCard
+                )
+            })
+        }
+    }
+
+    DialogCustom(visibilityDialog = visibilityDialog, percentHeight = 2f) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.1f)
+                .background(text_secondary),
+            verticalArrangement = Arrangement.SpaceAround,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(.3f),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(
+                    Modifier
+                        .height(25.dp)
+                )
+
+                Text(
+                    "Transferir Compra",
+                    fontFamily = LatoBlack,
+                    color = primary_dark,
+                    fontSize = 18.sp
+                )
+
+                Spacer(
+                    Modifier
+                        .height(20.dp)
+                )
+
+                Divider(
+                    color = secondary_dark,
+                    modifier = Modifier
+                        .height(1.dp)
+                )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(.8f)
+            ) {
+                Text(
+                    text = "Escolha para qual cartão desejá transferir a compra.",
+                    fontSize = 14.sp,
+                    fontFamily = LatoRegular,
+                    modifier = Modifier.padding(top = 18.dp)
+                )
+
+                ChoiceCardComponent(
+                    idCardCurrent,
+                    creditCardDTOCollection,
+                    object : CallbackCreditCard {
+                        override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
+                            idCardCurrent = cardCreditFilter.id
+                        }
+                    },
+                    Modifier
+                        .fillMaxHeight(.3f)
+                        .fillMaxWidth(.8f)
+                        .padding(start = 16.dp)
+                )
+
+                ButtonsFooterContent(
+                    isClickable = true,
+                    btnTextCancel = "CANCELAR",
+                    btnTextAccept = "SALVAR",
+                    onClickCancel = {
+                        callbackOptions.onTransfer(false, Purchase(),0L)
+                        reset()
+                    },
+                    onClickAccept = {
+                        callbackOptions.onTransfer(false, purchase, idCardCurrent)
+                        reset()
+                    })
             }
         }
     }

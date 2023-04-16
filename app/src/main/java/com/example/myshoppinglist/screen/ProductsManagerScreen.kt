@@ -847,7 +847,7 @@ fun AlertDialogFilter(
                         }
                     })
 
-                ChoiceCard(
+                ChoiceCardComponent(
                     filter.cardFilter.id,
                     creditCardDTOCollection,
                     object : CallbackCreditCard {
@@ -1044,61 +1044,6 @@ fun ChoicePrice(
             }
         }
     }
-}
-
-@ExperimentalMaterialApi
-@Composable
-fun ChoiceCard(
-    cardCurrent: Long,
-    cardCreditCollection: List<CreditCardDTO>,
-    callbackCard: CallbackCreditCard
-) {
-    var cardCreditChoice by remember { mutableStateOf(CreditCardDTO(idCard = cardCurrent)) }
-
-    Column {
-        Spacer(Modifier.size(24.dp))
-
-        Text(text = "Cartões:", fontFamily = LatoBlack)
-
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(.2f)
-                .fillMaxWidth()
-                .padding(start = 16.dp)
-        ) {
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically
-            ) {
-                items(cardCreditCollection) { cardCredit ->
-                    val isChoiceCurrent = cardCreditChoice.idCard == cardCredit.idCard
-
-                    CustomerChip(
-                        paddingVertical = 0.dp,
-                        label = cardCredit.cardName,
-                        iconId = cardCredit.flag,
-                        isEnabled = true,
-                        isBackgroundCircle = true,
-                        isChoice = isChoiceCurrent,
-                        color = background_card_light,
-                        callback = object : Callback {
-                            override fun onClick() {
-                                cardCreditChoice = cardCredit
-                                callbackCard.onChangeValue(cardCreditChoice.idCard)
-                                callbackCard.onChangeFilterCreditCard(
-                                    CardCreditFilter(
-                                        cardCreditChoice
-                                    )
-                                )
-                            }
-                        })
-                }
-            }
-
-        }
-
-    }
-
 }
 
 @ExperimentalMaterialApi

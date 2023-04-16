@@ -25,6 +25,12 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
+    fun updatePurchase(purchase: Purchase){
+        coroutineScope.launch(Dispatchers.IO){
+            purchaseDAO.updatePurchase(purchase)
+        }
+    }
+
     fun getPurchaseAll(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
 //            searchCollecitonResult.value = asyncFindAll(emailUser).await()
