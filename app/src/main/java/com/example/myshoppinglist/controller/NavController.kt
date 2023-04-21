@@ -12,13 +12,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.database.dtos.CategoryDTO
-import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
-import com.example.myshoppinglist.database.dtos.ItemListDTO
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
+import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.screen.*
-import com.example.myshoppinglist.ui.theme.primary_light
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -73,12 +70,24 @@ fun NavController(
             HomeScreen(navHostController)
         }
         composable(
-            "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}",
-            arguments = listOf(navArgument("idCardCurrent") { type = NavType.LongType })
+            "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}?isEditable={isEditable}?purchaseEdit={purchaseEdit}",
+            arguments = listOf(navArgument("idCardCurrent") { type = NavType.LongType }, navArgument("isEditable") {type = NavType.BoolType}, navArgument("purchaseEdit") {type = NavType.StringType})
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val idCardCurrent = navBackStack.arguments?.getLong("idCardCurrent")
-            RegisterPurchaseScreen(navController = navHostController, idCardCurrent!!)
+            val isEditable = navBackStack.arguments?.getBoolean("isEditable")
+            val purchaseJson = navBackStack.arguments?.getString("purchaseEdit").toString()
+            var purchaseEdit: Purchase? = null
+
+            if(purchaseJson.isNotBlank()){
+                purchaseEdit = Purchase()
+
+                purchaseEdit.toDTO(
+                    ConversionUtils<PurchaseDTO>(PurchaseDTO::class.java).fromJson(purchaseJson)!!
+                )
+            }
+
+            RegisterPurchaseScreen(navController = navHostController, idCardCurrent!!, isEditable, purchaseEdit)
         }
         composable(
             "${Screen.Spending.name}?idCard={idCard}",

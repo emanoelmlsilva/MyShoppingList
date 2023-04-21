@@ -31,6 +31,7 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
@@ -44,6 +45,7 @@ import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
@@ -207,7 +209,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}") }) {
+                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.id}?isEditable=${false}?purchaseEdit=${""}") }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                             contentDescription = null,
@@ -276,7 +278,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                 }
 
                                 override fun onEditable(idCardCurrent: Long) {
-
+                                    navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${""}")
                                 }
                             })
                         }
@@ -324,6 +326,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
                                     override fun onDelete() {
                                         visibilityBackHandler = true
+                                    }
+
+                                    override fun onEditable(idCardCurrent: Long) {
+                                        navController?.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${ConversionUtils<PurchaseDTO>(PurchaseDTO::class.java).toJson(PurchaseDTO(purchaseCurrent))}")
                                     }
                                 })
                             }
@@ -534,7 +540,7 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String, ca
                 IconButton(modifier = Modifier
                     .padding(end = 4.dp),
                     onClick = {
-//                        callback.onEditable()
+                        callback.onEditable(0L)
                     })
                 {
                     Icon(

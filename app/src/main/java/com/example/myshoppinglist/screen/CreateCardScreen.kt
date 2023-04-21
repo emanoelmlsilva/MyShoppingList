@@ -45,7 +45,6 @@ import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
-import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
 
@@ -87,7 +86,7 @@ fun CreateCardScreen(
 
         if (creditCardDTOJson.isNotBlank()) {
             val creditCardDTO =
-                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).fromJson(creditCardDTOJson)!![0]
+                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).fromJsonList(creditCardDTOJson)!![0]
             createCardCreditViewModel.onChangeName(creditCardDTO.holderName)
             createCardCreditViewModel.onChangeNameCard(creditCardDTO.cardName)
             createCardCreditViewModel.onChangeValue(creditCardDTO.value)

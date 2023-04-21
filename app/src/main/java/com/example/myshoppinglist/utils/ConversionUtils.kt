@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.utils
 
 import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -10,25 +11,41 @@ import java.lang.reflect.Type
 
 class ConversionUtils<T>(type: Type = ItemListAndCategoryDTO::class.java) {
 
-    val type: Type = Types.newParameterizedType(List::class.java, type)
+    private val typeCurrent: Type = Types.newParameterizedType(PurchaseDTO::class.java, type)
+    private val typeList: Type = Types.newParameterizedType(List::class.java, type)
 
-
-
-    fun toJson(itemListCollection: List<T>): String{
+    fun toJson(item: T): String{
         val moshi = Moshi.Builder()
             .addLast(KotlinJsonAdapterFactory())
             .build()
-        val jsonAdapter: JsonAdapter<List<T>> = moshi.adapter(type)
+        val jsonAdapter: JsonAdapter<T> = moshi.adapter(typeCurrent)
+
+        return jsonAdapter.toJson(item)
+    }
+
+    fun fromJson(itemJson: String): T? {
+        val moshi = Moshi.Builder()
+            .addLast(KotlinJsonAdapterFactory())
+            .build()
+        val jsonAdapter: JsonAdapter<T> = moshi.adapter(typeCurrent)
+        return jsonAdapter.fromJson(itemJson)
+    }
+
+    fun toJsonList(itemListCollection: List<T>): String{
+        val moshi = Moshi.Builder()
+            .addLast(KotlinJsonAdapterFactory())
+            .build()
+        val jsonAdapter: JsonAdapter<List<T>> = moshi.adapter(typeList)
 
         return jsonAdapter.toJson(itemListCollection)
     }
 
 
-    fun fromJson(itemListJson: String): List<T>? {
+    fun fromJsonList(itemListJson: String): List<T>? {
         val moshi = Moshi.Builder()
             .addLast(KotlinJsonAdapterFactory())
             .build()
-        val jsonAdapter: JsonAdapter<List<T>> = moshi.adapter(type)
+        val jsonAdapter: JsonAdapter<List<T>> = moshi.adapter(typeList)
         return jsonAdapter.fromJson(itemListJson)
     }
 }

@@ -47,7 +47,6 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.CardUtils.getNameCard
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import kotlinx.coroutines.async
@@ -102,7 +101,7 @@ fun MakingMarketScreen(
 
     LaunchedEffect(key1 = idCard, key2 = itemListJson) {
         itemListViewModel.getAll(idCard)
-        ConversionUtils<ItemListAndCategoryDTO>().fromJson(itemListJson)!!.forEach { itemList ->
+        ConversionUtils<ItemListAndCategoryDTO>().fromJsonList(itemListJson)!!.forEach { itemList ->
             val marketItem =
                 MarketItem(0F, "0", TypeProduct.QUANTITY, itemList.toItemListAndCategory())
             marketItemCollection.add(marketItem)

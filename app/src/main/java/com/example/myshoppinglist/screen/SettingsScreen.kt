@@ -4,7 +4,6 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
@@ -184,7 +183,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                     override fun onClick() {
                                         navController.navigate(
                                             "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
-                                                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).toJson(
+                                                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).toJsonList(
                                                     listOf(creditCardDTO)
                                                 )
                                             }"

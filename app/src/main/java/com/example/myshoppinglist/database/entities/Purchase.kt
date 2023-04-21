@@ -3,6 +3,7 @@ package com.example.myshoppinglist.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.enums.TypeProduct
 import org.jetbrains.annotations.NotNull
 
@@ -64,4 +65,16 @@ class Purchase {
         return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
 
+    fun toDTO(purchaseDTO: PurchaseDTO) {
+        this.id = purchaseDTO.id
+        this.name = purchaseDTO.name
+        this.locale = purchaseDTO.locale
+        this.purchaseCardId = purchaseDTO.purchaseCardId
+        this.quantiOrKilo = purchaseDTO.quantiOrKilo
+        this.typeProduct = purchaseDTO.typeProduct
+        this.date = purchaseDTO.date
+        this.price = purchaseDTO.price
+        this.categoryOwnerId = purchaseDTO.categoryOwnerId
+        this.purchaseUserId = purchaseDTO.purchaseUserId
+    }
 }
