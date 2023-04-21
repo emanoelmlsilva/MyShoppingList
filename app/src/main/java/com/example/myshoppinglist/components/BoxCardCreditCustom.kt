@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackCreditCard
 import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
@@ -117,7 +118,7 @@ fun BoxCardCreditCustom(
                         text = "Comprar",
                         callback = object : CallbackCreditCard {
                             override fun onClick() {
-                                navController.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${creditCardDTO.idCard}")
+                                navController.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${creditCardDTO.idCard}?isEditable=${false}?purchaseEdit=${""}")
                             }
                         })
                     CustomButtonRounded(

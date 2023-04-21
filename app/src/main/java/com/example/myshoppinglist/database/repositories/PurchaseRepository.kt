@@ -21,7 +21,19 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     fun insertPurhcase(purchaseCollection: List<Purchase>){
         coroutineScope.launch(Dispatchers.IO) {
-            purchaseDAO.inserPurchase(purchaseCollection)
+            purchaseDAO.insetPurchase(purchaseCollection)
+        }
+    }
+
+    fun updatePurchase(purchase: Purchase){
+        coroutineScope.launch(Dispatchers.IO){
+            purchaseDAO.updatePurchase(purchase)
+        }
+    }
+
+    fun deletePurchase(purchase: Purchase){
+        coroutineScope.launch(Dispatchers.IO) {
+            purchaseDAO.deletePurchaseById(purchase)
         }
     }
 

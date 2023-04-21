@@ -94,6 +94,14 @@ class PurchaseViewModel(context: Context): ViewModel() {
         repository.insertPurhcase(purchaseCollection)
     }
 
+    fun updatePurchase(purchase: Purchase){
+        repository.updatePurchase(purchase)
+    }
+
+    fun deletePurchase(purchase: Purchase){
+        repository.deletePurchase(purchase)
+    }
+
     fun getPurchaseAll() {
         var emailUser = ""
         userViewModel.searchResult.observeForever {

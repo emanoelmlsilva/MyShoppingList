@@ -1,10 +1,14 @@
 package com.example.myshoppinglist.components
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.ui.theme.*
 
 @Composable
@@ -32,8 +36,8 @@ fun DialogBackCustom(visibility: Boolean, onConfirm: () -> Unit, onCancel: () ->
                 })
                 { Text(text = "Não") }
             },
-            title = { Text(text = title, fontFamily = LatoBlack, color = text_primary) },
-            text = { Text(text = text, fontFamily = LatoRegular, color = text_primary) }
+            title = { Text(text = title, fontFamily = LatoBlack, color = text_primary, modifier = Modifier.padding(6.dp), fontSize = 14.sp) },
+            text = { Text(text = text, fontFamily = LatoRegular, color = text_primary, modifier = Modifier.padding(start = 16.dp), fontSize = 13.sp) }
         )
     }
 }

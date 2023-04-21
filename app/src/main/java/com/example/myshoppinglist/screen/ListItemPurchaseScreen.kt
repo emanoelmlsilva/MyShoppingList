@@ -3,18 +3,12 @@
 package com.example.myshoppinglist.screen
 
 import DialogRegisterItemList
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -23,33 +17,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
-import com.example.myshoppinglist.R
-import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
-import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
-import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.ItemListViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import kotlinx.coroutines.launch
 
@@ -103,7 +84,7 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         backgroundColor = text_secondary,
                         onClick = {
                             if(itemCheckCollection.isNotEmpty()){
-                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils<ItemListAndCategoryDTO>().toJson(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
+                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils<ItemListAndCategoryDTO>().toJsonList(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
                             }else{
                                 Toast.makeText(context, "Selecione pelo menos um produto!", Toast.LENGTH_SHORT).show()
                             }

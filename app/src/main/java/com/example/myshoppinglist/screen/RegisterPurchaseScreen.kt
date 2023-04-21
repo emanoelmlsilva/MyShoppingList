@@ -25,7 +25,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -55,17 +54,17 @@ import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.CardUtils.getNameCard
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
-fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long) {
+fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long, isEditable: Boolean? = false, purchaseEdit: Purchase? = null) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val purchaseViewModel = PurchaseViewModel(context)
@@ -74,7 +73,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val purchaseInfoCollection =
-        registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value//remember { mutableStateListOf<PurchaseInfo>() }
+        registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     var visibilityBackHandler by remember { mutableStateOf(false) }
@@ -82,6 +81,23 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     LaunchedEffect(key1 = idCardCurrent) {
         categoryViewModel.getAll()
         registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
+    }
+
+    LaunchedEffect(key1 = purchaseEdit){
+        if(purchaseEdit != null){
+            countProduct = 1
+
+            val price = if(purchaseEdit.typeProduct == TypeProduct.KILO) MaskUtils.maskKiloGram(MaskUtils.replaceAll(purchaseEdit.price.toString())) else MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.price))
+
+            registerTextFieldViewModel.onChangeIdCard(purchaseEdit.purchaseCardId)
+            registerTextFieldViewModel.onChangeCategory(purchaseEdit.categoryOwnerId)
+            registerTextFieldViewModel.onChangeLocale(purchaseEdit.locale)
+            registerTextFieldViewModel.onChangeDateCurrent(purchaseEdit.date)
+            registerTextFieldViewModel.onChangePrice(price)
+            registerTextFieldViewModel.onChangeProduct(purchaseEdit.name)
+            registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.quantiOrKilo)
+            registerTextFieldViewModel.onChangeTypeProduct(purchaseEdit.typeProduct)
+        }
     }
 
     registerTextFieldViewModel.countProduct.observe(lifecycleOwner) {
@@ -96,16 +112,40 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
         registerTextFieldViewModel.onChangeCategoryCollection(it)
     }
 
+   suspend fun updatePurchase(){
+
+       withContext(coroutineScope.coroutineContext) {
+           val purchase = Purchase(
+               registerTextFieldViewModel.product.value!!,
+               registerTextFieldViewModel.locale.value!!,
+               registerTextFieldViewModel.idCard.value!!,
+               registerTextFieldViewModel.quantOrKilo.value!!,
+               registerTextFieldViewModel.typeProduct.value!!,
+               registerTextFieldViewModel.dateCurrent.value!!,
+               MaskUtils.convertValueStringToDouble(
+                   MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
+               ),
+               registerTextFieldViewModel.category.value!!,
+               registerTextFieldViewModel.email
+           )
+
+           purchase.id = purchaseEdit?.id ?: 0
+
+           purchaseViewModel.updatePurchase(purchase)
+
+       }
+   }
+
     suspend fun savePurchases() {
 
-        val purcharseSaveCoroutine = coroutineScope.async {
+        val purchaseSaveCoroutine = coroutineScope.async {
             purchaseInfoCollection.map { purchaseInfo ->
                 purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection.map { it.purchase }
                     .toList())
             }
         }
 
-        purcharseSaveCoroutine.await()
+        purchaseSaveCoroutine.await()
     }
 
     BackHandler {
@@ -122,79 +162,86 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     Box {
 
         BottomSheetScaffold(
-            sheetBackgroundColor = background_card,
+            sheetBackgroundColor = if(!isEditable!!){
+                background_card
+            }else {
+                text_primary
+            },
             sheetContent = {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .padding(top = 16.dp, bottom = 70.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Card(
-                        elevation = 2.dp,
-                        shape = RoundedCornerShape(6.dp),
-                        backgroundColor = text_primary,
-                        modifier = Modifier
-                            .fillMaxWidth(.2f)
-                            .height(5.dp)
-                    ) {}
-                    Spacer(Modifier.height(20.dp))
-                    Row {
-                        Text(
-                            text = "Produtos",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
-                        )
-                        Text(
-                            text = "$countProduct".padStart(3, '0'),
-                            color = text_secondary,
-                            modifier = Modifier
-                                .drawBehind {
-                                    drawCircle(
-                                        color = text_primary,
-                                        radius = this.size.minDimension
-                                    )
-                                },
-                            fontSize = 12.sp
-                        )
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    Divider(
-                        color = text_primary,
-                        modifier = Modifier
+                if(!isEditable!!){
+                    Column(
+                        Modifier
                             .fillMaxWidth()
-                            .height(1.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    BoxProductRegisterComponent(
-                        context,
-                        purchaseInfoCollection,
-                        object : CallbackPurchase() {
-                            override fun onChangeIndex(
-                                indexInfo: Int,
-                                index: Int,
-                                typeState: TypeState
-                            ) {
-                                if (typeState == TypeState.EDIT) {
-                                    val purchaseEdit =
-                                        purchaseInfoCollection[indexInfo].purchaseCollection[index]
-                                    registerTextFieldViewModel.updateData(
-                                        purchaseEdit.purchase,
-                                        index,
-                                        indexInfo
-                                    )
-                                } else {
-                                    registerTextFieldViewModel.removerPurchase(indexInfo, index)
+                            .fillMaxHeight()
+                            .padding(top = 16.dp, bottom = 70.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Card(
+                            elevation = 2.dp,
+                            shape = RoundedCornerShape(6.dp),
+                            backgroundColor = text_primary,
+                            modifier = Modifier
+                                .fillMaxWidth(.2f)
+                                .height(5.dp)
+                        ) {}
+                        Spacer(Modifier.height(20.dp))
+                        Row {
+                            Text(
+                                text = "Produtos",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
+                            )
+                            Text(
+                                text = "$countProduct".padStart(3, '0'),
+                                color = text_secondary,
+                                modifier = Modifier
+                                    .drawBehind {
+                                        drawCircle(
+                                            color = text_primary,
+                                            radius = this.size.minDimension
+                                        )
+                                    },
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+                        Divider(
+                            color = text_primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                        )
+                        Spacer(Modifier.height(20.dp))
+                        BoxProductRegisterComponent(
+                            context,
+                            purchaseInfoCollection,
+                            object : CallbackPurchase() {
+                                override fun onChangeIndex(
+                                    indexInfo: Int,
+                                    index: Int,
+                                    typeState: TypeState
+                                ) {
+                                    if (typeState == TypeState.EDIT) {
+                                        val purchaseEdit =
+                                            purchaseInfoCollection[indexInfo].purchaseCollection[index]
+                                        registerTextFieldViewModel.updateData(
+                                            purchaseEdit.purchase,
+                                            index,
+                                            indexInfo
+                                        )
+                                    } else {
+                                        registerTextFieldViewModel.removerPurchase(indexInfo, index)
+                                    }
+                                    coroutineScope.launch {
+                                        scaffoldState.bottomSheetState.collapse()
+                                    }
                                 }
-                                coroutineScope.launch {
-                                    scaffoldState.bottomSheetState.collapse()
-                                }
-                            }
-                        })
+                            })
+                    }
                 }
+
             },
             scaffoldState = scaffoldState,
             topBar = {
@@ -202,9 +249,14 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     title = {},
                     actions = {
                         IconButton(onClick = {
-                            if (countProduct > 0) {
+                            if (countProduct > 0 ) {
                                 coroutineScope.launch {
-                                    savePurchases()
+                                    if(isEditable){
+                                        updatePurchase()
+                                    }else{
+                                        savePurchases()
+                                    }
+
                                     navController!!.popBackStack()
                                 }
                             }
@@ -230,7 +282,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     elevation = 0.dp
                 )
             },
-            sheetPeekHeight = 140.dp,
+            sheetPeekHeight = 78.dp,
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
@@ -293,55 +345,31 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                         registerTextFieldViewModel.idCardError.observeAsState().value
                     )
 
-                    Button(
-                        colors = ButtonDefaults.buttonColors(backgroundColor = primary),
-                        modifier = Modifier
-                            .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
-                        onClick = {
-                            if (registerTextFieldViewModel.checkFileds()) {
-                                registerTextFieldViewModel.addPurchase()
-                                registerTextFieldViewModel.onChangeResetDate()
-                            }
-                        }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = text_secondary
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text("ADICIONAR", color = text_secondary)
+                    if(!isEditable){
+                        Button(
+                            colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                            modifier = Modifier
+                                .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
+                            onClick = {
+                                if (registerTextFieldViewModel.checkFileds()) {
+                                    registerTextFieldViewModel.addPurchase()
+                                    registerTextFieldViewModel.onChangeResetDate()
+                                }
+                            }) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                tint = text_secondary
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text("ADICIONAR", color = text_secondary)
+                        }
                     }
                 }
 
             }
         }
 
-//        Row(
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .layout { measurable, constraints ->
-//                    val placeable = measurable.measure(constraints)
-//                    layout(placeable.width, placeable.height) {
-//                        placeable.place(0, placeable.height / 2)
-//                    }
-//                }
-//                .padding(bottom = 52.dp)
-//                .background(text_secondary),
-//        ) {
-//            ButtonsFooterContent(
-//                isClickable = countProduct > 0,
-//                btnTextCancel = "CANCELAR",
-//                btnTextAccept = "SALVAR",
-//                onClickCancel = {
-//                    visibilityBackHandler = true
-//                },
-//                onClickAccept = {
-//                    coroutineScope.launch {
-//                        savePurchases()
-//                        navController!!.popBackStack()
-//                    }
-//                })
-//        }
     }
 
 }
