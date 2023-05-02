@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -39,11 +40,14 @@ fun BoxItemListComponent(
     product: String,
     backgroundColor: Color,
     price: Float?,
+    discount: Float?,
+    isCheckDiscount: Boolean?,
     quantOrKilo: String?,
     type: TypeProduct?,
     callback: CallbackItemList?,
     callbackPrice: CustomTextFieldOnClick?,
-    callbackQuantOrKilo: CustomTextFieldOnClick?
+    callbackQuantOrKilo: CustomTextFieldOnClick?,
+    callbackDiscount: CustomTextFieldOnClick?
 ) {
 
     Column(
@@ -91,7 +95,7 @@ fun BoxItemListComponent(
                     textDecoration = if (isMarket && isCheck) TextDecoration.LineThrough else TextDecoration.None
                 )
 
-                if(isRemoved){
+                if (isRemoved) {
                     Spacer(
                         Modifier
                             .width(15.dp)
@@ -115,41 +119,69 @@ fun BoxItemListComponent(
             )
         }
 
-        BoxItemInfo(isMarket && !isCheck, price, quantOrKilo, type, callbackPrice, callbackQuantOrKilo)
+        BoxItemInfo(
+            isMarket && !isCheck,
+            price,
+            discount,
+            isCheckDiscount!!,
+            quantOrKilo,
+            type,
+            callbackPrice,
+            callbackQuantOrKilo,
+            callbackDiscount
+        )
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun BoxItemInfo(isMarket: Boolean, newPrice: Float?, newQuantOrKilo: String?, newType: TypeProduct?, callbackPrice: CustomTextFieldOnClick?, callbackQuantOrKilo: CustomTextFieldOnClick?) {
+fun BoxItemInfo(
+    isMarket: Boolean,
+    newPrice: Float?,
+    newDiscount: Float?,
+    isCheckDiscount: Boolean,
+    newQuantOrKilo: String?,
+    newType: TypeProduct?,
+    callbackPrice: CustomTextFieldOnClick?,
+    callbackQuantOrKilo: CustomTextFieldOnClick?,
+    callbackDiscount: CustomTextFieldOnClick?
+) {
     var isMoney by remember { mutableStateOf(true) }
     var price by remember { mutableStateOf(newPrice.toString()) }
     var quantOrKilo by remember { mutableStateOf(newQuantOrKilo) }
     var type by remember {
         mutableStateOf(newType)
     }
-    var priceError by remember{ mutableStateOf(false) }
-    var quantOrKiloError by remember{ mutableStateOf(false) }
-    var isMarketCurrent by remember{ mutableStateOf(false) }
+    var priceError by remember { mutableStateOf(false) }
+    var quantOrKiloError by remember { mutableStateOf(false) }
+    var isMarketCurrent by remember { mutableStateOf(false) }
+    var discount by remember { mutableStateOf(newDiscount.toString())}
+    var discountError by remember { mutableStateOf(false)}
+    var isCheck by remember {mutableStateOf(false)}
 
-    LaunchedEffect(key1 = newPrice){
+    LaunchedEffect(key1 = newPrice) {
         price = newPrice.toString()
         priceError = price == "0.00" || price == "0.0"
     }
 
-    LaunchedEffect(key1 = newQuantOrKilo){
+    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount){
+        discount = newDiscount.toString()
+        discountError = isCheckDiscount && newDiscount == 0F
+    }
+
+    LaunchedEffect(key1 = newQuantOrKilo) {
         quantOrKilo = newQuantOrKilo!!
         quantOrKiloError = quantOrKilo!!.isBlank() || quantOrKilo == "0" || quantOrKilo == "0.000"
     }
 
-    LaunchedEffect(key1 = newType){
+    LaunchedEffect(key1 = newType) {
         type = newType!!
     }
 
-    LaunchedEffect(key1 = isMarket){
+    LaunchedEffect(key1 = isMarket) {
         isMarketCurrent = isMarket
     }
-    if(isMarketCurrent){
+    if (isMarketCurrent) {
         Card(
             elevation = 2.dp,
             shape = RoundedCornerShape(6.dp),
@@ -158,36 +190,87 @@ fun BoxItemInfo(isMarket: Boolean, newPrice: Float?, newQuantOrKilo: String?, ne
                 .fillMaxWidth(.98f)
                 .padding(start = 16.dp, top = 16.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(all = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                NumberInputComponent(maxChar = 13,
-                    keyboardType = KeyboardType.Number,
-                    value = price,
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .padding(end = 16.dp),
-                    label = "Preço",
-                    error = priceError,
-                    customOnClick = callbackPrice!!
-                )
+            Column {
+                Row(
+                    modifier = Modifier.padding(all = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    NumberInputComponent(
+                        maxChar = 13,
+                        keyboardType = KeyboardType.Number,
+                        value = price,
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                            .padding(end = 16.dp),
+                        label = "Preço",
+                        error = priceError,
+                        customOnClick = callbackPrice!!
+                    )
 
-                NumberInputComponent(
-                    maxChar = 11,
-                    hasIcon = true,
-                    isKilogram = type == TypeProduct.KILO,
-                    value = quantOrKilo,
-                    error = quantOrKiloError,
-                    isMandatory = false,
-                    modifier = Modifier
-                        .padding(vertical = 1.dp)
-                        .fillMaxWidth(.99f),
-                    label = if (isMoney) "Quantidade" else "Quilograma",
-                    customOnClick = callbackQuantOrKilo!!
-                )
+                    NumberInputComponent(
+                        maxChar = 11,
+                        hasIcon = true,
+                        isKilogram = type == TypeProduct.KILO,
+                        value = quantOrKilo,
+                        error = quantOrKiloError,
+                        isMandatory = false,
+                        modifier = Modifier
+                            .padding(vertical = 1.dp)
+                            .fillMaxWidth(.99f),
+                        label = if (isMoney) "Quantidade" else "Quilograma",
+                        customOnClick = callbackQuantOrKilo!!
+                    )
 
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                            checked = isCheck,
+                            onCheckedChange = {
+                                isCheck = !isCheck
+
+                                callbackDiscount!!.onChangeValue(isCheck)
+
+                                if (!isCheck) {
+                                    callbackDiscount.onChangeValue("0")
+                                }
+                            }
+                        )
+
+                        Text(text = "Desconto", fontFamily = LatoBlack)
+                    }
+
+                    if (isCheck) {
+                        NumberInputComponent(maxChar = 13,
+                            keyboardType = KeyboardType.Number,
+                            value = discount,
+                            modifier = Modifier
+                                .fillMaxWidth(0.45f)
+                                .padding(end = 16.dp),
+                            label = "Desconto",
+                            error = discountError,
+                            customOnClick = callbackDiscount!!)
+                    }
+
+                    Spacer(Modifier.height(3.dp))
+
+                    Divider(
+                        color = divider,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    )
+
+                }
             }
         }
     }

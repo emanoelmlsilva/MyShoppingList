@@ -31,6 +31,8 @@ class Purchase {
     var categoryOwnerId: Long = 0
     @ColumnInfo(name = "purchaseUserId")
     var purchaseUserId:String = ""
+    @ColumnInfo(name = "discount")
+    var discount: Double = 0.0
 
     constructor(name: String){
         this.name = name
@@ -61,6 +63,21 @@ class Purchase {
         this.purchaseUserId = purchaseUserId
     }
 
+    constructor(
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double
+    ): this(name, locale, purchaseCardId, quantiOrKilo, typeProduct, date, price, categoryOwnerId, purchaseUserId) {
+        this.discount = discount
+    }
+
     override fun toString(): String {
         return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
@@ -76,5 +93,6 @@ class Purchase {
         this.price = purchaseDTO.price
         this.categoryOwnerId = purchaseDTO.categoryOwnerId
         this.purchaseUserId = purchaseDTO.purchaseUserId
+        this.discount = purchaseDTO.discount
     }
 }

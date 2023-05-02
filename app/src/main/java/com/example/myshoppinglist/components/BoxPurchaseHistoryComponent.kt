@@ -69,7 +69,7 @@ fun BoxPurchaseHistoryComponent(
                         Column(
                             modifier = Modifier
                                 .padding(start = 12.dp)
-                                .fillMaxWidth(.58f)
+                                .fillMaxWidth(.3f)
                         ) {
                             Text(
                                 text = purchase.name.capitalize(),
@@ -124,6 +124,48 @@ fun BoxPurchaseHistoryComponent(
                                     color = text_primary_light
                                 )
 
+                            }
+
+                            if (purchase.discount > 0) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                ) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        text = "desconto", modifier = Modifier,
+                                        textAlign = TextAlign.Start,
+                                        fontSize = 12.sp,
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "R$ -${
+                                            MaskUtils.maskValue(
+                                                MaskUtils.convertValueDoubleToString(
+                                                    purchase.discount
+                                                )
+                                            )
+                                        }"
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        fontFamily = LatoBlack,
+                                        fontSize = 12.sp,
+                                        color = text_primary_light,
+                                        text = "R$ ${
+                                            MaskUtils.maskValue(
+                                                MaskUtils.convertValueDoubleToString(
+                                                    purchase.price - purchase.discount
+                                                )
+                                            )
+                                        }",
+                                    )
+
+                                }
                             }
                         }
 

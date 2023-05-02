@@ -44,12 +44,15 @@ fun SlidingItemListComponent(
     category: Category,
     product: String,
     price: Float? = 0F,
+    discount: Float? = 0F,
+    isCheckDiscount: Boolean? = false,
     quantOrKilo: String? = "",
     type: TypeProduct? = TypeProduct.QUANTITY,
     backgroundColor: Color,
     callback: CallbackItemList?,
     callbackPrice: CustomTextFieldOnClick? = null,
-    callbackQuantOrKilo: CustomTextFieldOnClick? = null
+    callbackQuantOrKilo: CustomTextFieldOnClick? = null,
+    callbackDiscount: CustomTextFieldOnClick? = null,
 ) {
     val squareSize = 100f
     val slidindState = rememberSwipeableState(SwipeDirection.Initial)
@@ -205,11 +208,14 @@ fun SlidingItemListComponent(
             product,
             backgroundColor,
             price,
+            discount,
+            isCheckDiscount,
             quantOrKilo,
             type,
             callback,
             callbackPrice,
-            callbackQuantOrKilo
+            callbackQuantOrKilo,
+            callbackDiscount
         )
     }
 }
