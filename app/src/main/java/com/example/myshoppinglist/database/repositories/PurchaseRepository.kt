@@ -76,21 +76,21 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     fun sumPriceAllCard(emailUser: String){
         coroutineScope.launch(Dispatchers.Main){
             val value = asyncSumPriceAllCard(emailUser).await()
-            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN).toDouble()
         }
     }
 
     fun sumPriceById(emailUser: String, idCard: Long){
         coroutineScope.launch(Dispatchers.Main){
             val value = asyncSumPriceById(idCard, emailUser).await()
-            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN).toDouble()
         }
     }
 
     fun sumPriceByMonth(emailUser: String, idCard: Long, date: String){
         coroutineScope.launch(Dispatchers.Main){
             val value = asyncSumPriceByMonth(idCard, emailUser, date).await()
-            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.UP).toDouble()
+            searchPrice.value = value.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN).toDouble()
         }
     }
 

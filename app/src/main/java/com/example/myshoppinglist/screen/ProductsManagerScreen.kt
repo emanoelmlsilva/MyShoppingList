@@ -401,7 +401,7 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
                     purchaseFilterCollection.map { it } as MutableList<PurchaseAndCategory>
 
                 val valueSum =
-                    purchaseMultCollection.sumOf { it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
+                    purchaseMultCollection.sumOf { if (it.purchase.discount > 0) it.purchase.price - it.purchase.discount else it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
 
                 val purchaseInfo = PurchaseInfo(
                     purchase.name, category.idImage, valueSum, Color(category.color),
@@ -570,7 +570,7 @@ fun BoxPurchaseItems(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier
-                                                .fillMaxWidth(.65f)
+                                                .fillMaxWidth(.75f)
                                                 .padding(top = 8.dp)
                                         ) {
                                             Text(

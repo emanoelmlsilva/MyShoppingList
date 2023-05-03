@@ -49,13 +49,13 @@ interface PurchaseDAO {
     @Query("SELECT DISTINCT(SUBSTR(date, 1, LENGTH(date) - 3)) as date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND idCard = :idCard AND idCard = purchaseCardId GROUP BY date ORDER BY date ASC")
     fun getMonthDistinctByIdCard(emailUser: String, idCard: Long):List<String>
 
-    @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND idCard = :idCard AND idCard = purchaseCardId")
+    @Query("SELECT SUM(COALESCE(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND idCard = :idCard AND idCard = purchaseCardId")
     fun sumPriceById(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
-    @Query("SELECT COALESCE(SUM(CASE :typeProduct WHEN typeProduct THEN price * CAST(quantiOrKilo AS NUMBER) ELSE price END), 0.0) FROM credit_cards LEFT JOIN purchases ON credit_cards.idCard = purchases.purchaseCardId AND cardUserId = :emailUser AND purchases.date LIKE '%' || :date || '%'")
+    @Query("SELECT COALESCE(SUM(CASE :typeProduct WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) FROM credit_cards LEFT JOIN purchases ON credit_cards.idCard = purchases.purchaseCardId AND cardUserId = :emailUser AND purchases.date LIKE '%' || :date || '%'")
     fun sumPriceAllCard(emailUser: String, date : String = FormatUtils().getMonthAndYear(), typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
-    @Query("SELECT SUM(COALESCE(price, 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
+    @Query("SELECT SUM(COALESCE(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END , 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND idCard = :idCard AND idCard = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
 
     @Transaction
