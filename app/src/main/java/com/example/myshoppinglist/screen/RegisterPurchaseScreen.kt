@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -77,6 +78,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     var visibilityBackHandler by remember { mutableStateOf(false) }
+    var isCheck by remember {mutableStateOf(false)}
 
     LaunchedEffect(key1 = idCardCurrent) {
         categoryViewModel.getAll()
@@ -97,6 +99,10 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
             registerTextFieldViewModel.onChangeProduct(purchaseEdit.name)
             registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.quantiOrKilo)
             registerTextFieldViewModel.onChangeTypeProduct(purchaseEdit.typeProduct)
+            if(purchaseEdit.discount > 0){
+                registerTextFieldViewModel.onChangeDiscountCurrent(MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.discount)))
+                isCheck = true
+            }
         }
     }
 
@@ -231,6 +237,10 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                                             index,
                                             indexInfo
                                         )
+
+                                        if(purchaseEdit.purchase.discount > 0){
+                                            isCheck = true
+                                        }
                                     } else {
                                         registerTextFieldViewModel.removerPurchase(indexInfo, index)
                                     }
@@ -305,6 +315,53 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                                 registerTextFieldViewModel.onChangeProduct(newValue)
                             }
                         })
+                    Column(modifier = Modifier
+                        .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
+                            Checkbox(
+                                colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                                checked = isCheck,
+                                onCheckedChange = {
+                                    isCheck = !isCheck
+
+                                    if(!isCheck){
+                                        registerTextFieldViewModel.onChangeDiscountCurrent("")
+                                    }
+                                }
+                            )
+
+                            Text(text = "Desconto", fontFamily = LatoBlack)
+                        }
+
+                        if(isCheck){
+                            NumberInputComponent(maxChar = 13,
+                                keyboardType = KeyboardType.Number,
+                                value = registerTextFieldViewModel.discount.observeAsState().value,
+                                reset = reset.value,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.45f)
+                                    .padding(end = 16.dp),
+                                label = "Desconto",
+                                error = registerTextFieldViewModel.discountError.observeAsState().value,
+                                customOnClick = object :
+                                    CustomTextFieldOnClick {
+                                    override fun onChangeValue(newValue: String) {
+                                        registerTextFieldViewModel.onChangeDiscountCurrent(newValue)
+                                    }
+                                })
+                        }
+
+                        Spacer(Modifier.height(3.dp))
+
+                        Divider(
+                            color = divider,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                        )
+
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -351,9 +408,10 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                             modifier = Modifier
                                 .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
                             onClick = {
-                                if (registerTextFieldViewModel.checkFileds()) {
+                                if (registerTextFieldViewModel.checkFileds() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
                                     registerTextFieldViewModel.addPurchase()
                                     registerTextFieldViewModel.onChangeResetDate()
+                                    isCheck = false
                                 }
                             }) {
                             Icon(
@@ -365,6 +423,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                             Text("ADICIONAR", color = text_secondary)
                         }
                     }
+
                 }
 
             }
@@ -386,6 +445,10 @@ fun CategoryProduct(
     val categoryChoice = registerTextFieldViewModel.category.observeAsState().value
 
     val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+
+    val scrollState = rememberLazyListState()
 
 
     fun onClick(category: Category) {
@@ -412,7 +475,14 @@ fun CategoryProduct(
                 tint = message_error
             )
         }
-        LazyRow(modifier = Modifier.padding(start = 8.dp)) {
+        LazyRow(state = scrollState,
+            modifier = Modifier.padding(start = 8.dp)) {
+            categoryCollections.forEachIndexed { index, categoryScope ->
+                if (categoryScope.id == categoryChoice) {
+                    scope.launch { scrollState.animateScrollToItem(index) }
+                }
+            }
+
             items(categoryCollections) { category ->
                 Card(modifier = Modifier
                     .padding(2.dp)
@@ -682,6 +752,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         MutableLiveData<MutableList<PurchaseInfo>>(mutableListOf())
     private val categoryCurrent: MutableLiveData<Category> = MutableLiveData(Category())
     val countProduct: MutableLiveData<Int> = MutableLiveData(0)
+    val discount: MutableLiveData<String> = MutableLiveData("")
 
     //variavel de error
     val productError: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -690,6 +761,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val idCardError: MutableLiveData<Boolean> = MutableLiveData(false)
     val typeCategoryError: MutableLiveData<Boolean> = MutableLiveData(false)
     val quantOrKiloError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val discountError: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val index: MutableLiveData<Int> = MutableLiveData(-1)
     private val indexInfo: MutableLiveData<Int> = MutableLiveData(-1)
@@ -709,6 +781,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         index.value = newIndex
         indexInfo.value = newIndexInfo
+        discount.value = purchase.discount.toString()
     }
 
     override fun checkFileds(): Boolean {
@@ -716,6 +789,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         productError.value = product.value!!.isBlank()
 
         priceError.value = price.value!!.isBlank()
+
+        discountError.value = discount.value!!.isBlank()
 
         localeError.value = locale.value!!.isBlank()
 
@@ -765,6 +840,10 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }
     }
 
+    fun onChangeDiscountCurrent(discount: String){
+        this.discount.value = discount
+    }
+
     fun onChangeCategoryCurrent(category: Category) {
         this.categoryCurrent.value = category
     }
@@ -783,6 +862,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         index.value = -1
         indexInfo.value = -1
         quantOrKilo.value = ""
+        discount.value = ""
 
         if (!isBlock.value!!) {
             locale.value = ""
@@ -823,7 +903,14 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
                 price.value!!
             ),
             category.value!!,
-            email
+            email,
+            MaskUtils.convertValueStringToDouble(
+                if(discount.value!!.isNotBlank()) {
+                    discount.value!!
+                }else{
+                    "0.0"
+                }
+            )
         )
 
         val purcharAndCategory = PurchaseAndCategory(

@@ -15,6 +15,7 @@ class PurchaseDTO() {
     var price: Double = 0.0
     var categoryOwnerId: Long = 0
     lateinit var purchaseUserId: String
+    var discount: Double = 0.0
 
     constructor(purchase: Purchase) : this() {
         this.id = purchase.id
@@ -27,5 +28,6 @@ class PurchaseDTO() {
         this.price = purchase.price
         this.categoryOwnerId = purchase.categoryOwnerId
         this.purchaseUserId = purchase.purchaseUserId
+        this.discount = purchase.discount
     }
 }

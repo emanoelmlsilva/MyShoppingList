@@ -123,7 +123,12 @@ fun ProductsManagerScreen(navController: NavController?) {
                 quantityPurchases
             )
 
-            BoxPurchaseItens(context, lifecycleOwner, productManagerFieldViewModel.purchaseInfoCollection.observeAsState(initial = listOf()).value, productManagerFieldViewModel)
+            BoxPurchaseItems(
+                context,
+                lifecycleOwner,
+                productManagerFieldViewModel.purchaseInfoCollection.observeAsState(initial = listOf()).value,
+                productManagerFieldViewModel
+            )
 
         }
     }
@@ -296,7 +301,7 @@ fun SearchProduct(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        if(product.value.isNotBlank()){
+                                        if (product.value.isNotBlank()) {
                                             filter.textCollection.add(product.value.trim())
 
                                             productManagerFieldViewModel.mountObejctSearchDatabase(
@@ -396,7 +401,7 @@ fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): List<Purch
                     purchaseFilterCollection.map { it } as MutableList<PurchaseAndCategory>
 
                 val valueSum =
-                    purchaseMultCollection.sumOf { it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
+                    purchaseMultCollection.sumOf { if (it.purchase.discount > 0) it.purchase.price - it.purchase.discount else it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
 
                 val purchaseInfo = PurchaseInfo(
                     purchase.name, category.idImage, valueSum, Color(category.color),
@@ -417,7 +422,7 @@ fun isExpanded(index: Int, visibilityCollection: MutableList<Int>): Boolean {
 }
 
 @Composable
-fun BoxPurchaseItens(
+fun BoxPurchaseItems(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     purchaseInfoCollection: List<PurchaseInfo>,
@@ -519,9 +524,10 @@ fun BoxPurchaseItens(
                         Column(modifier = Modifier.fillMaxWidth(.9f)) {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Bottom,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(30.dp)
+                                    .padding(bottom = 8.dp)
                             ) {
                                 Text(
                                     fontFamily = LatoRegular,
@@ -529,41 +535,94 @@ fun BoxPurchaseItens(
                                         .padding(start = 12.dp),
                                     textAlign = TextAlign.Start
                                 )
-                                Row(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.Bottom
-                                ) {
-                                    Text(
-                                        fontFamily = LatoRegular,
-                                        fontSize = 12.sp,
-                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
-                                    )
 
-                                    Text(
-                                        fontFamily = LatoRegular,
-                                        fontSize = 12.sp,
-                                        text = "R$ ${
-                                            MaskUtils.maskValue(
-                                                convertValueDoubleToString(
-                                                    purchase.price
+                                Column(horizontalAlignment = Alignment.End) {
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.Bottom,
+                                        modifier = Modifier
+                                                .fillMaxWidth(.75f)
+                                    ) {
+                                        Text(
+                                            fontFamily = LatoRegular,
+                                            fontSize = 12.sp,
+                                            text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                        )
+
+                                        Text(
+                                            fontFamily = LatoRegular,
+                                            fontSize = 12.sp,
+                                            text = "R$ ${
+                                                MaskUtils.maskValue(
+                                                    convertValueDoubleToString(
+                                                        purchase.price
+                                                    )
                                                 )
-                                            )
-                                        }",
-                                        modifier = Modifier
-                                            .padding(start = 12.dp),
-                                    )
+                                            }",
+                                            modifier = Modifier
+                                                .padding(start = 12.dp),
+                                        )
+                                    }
 
-                                    Text(
-                                        text = FormatUtils().getNameDay(purchase.date, false)
-                                            .uppercase(),
-                                        fontFamily = LatoBlack,
-                                        fontSize = 12.sp,
-                                        color = text_primary_light,
-                                        modifier = Modifier
-                                            .padding(start = 12.dp)
-                                    )
+                                    if (purchase.discount > 0) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth(.75f)
+                                                .padding(top = 8.dp)
+                                        ) {
+                                            Text(
+                                                fontFamily = LatoRegular,
+                                                text = "desconto", modifier = Modifier
+                                                    .padding(start = 16.dp),
+                                                textAlign = TextAlign.Start,
+                                                fontSize = 12.sp
+                                            )
+                                            Row(
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.Bottom,
+                                            ) {
+                                                Text(
+                                                    fontFamily = LatoRegular,
+                                                    fontSize = 12.sp,
+                                                    text = "R$ -${
+                                                        MaskUtils.maskValue(
+                                                            convertValueDoubleToString(
+                                                                purchase.discount
+                                                            )
+                                                        )
+                                                    }"
+                                                )
+                                                Text(
+                                                    fontFamily = LatoRegular,
+                                                    fontSize = 12.sp,
+                                                    text = "R$ ${
+                                                        MaskUtils.maskValue(
+                                                            convertValueDoubleToString(
+                                                                purchase.price - purchase.discount
+                                                            )
+                                                        )
+                                                    }",
+                                                    modifier = Modifier
+                                                        .padding(start = 12.dp),
+                                                )
+                                            }
+                                        }
+                                    }
 
                                 }
+
+                                Text(
+                                    text = FormatUtils().getNameDay(purchase.date, false)
+                                        .uppercase(),
+                                    fontFamily = LatoBlack,
+                                    fontSize = 12.sp,
+                                    color = text_primary_light,
+                                    modifier = Modifier
+                                        .padding(start = 12.dp)
+                                )
 
                             }
                             Divider(
@@ -682,16 +741,22 @@ fun AlertDialogFilter(
         month = filter.month
     }
 
-    DialogCustom(visibilityDialog = enableDialog, position = PositionDialog.TOP, percentHeight = 1.4f, shape = RoundedCornerShape(
-        topStart = 0.dp,
-        topEnd = 0.dp,
-        bottomEnd = 16.dp,
-        bottomStart = 16.dp
-    )) {
+    DialogCustom(
+        visibilityDialog = enableDialog,
+        position = PositionDialog.TOP,
+        percentHeight = 1.4f,
+        shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomEnd = 16.dp,
+            bottomStart = 16.dp
+        )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight().background(secondary)
+                .fillMaxHeight()
+                .background(secondary)
                 .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -1188,11 +1253,13 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
     var cardCreditCollection: MutableLiveData<List<CreditCardDTO>> =
         MutableLiveData(mutableListOf())
     var visibleAnimation: MutableLiveData<Boolean> = MutableLiveData(true)
-    var purchaseInfoCollection: MutableLiveData<List<PurchaseInfo>> = MutableLiveData(mutableListOf())
+    var purchaseInfoCollection: MutableLiveData<List<PurchaseInfo>> =
+        MutableLiveData(mutableListOf())
 
-    fun onChangePurchaseInfoCollection(newPurchaseInfoCollection: List<PurchaseInfo>){
+    fun onChangePurchaseInfoCollection(newPurchaseInfoCollection: List<PurchaseInfo>) {
         purchaseInfoCollection.value = newPurchaseInfoCollection
     }
+
     fun onChangeVisibleAnimation(newVisibleAnimation: Boolean) {
         this.visibleAnimation.value = newVisibleAnimation
     }
@@ -1288,7 +1355,9 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         }
 
         purchaseViewModel.getPurchasesOfSearch(
-            collectionSeach, nameFields, if(objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
+            collectionSeach,
+            nameFields,
+            if (objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
         )
 
         purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)

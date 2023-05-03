@@ -83,10 +83,11 @@ class PurchaseViewModel(context: Context): ViewModel() {
         arguments.add(email)
 
         val query : SimpleSQLiteQuery = if(arguments.size == 0 || condition.isBlank()){
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%' AND purchaseUserId = ?", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%' AND purchaseUserId = ?", arguments.toTypedArray())
         }else{
-            SimpleSQLiteQuery("SELECT COALESCE(SUM(CAST(price AS NUMBER) * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ? ", arguments.toTypedArray())
+            SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ? ", arguments.toTypedArray())
         }
+
         repository.getPurchasesSearchSum(query)
     }
 

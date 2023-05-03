@@ -54,8 +54,10 @@ import kotlinx.coroutines.launch
 
 class MarketItem(
     var price: Float,
+    var discount: Float,
     var amount: String,
     var type: TypeProduct,
+    var isCheckDiscount: Boolean,
     var itemListAndCategory: ItemListAndCategory
 ) {
     override fun toString(): String {
@@ -103,7 +105,14 @@ fun MakingMarketScreen(
         itemListViewModel.getAll(idCard)
         ConversionUtils<ItemListAndCategoryDTO>().fromJsonList(itemListJson)!!.forEach { itemList ->
             val marketItem =
-                MarketItem(0F, "0", TypeProduct.QUANTITY, itemList.toItemListAndCategory())
+                MarketItem(
+                    0F,
+                    0F,
+                    "0",
+                    TypeProduct.QUANTITY,
+                    false,
+                    itemList.toItemListAndCategory()
+                )
             marketItemCollection.add(marketItem)
         }
     }
@@ -114,7 +123,7 @@ fun MakingMarketScreen(
             val itemListAndCategory = itemListAndCategoryCollection.last()
 
             val marketItem =
-                MarketItem(0F, "0", TypeProduct.QUANTITY, itemListAndCategory)
+                MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, itemListAndCategory)
             marketItemCollection.add(marketItem)
 
             updateItemList = false
@@ -168,8 +177,36 @@ fun MakingMarketScreen(
 
     }
 
+    fun updateDiscount(idItemAndCategory: Long, discount: Float) {
+        val marketItem = findMarketItem(idItemAndCategory)
+        val index = marketItemCollection.indexOf(marketItem)
+        val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+        if (marketItem != null) {
+            marketItem.discount = discount
+            auxMarketItemCollection[index] = marketItem
+
+            marketItemCollection.removeAll(marketItemCollection)
+            marketItemCollection.addAll(auxMarketItemCollection)
+        }
+    }
+
+    fun updateCheckDiscount(idItemAndCategory: Long, checkDiscount: Boolean) {
+        val marketItem = findMarketItem(idItemAndCategory)
+        val index = marketItemCollection.indexOf(marketItem)
+        val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+        if (marketItem != null) {
+            marketItem.isCheckDiscount = checkDiscount
+            auxMarketItemCollection[index] = marketItem
+
+            marketItemCollection.removeAll(marketItemCollection)
+            marketItemCollection.addAll(auxMarketItemCollection)
+        }
+    }
+
     fun checkFieldProduct(marketItem: MarketItem): Boolean {
-        return marketItem.amount.isNotBlank() && marketItem.amount != "0" && marketItem.price > 0
+        return marketItem.amount.isNotBlank() && marketItem.amount != "0" && marketItem.price > 0 && (!marketItem.isCheckDiscount || marketItem.discount > 0F)
     }
 
     TopAppBarScreen(
@@ -314,6 +351,8 @@ fun MakingMarketScreen(
                             category = category,
                             product = itemListCurrent.item,
                             price = marketItem.price,
+                            discount = marketItem.discount,
+                            isCheckDiscount = marketItem.isCheckDiscount,
                             quantOrKilo = marketItem.amount,
                             type = marketItem.type,
                             backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
@@ -353,6 +392,18 @@ fun MakingMarketScreen(
                                     updateTypeProduct(idItemAndCategory, newProduct)
                                 }
 
+                            },
+                            callbackDiscount = object : CustomTextFieldOnClick {
+                                override fun onChangeValue(newValue: String) {
+                                    updateDiscount(
+                                        idItemAndCategory,
+                                        MaskUtils.convertValueStringToDouble(newValue).toFloat()
+                                    )
+                                }
+
+                                override fun onChangeValue(newValue: Boolean) {
+                                    updateCheckDiscount(idItemAndCategory, newValue)
+                                }
                             }
                         )
                     }
@@ -431,7 +482,8 @@ fun DialogSaveProduct(
                                 it.price.toString()
                             ),
                             category.id,
-                            email
+                            email,
+                            MaskUtils.convertValueStringToDouble(it.discount.toString())
                         )
                         purchase
                     }
@@ -680,40 +732,126 @@ fun DialogShowPurchase(
                                                 size = 40.dp,
                                                 enabledBackground = true
                                             )
-                                            Row(
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text(
-                                                    fontFamily = LatoRegular,
-                                                    text = itemList.item, modifier = Modifier
-                                                        .padding(start = 12.dp),
-                                                    textAlign = TextAlign.Start
-                                                )
+                                            Column(horizontalAlignment = Alignment.End) {
                                                 Row(
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalAlignment = Alignment.Bottom
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
                                                 ) {
                                                     Text(
                                                         fontFamily = LatoRegular,
-                                                        fontSize = 12.sp,
-                                                        text = "${if (marketItem.type == TypeProduct.QUANTITY) "x" else ""} ${marketItem.amount} ${if (marketItem.type == TypeProduct.QUANTITY) "UN" else "Kg"}"
-                                                    )
-                                                    Text(
-                                                        fontFamily = LatoBold,
-                                                        text = "R$ ${
-                                                            MaskUtils.maskValue(
-                                                                MaskUtils.convertValueDoubleToString(
-                                                                    marketItem.price.toDouble()
-                                                                )
-                                                            )
-                                                        }",
-                                                        modifier = Modifier
+                                                        text = itemList.item, modifier = Modifier
                                                             .padding(start = 12.dp),
+                                                        textAlign = TextAlign.Start
                                                     )
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.Center,
+                                                        verticalAlignment = Alignment.Bottom
+                                                    ) {
+                                                        Text(
+                                                            fontFamily = LatoRegular,
+                                                            fontSize = 12.sp,
+                                                            text = "${if (marketItem.type == TypeProduct.QUANTITY) "x" else ""} ${marketItem.amount} ${if (marketItem.type == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                                        )
+                                                        Text(
+                                                            fontFamily = LatoBold,
+                                                            color = text_primary_light,
+                                                            text = "R$ ${
+                                                                MaskUtils.maskValue(
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        marketItem.price.toDouble()
+                                                                    )
+                                                                )
+                                                            }",
+                                                            modifier = Modifier
+                                                                .padding(start = 12.dp),
+                                                        )
+                                                    }
+                                                }
+
+                                                if (marketItem.discount > 0) {
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        modifier = Modifier.padding(top = 4.dp)
+                                                    ) {
+                                                        Text(
+                                                            fontFamily = LatoRegular,
+                                                            text = "desconto", modifier = Modifier,
+                                                            textAlign = TextAlign.Start,
+                                                            fontSize = 12.sp,
+                                                        )
+                                                        Text(
+                                                            modifier = Modifier.padding(start = 10.dp),
+                                                            fontFamily = LatoRegular,
+                                                            fontSize = 12.sp,
+                                                            text = "R$ -${
+                                                                MaskUtils.maskValue(
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        marketItem.discount.toDouble()
+                                                                    )
+                                                                )
+                                                            }"
+                                                        )
+                                                        Text(
+                                                            modifier = Modifier.padding(start = 10.dp),
+                                                            fontFamily = LatoBold,
+                                                            color = text_primary_light,
+                                                            text = "R$ ${
+                                                                MaskUtils.maskValue(
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        (marketItem.price - marketItem.discount).toDouble()
+                                                                    )
+                                                                )
+                                                            }",
+                                                        )
+
+                                                    }
                                                 }
                                             }
                                         }
+
+//                                        if (marketItem.discount > 0) {
+//                                            Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp).background(
+//                                                card_ruby), horizontalAlignment = Alignment.End){
+//                                                Row(
+//                                                    horizontalArrangement = Arrangement.SpaceBetween,
+//                                                    verticalAlignment = Alignment.CenterVertically,
+//                                                ) {
+//                                                    Text(
+//                                                        fontFamily = LatoRegular,
+//                                                        text = "desconto", modifier = Modifier,
+//                                                        textAlign = TextAlign.Start,
+//                                                        fontSize = 12.sp,
+//                                                    )
+//                                                    Text(
+//                                                        modifier = Modifier.padding(start = 10.dp),
+//                                                        fontFamily = LatoRegular,
+//                                                        fontSize = 12.sp,
+//                                                        text = "R$ -${
+//                                                            MaskUtils.maskValue(
+//                                                                MaskUtils.convertValueDoubleToString(
+//                                                                    marketItem.discount.toDouble()
+//                                                                )
+//                                                            )
+//                                                        }"
+//                                                    )
+//                                                    Text(
+//                                                        modifier = Modifier.padding(start = 10.dp),
+//                                                        fontFamily = LatoBold,
+//                                                        color = text_primary_light,
+//                                                        text = "R$ ${
+//                                                            MaskUtils.maskValue(
+//                                                                MaskUtils.convertValueDoubleToString(
+//                                                                    (marketItem.price - marketItem.discount).toDouble()
+//                                                                )
+//                                                            )
+//                                                        }",
+//                                                    )
+//
+//                                                }
+//                                            }
+//
+//                                        }
 
                                         Divider(
                                             color = divider,

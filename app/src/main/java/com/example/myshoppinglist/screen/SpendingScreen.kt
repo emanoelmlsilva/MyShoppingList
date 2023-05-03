@@ -164,17 +164,23 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                DialogBackCustom(visibilityBackHandler, {
-                    visibilityBackHandler = false
+                DialogBackCustom(
+                    visibilityBackHandler,
+                    {
+                        visibilityBackHandler = false
 
-                    purchaseViewModel.deletePurchase(purchaseCurrent)
+                        purchaseViewModel.deletePurchase(purchaseCurrent)
 
-                    reset()
+                        reset()
 
-                    reload = true
-                }, {
-                    visibilityBackHandler = false
-                }, "Deseja apagar compra do historico?", context.getString(R.string.delete_message, purchaseCurrent.name))
+                        reload = true
+                    },
+                    {
+                        visibilityBackHandler = false
+                    },
+                    "Deseja apagar compra do historico?",
+                    context.getString(R.string.delete_message, purchaseCurrent.name)
+                )
 
                 BoxSpendingFromMonth(
                     spendingTextFieldViewModel,
@@ -265,22 +271,31 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     .height(1.dp)
                             )
 
-                            DialogTransferPurchase(context, visibilityDialog, idCard, purchaseCurrent, object : CallbackOptions{
-                                override fun onTransfer(value: Boolean, purchase: Purchase, idCardCurrent: Long) {
-                                    visibilityDialog = false
-                                    if(idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent){
-                                        purchase.purchaseCardId = idCardCurrent
-                                        purchaseViewModel.updatePurchase(purchase)
-                                        reset()
-                                        reload = true
+                            DialogTransferPurchase(
+                                context,
+                                visibilityDialog,
+                                idCard,
+                                purchaseCurrent,
+                                object : CallbackOptions {
+                                    override fun onTransfer(
+                                        value: Boolean,
+                                        purchase: Purchase,
+                                        idCardCurrent: Long
+                                    ) {
+                                        visibilityDialog = false
+                                        if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
+                                            purchase.purchaseCardId = idCardCurrent
+                                            purchaseViewModel.updatePurchase(purchase)
+                                            reset()
+                                            reload = true
+                                        }
+
                                     }
 
-                                }
-
-                                override fun onEditable(idCardCurrent: Long) {
-                                    navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${""}")
-                                }
-                            })
+                                    override fun onEditable(idCardCurrent: Long) {
+                                        navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${""}")
+                                    }
+                                })
                         }
                     })
 
@@ -319,19 +334,29 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         purchaseCurrent = purchase.purchase
                                     }
                                 },
-                                object : CallbackOptions{
-                                    override fun onTransfer(value: Boolean, purchase: Purchase, idCardCurrent: Long) {
-                                        visibilityDialog = value
-                                    }
+                                    object : CallbackOptions {
+                                        override fun onTransfer(
+                                            value: Boolean,
+                                            purchase: Purchase,
+                                            idCardCurrent: Long
+                                        ) {
+                                            visibilityDialog = value
+                                        }
 
-                                    override fun onDelete() {
-                                        visibilityBackHandler = true
-                                    }
+                                        override fun onDelete() {
+                                            visibilityBackHandler = true
+                                        }
 
-                                    override fun onEditable(idCardCurrent: Long) {
-                                        navController?.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${ConversionUtils<PurchaseDTO>(PurchaseDTO::class.java).toJson(PurchaseDTO(purchaseCurrent))}")
-                                    }
-                                })
+                                        override fun onEditable(idCardCurrent: Long) {
+                                            navController?.navigate(
+                                                "${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${
+                                                    ConversionUtils<PurchaseDTO>(
+                                                        PurchaseDTO::class.java
+                                                    ).toJson(PurchaseDTO(purchaseCurrent))
+                                                }"
+                                            )
+                                        }
+                                    })
                             }
                         }
                     }
@@ -402,8 +427,9 @@ fun CustomDropDownMonth(
         elevation = 0.dp, backgroundColor = background_card, modifier = Modifier
             .padding(6.dp, 16.dp, 16.dp, 16.dp)
             .clickable(onClick = {
-                if(monthCollection.isNotEmpty()){
-                    expanded = true}
+                if (monthCollection.isNotEmpty()) {
+                    expanded = true
+                }
             })
     ) {
 
@@ -440,9 +466,10 @@ fun BoxPurchaseSpending(
     val context = LocalContext.current
     val options = idPurchaseEdit != 0L && purchase.id == idPurchaseEdit
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .clickable(onClick = { callback.onClick() })
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = { callback.onClick() })
     ) {
         Row(
             modifier = Modifier
@@ -461,12 +488,18 @@ fun BoxPurchaseSpending(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp),
+                    .padding(
+                        start = 16.dp, top = if (purchase.discount > 0) {
+                            24.dp
+                        } else {
+                            0.dp
+                        }
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
                     horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxWidth(.58f)
+                    modifier = Modifier.fillMaxWidth(.25f)
                 ) {
                     Text(
                         text = purchase.name.capitalize(),
@@ -498,6 +531,45 @@ fun BoxPurchaseSpending(
                         fontSize = 14.sp,
                         textAlign = TextAlign.End
                     )
+                    if (purchase.discount > 0) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth(.85f)
+                                .padding(top = 8.dp)
+                        ) {
+                                Text(
+                                    fontFamily = LatoRegular,
+                                    text = "desconto", modifier = Modifier,
+                                    textAlign = TextAlign.Start,
+                                    fontSize = 12.sp,
+                                )
+                                Text(
+                                    fontFamily = LatoRegular,
+                                    fontSize = 12.sp,
+                                    text = "R$ -${
+                                        MaskUtils.maskValue(
+                                            MaskUtils.convertValueDoubleToString(
+                                                purchase.discount
+                                            )
+                                        )
+                                    }"
+                                )
+                                Text(
+                                    fontFamily = LatoBlack,
+                                    color = text_primary_light,
+                                    text = "R$ ${
+                                        MaskUtils.maskValue(
+                                            MaskUtils.convertValueDoubleToString(
+                                                purchase.price - purchase.discount
+                                            )
+                                        )
+                                    }",
+                                )
+
+                        }
+                    }
                     Text(
                         text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                         color = text_title_secondary, modifier = Modifier
@@ -512,7 +584,13 @@ fun BoxPurchaseSpending(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Options(options, purchase.id, purchase.purchaseCardId, purchase.purchaseUserId, callbackOptions)
+            Options(
+                options,
+                purchase.id,
+                purchase.purchaseCardId,
+                purchase.purchaseUserId,
+                callbackOptions
+            )
         }
 
         Divider(
@@ -525,7 +603,13 @@ fun BoxPurchaseSpending(
 }
 
 @Composable
-fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String, callback: CallbackOptions) {
+fun Options(
+    options: Boolean,
+    idPurchase: Long,
+    idCard: Long,
+    idUser: String,
+    callback: CallbackOptions
+) {
     if (options) {
         Card(
             modifier = Modifier.padding(bottom = 14.dp),
@@ -578,7 +662,7 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String, ca
 
                 IconButton(modifier = Modifier
                     .padding(start = 4.dp), onClick = {
-                        callback.onTransfer(true, Purchase(),0L)
+                    callback.onTransfer(true, Purchase(), 0L)
                 })
                 {
                     Icon(
@@ -595,7 +679,13 @@ fun Options(options: Boolean, idPurchase: Long, idCard: Long, idUser: String, ca
 }
 
 @Composable
-fun DialogTransferPurchase(context: Context, visibilityDialog: Boolean, idCard: Long, purchase: Purchase, callbackOptions: CallbackOptions) {
+fun DialogTransferPurchase(
+    context: Context,
+    visibilityDialog: Boolean,
+    idCard: Long,
+    purchase: Purchase,
+    callbackOptions: CallbackOptions
+) {
     val creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
@@ -605,7 +695,7 @@ fun DialogTransferPurchase(context: Context, visibilityDialog: Boolean, idCard: 
         creditCardViewModel.getAll()
     }
 
-    fun reset(){
+    fun reset() {
         idCardCurrent = idCard
     }
 
@@ -691,7 +781,7 @@ fun DialogTransferPurchase(context: Context, visibilityDialog: Boolean, idCard: 
                     btnTextCancel = "CANCELAR",
                     btnTextAccept = "SALVAR",
                     onClickCancel = {
-                        callbackOptions.onTransfer(false, Purchase(),0L)
+                        callbackOptions.onTransfer(false, Purchase(), 0L)
                         reset()
                     },
                     onClickAccept = {
