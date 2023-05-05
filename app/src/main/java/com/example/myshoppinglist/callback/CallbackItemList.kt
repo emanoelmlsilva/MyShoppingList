@@ -5,6 +5,8 @@ import com.example.myshoppinglist.database.entities.relations.ItemListAndCategor
 
 interface CallbackItemList : Callback{
 
+    fun onUpdateListAndCategory(list: List<ItemListAndCategory>){}
+
     fun itemList(itemList: ItemList){}
 
     fun onDelete(){}

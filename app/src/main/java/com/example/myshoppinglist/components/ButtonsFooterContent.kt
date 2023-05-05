@@ -46,7 +46,7 @@ fun ButtonsFooterContent(
                     Icon(
                         iconCancel,
                         contentDescription = btnTextCancel,
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -58,9 +58,7 @@ fun ButtonsFooterContent(
                 }), onClick = {
                 if (onClickAccept != null) {
                     onClickAccept()
-                    if(callback != null){
-                        callback.onClick()
-                    }
+                    callback?.onClick()
 
                 }
             }) {
@@ -70,7 +68,7 @@ fun ButtonsFooterContent(
                 Icon(
                     iconAccept,
                     contentDescription = btnTextAccept,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
