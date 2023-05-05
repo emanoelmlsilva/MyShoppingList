@@ -1,9 +1,11 @@
 package com.example.myshoppinglist.screen
 
+import DialogRecoveryItemList
 import DialogRegisterItemList
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -20,8 +22,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
@@ -94,6 +99,9 @@ fun MakingMarketScreen(
         mutableStateOf(false)
     }
     var visibilityShowDialog by remember {
+        mutableStateOf(false)
+    }
+    var enabledDialogList by remember {
         mutableStateOf(false)
     }
 
@@ -256,9 +264,10 @@ fun MakingMarketScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 52.dp)
+                    .padding(start = 52.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ButtonsFooterContent(
+                    modifierButton = Modifier.padding(start = 6.dp, end = 6.dp),
                     iconAccept = Icons.Filled.Add,
                     btnTextAccept = "NOVO ITEM",
                     onClickAccept = {
@@ -269,10 +278,44 @@ fun MakingMarketScreen(
                             updateItemList = true
                         }
                     })
+
+                OutlinedButton(
+                    onClick = {
+                        enabledDialogList = true
+                    }, border = BorderStroke(1.dp, primary)){
+                    Text("ADICIONAR", color = primary)
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+
+                        Icon(
+                            ImageVector.vectorResource(id = R.drawable.ic_baseline_playlist_add_24),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+
+                }
             }
         },
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
+
+                DialogRecoveryItemList(context, lifecycleOwner, idCard, enabledDialogList, marketItemCollection.map { it.itemListAndCategory } ,object: CallbackItemList{
+                    override fun itemList(itemList: ItemList) {
+
+                    }
+
+                    override fun onChangeValue(newValue: Boolean) {
+                        enabledDialogList = newValue
+                    }
+
+                    override fun onUpdateListAndCategory(list: List<ItemListAndCategory>) {
+                        list.forEach {
+                            val marketItem =
+                                MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, it)
+                            marketItemCollection.add(marketItem)
+
+                        }
+                    }
+                })
 
                 DialogShowPurchase(context, visibilityShowDialog, MaskUtils.maskValue(
                     MaskUtils.convertValueDoubleToString(
