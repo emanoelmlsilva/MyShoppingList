@@ -14,6 +14,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -60,7 +65,7 @@ fun ChoiceLogin(navController: NavController) {
                 ) {
 
                     Column(
-                        modifier = Modifier.fillMaxHeight(.35f),
+                        modifier = Modifier.fillMaxHeight(.47f),
                         verticalArrangement = Arrangement.SpaceBetween,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -76,9 +81,21 @@ fun ChoiceLogin(navController: NavController) {
                             Text(text = "LOGIN", fontFamily = LatoRegular, fontSize = 14.sp)
                         }
 
+                        Text(
+                            text = "ou",
+                            fontFamily = LatoRegular,
+                            fontSize = 16.sp,
+                            color = text_primary_light)
+
                         TextButton(onClick = { navController.navigate(Screen.Register.name)}) {
                             Text(
-                                text = "Não tem conta criada? Sign up",
+                                buildAnnotatedString {
+                                    append("Não tem conta criada?")
+                                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                        append(" Sign up")
+                                    }
+                                },
+//                                text = "Não tem conta criada? Sign up",
                                 fontFamily = LatoRegular,
                                 fontSize = 16.sp,
                                 color = Color(0xFF05290A)

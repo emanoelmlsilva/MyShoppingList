@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -46,7 +47,11 @@ import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.services.MyShoppingListService
+import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.ui.theme.*
+import retrofit2.Call
+import retrofit2.Response
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
@@ -56,7 +61,8 @@ fun CreateUserScreen(
     isUpdate: Boolean? = false,
     hasToolbar: Boolean? = false
 ) {
-    var createUserViewModel: CreateUserFieldViewModel = viewModel()
+    val LOG = "CREATE_USER_SCREEN"
+    val createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
@@ -71,6 +77,7 @@ fun CreateUserScreen(
         Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
     )
     var user by remember { mutableStateOf(User()) }
+    val userService = UserService.getUserService()
 
     LaunchedEffect(Unit) {
         val email = UserLoggedShared.getEmailUserCurrent()
@@ -99,21 +106,35 @@ fun CreateUserScreen(
             user.nickName = nickName.trim()
             user.idAvatar = idAvatar
 
-            userViewModel.updateUser(user)
-            UserInstanceImpl.reset()
-            UserInstanceImpl.getInstance(context, user.email)
+            userService.update(user).enqueue(object :
+                retrofit2.Callback<User> {
+                override fun onResponse(
+                    call: Call<User>,
+                    response: Response<User>
+                ) {
+                    Log.d(LOG, "success = $response , user ${response.body().toString()}")
 
-            if (isUpdate) {
-                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
+                    userViewModel.updateUser(user)
+                    UserInstanceImpl.reset()
+                    UserInstanceImpl.getInstance(context, user.email)
+
+                    if (isUpdate) {
+                        navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+                        {
+                            popUpTo(Screen.Home.name) { inclusive = false }
+                        }
+                    } else {
+                        navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+                        {
+                            popUpTo(Screen.Home.name) { inclusive = false }
+                        }
+                    }
                 }
-            } else {
-                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
+
+                override fun onFailure(call: Call<User>?, t: Throwable?) {
+
                 }
-            }
+            })
         }
     }
 

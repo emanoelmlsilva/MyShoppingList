@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -39,6 +40,7 @@ import com.example.myshoppinglist.database.dtos.CreditCardDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
@@ -59,6 +61,8 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     val creditCardCollection by createCardCreditViewModel.creditCardCollection.observeAsState(
         mutableListOf()
     )
+    val userViewModel: UserViewModel = UserViewModel(context)
+
 
     LaunchedEffect(key1 = idAvatar) {
         creditCardViewModel.getAll()
@@ -80,6 +84,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 
     DialogBackCustom(visibilityBackHandler, {
         UserLoggedShared.logout()
+        userViewModel.deleteUser()
         navController.navigate(Screen.ChoiceLogin.name) {
             popUpTo(0) { inclusive = false }
         }
@@ -234,14 +239,26 @@ fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack:
                 modifier = Modifier.fillMaxWidth(.7f)
             )
 
-            IconButton(onClick = {
-                callBack.onClick()
-            }) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = null,
-                    tint = text_primary
-                )
+            Row{
+                IconButton(onClick = {
+                    callBack.onClick()
+                }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = text_primary
+                    )
+                }
+
+                IconButton(onClick = {
+                    callBack.onClick()
+                }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Menu,
+                        contentDescription = null,
+                        tint = text_primary
+                    )
+                }
             }
         }
     }

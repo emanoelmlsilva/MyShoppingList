@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -35,12 +36,18 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.services.MyShoppingListService
+import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.ui.theme.*
 import kotlinx.coroutines.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Register(navController: NavController) {
+    val LOG = "REGISTER"
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val userViewModel: UserViewModel = UserViewModel(context)
@@ -66,11 +73,16 @@ fun Register(navController: NavController) {
         isError = true
     }
 
+    val userService = UserService.getUserService()
+
     userViewModel.searchResult.observe(lifecycleOwner) {
+        Log.d(LOG,  "recuperando do banco = $it")
+
         if (userViewModel.hasExistUser(email) && !isError) {
+            Log.d(LOG,  "navegando para CreateUser")
             UserLoggedShared.insertUserLogged(email)
             UserInstanceImpl.getInstance(context, email)
-            navController.navigate("${Screen.CreateUser.name}?isUpdate=${false}?hasToolbar=${false}")    {
+            navController.navigate("${Screen.CreateUser.name}?isUpdate=${false}?hasToolbar=${false}") {
                 popUpTo(0) { inclusive = false }
             }
         }
@@ -128,7 +140,7 @@ fun Register(navController: NavController) {
                             customOnClick = object : CustomTextFieldOnClick {
                                 override fun onChangeValue(newValue: String) {
                                     email = newValue
-                                    if(isError){
+                                    if (isError) {
                                         isError = false
                                     }
                                 }
@@ -206,9 +218,26 @@ fun Register(navController: NavController) {
 
                             val user = User(email, password)
 
-                            userViewModel.insertUser(user, handler)
+                            signUp(userService, user, object :
+                                Callback<User> {
+                                override fun onResponse(
+                                    call: Call<User>,
+                                    response: Response<User>
+                                ) {
+                                    Log.d(
+                                        LOG,
+                                        "success = $response , user ${response.body().toString()}"
+                                    )
 
-                            userViewModel.findUserByName(email)
+                                    userViewModel.insertUser(user, handler)
+
+                                    userViewModel.findUserByName(email)
+                                }
+
+                                override fun onFailure(call: Call<User>?, t: Throwable?) {
+
+                                }
+                            })
 
                         }) {
                         Text(text = "CRIAR", fontFamily = LatoRegular, fontSize = 14.sp)
@@ -242,4 +271,8 @@ fun Register(navController: NavController) {
             }
         }
     })
+}
+
+fun signUp(userService: UserService, user: User, callback: Callback<User>) {
+    userService.save(user).enqueue(callback)
 }

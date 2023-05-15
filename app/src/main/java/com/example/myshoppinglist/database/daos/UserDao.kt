@@ -18,6 +18,6 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email")
     fun findUserByEmail(email: String): User
 
-    @Query("SELECT * FROM users WHERE email = :email")
-    fun deleteUser(email: String): Boolean
+    @Query("DELETE FROM users")
+    fun deleteUser(): Int
 }

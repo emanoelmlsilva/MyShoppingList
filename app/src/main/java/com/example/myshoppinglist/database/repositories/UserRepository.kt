@@ -1,12 +1,14 @@
 package com.example.myshoppinglist.database.repositories
 
+import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import com.example.myshoppinglist.database.daos.UserDao
+import com.example.myshoppinglist.database.MyShopListDataBase
+import com.example.myshoppinglist.database.daos.*
 import com.example.myshoppinglist.database.entities.User
 import kotlinx.coroutines.*
 
@@ -40,9 +42,9 @@ class UserRepository(private val userDao: UserDao) {
         }
     }
 
-    fun deleteUser(name: String){
+    fun deleteUser(context: Context){
         coroutineScope.launch(Dispatchers.IO){
-            userDao.deleteUser(name)
+            MyShopListDataBase.getInstance(context).clearAllTables()
         }
     }
 

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared

@@ -1,17 +1,14 @@
 package com.example.myshoppinglist.database.viewModels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.repositories.UserRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.job
 
-class UserViewModel(context: Context): ViewModel() {
+class UserViewModel(val context: Context): ViewModel() {
 
     private val repository: UserRepository
     val searchResult: MutableLiveData<User>
@@ -37,8 +34,8 @@ class UserViewModel(context: Context): ViewModel() {
         repository.findUserByEmail(email)
     }
 
-    fun deleteUser(name: String) {
-        repository.deleteUser(name)
+    fun deleteUser() {
+        repository.deleteUser(context)
     }
 
     fun hasExistUser(email: String): Boolean{

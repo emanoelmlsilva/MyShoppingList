@@ -7,6 +7,7 @@ import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue
 
 class CreditCardDTO(
+    var idApi: Long = 0L,
     var idCard: Long = 0L,
     var cardName: String = "",
     var holderName: String = "",
@@ -19,7 +20,7 @@ class CreditCardDTO(
     var email: String = ""){
 
      fun fromCreditCardDTO(creditCard: CreditCard): CreditCardDTO{
-        return CreditCardDTO(creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag), creditCard.position, creditCard.cardUserId)
+        return CreditCardDTO(idApi, creditCard.id, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag), creditCard.position, creditCard.cardUserId)
     }
 
     private fun fromFlagBlack(int: Int): Int{
@@ -35,7 +36,7 @@ class CreditCardDTO(
     }
 
     fun toCreditCard(): CreditCard{
-        val creditCard = CreditCard(holderName, cardName, value, colorCard, typeCard, email, flag, position)
+        val creditCard = CreditCard(idApi, holderName, cardName, value, colorCard, typeCard, email, flag, position)
         creditCard.id = idCard
 
         return creditCard
