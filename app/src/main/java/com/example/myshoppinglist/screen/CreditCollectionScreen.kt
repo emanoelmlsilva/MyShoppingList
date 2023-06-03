@@ -76,7 +76,7 @@ class CreditCollectionFieldViewModel: BaseFieldViewModel(){
     fun onChangeCreditCardCollectin(newCreditCardCollection: List<CreditCardDTO>){
         creditCardCollection.value = newCreditCardCollection
     }
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         TODO("Not yet implemented")
     }
 

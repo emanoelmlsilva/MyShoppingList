@@ -1272,7 +1272,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         cardCreditCollection.value = newCardCreditCollection
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         TODO("Not yet implemented")
     }
 

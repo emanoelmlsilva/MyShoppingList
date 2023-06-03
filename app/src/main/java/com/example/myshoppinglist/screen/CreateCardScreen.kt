@@ -48,11 +48,9 @@ import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
-import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.CreditCardService
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
-import kotlinx.coroutines.CoroutineExceptionHandler
 import retrofit2.Call
 import retrofit2.Response
 
@@ -127,7 +125,7 @@ fun CreateCardScreen(
 
     fun saveCreditCard() {
         if (userDTO != null) {
-            if (createCardCreditViewModel.checkFileds()) {
+            if (createCardCreditViewModel.checkFields()) {
                 val lastPosition = createCardCreditViewModel.lastPosition.value
                 val valueCreditCard = createCardCreditViewModel.value.value
                 val typeCardRecover = createCardCreditViewModel.typeCard.value

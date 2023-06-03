@@ -47,7 +47,7 @@ class ItemListViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Base
         }
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         TODO("Not yet implemented")
     }
 }

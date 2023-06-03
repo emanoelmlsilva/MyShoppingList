@@ -408,7 +408,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                             modifier = Modifier
                                 .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
                             onClick = {
-                                if (registerTextFieldViewModel.checkFileds() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
+                                if (registerTextFieldViewModel.checkFields() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
                                     registerTextFieldViewModel.addPurchase()
                                     registerTextFieldViewModel.onChangeResetDate()
                                     isCheck = false
@@ -784,7 +784,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         discount.value = purchase.discount.toString()
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         productError.value = product.value!!.isBlank()
 

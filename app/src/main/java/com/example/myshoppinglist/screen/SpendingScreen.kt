@@ -810,7 +810,7 @@ class SpendingTextFieldViewModel : BaseFieldViewModel() {
         monthCurrent.value = newMonth
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         return false
     }
 }

@@ -3,13 +3,10 @@ package com.example.myshoppinglist.services.controller
 import android.content.Context
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.LifecycleOwner
-import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.entities.relations.UserWithCategory
 import com.example.myshoppinglist.database.entities.relations.UserWithCreditCard
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
-import com.example.myshoppinglist.services.CategoryService
 import com.example.myshoppinglist.services.CreditCardService
 import com.example.myshoppinglist.ui.theme.card_blue
 import com.example.myshoppinglist.ui.theme.card_orange
@@ -26,17 +23,16 @@ class LoadingDataController {
 
     companion object {
         private lateinit var creditCardService: CreditCardService
-        private lateinit var categoryService: CategoryService
 
         private lateinit var creditCardViewModel: CreditCardViewModel
-        private lateinit var categoryViewModel: CategoryViewModel
+        private lateinit var categoryController: CategoryController
 
-        fun getData(context: Context, lifecycleOwner: LifecycleOwner) : LoadingDataController{
+        fun getData(context: Context, lifecycleOwner: LifecycleOwner): LoadingDataController {
             creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-            categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+
+            categoryController = CategoryController.getData(context, lifecycleOwner)
 
             creditCardService = CreditCardService.getCreditCardService()
-            categoryService = CategoryService.getCategoryService()
 
             return LoadingDataController()
         }
@@ -53,9 +49,9 @@ class LoadingDataController {
                 val creditCardCollection = response.body()
 
                 creditCardCollection?.toObservable()?.subscribeBy(
-                    onNext = { creditCardViewModel.insertCreditCard(it.toCreditCard())},
-                    onError =  { callback.onCancel() },
-                    onComplete = { loadingDataCategories(user.email, callback) }
+                    onNext = { creditCardViewModel.insertCreditCard(it.toCreditCard()) },
+                    onError = { callback.onCancel() },
+                    onComplete = { loadingDataCategories(user, callback) }
                 )
             }
 
@@ -68,8 +64,8 @@ class LoadingDataController {
         })
     }
 
-    fun loadingDataCategories(email: String, callback: com.example.myshoppinglist.callback.Callback){
-        categoryService.findAll(email).enqueue(object : Callback<List<UserWithCategory>> {
+    fun loadingDataCategories(user: User, callback: com.example.myshoppinglist.callback.Callback) {
+        categoryController.getCategoryService().findAll(user.email).enqueue(object : Callback<List<UserWithCategory>> {
             override fun onResponse(
                 call: Call<List<UserWithCategory>>,
                 response: Response<List<UserWithCategory>>
@@ -77,24 +73,13 @@ class LoadingDataController {
 
                 val categoryCollection = response.body()
 
-                if(!categoryCollection?.isEmpty()!!){
-                    categoryCollection.toObservable().subscribeBy(
-                        onNext = { categoryViewModel.insertCategory(it.toCategory())},
-                        onError =  { callback.onCancel() },
-                        onComplete = { callback.onSucess() }
-                    )
-                }else{
-                    listOf(
-                        Category(email,"Higiene", "outline_sanitizer_black_36.png", card_blue.toArgb()),
-                        Category(email,"Limpeza", "outline_cleaning_services_black_36.png", card_pink.toArgb()),
-                        Category(email,"Comida", "food_bank.png", card_red_dark.toArgb()),
-                        Category(email,"Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
-                    ).toObservable().subscribeBy(
-                        onNext = { categoryViewModel.insertCategory(it)},
-                        onError =  { callback.onCancel() },
-                        onComplete = { callback.onSucess() }
-                    )
-                }
+                categoryCollection?.toObservable()?.subscribeBy(
+                    onNext = {
+                        categoryController.saveCategory(it, !response.body()?.isEmpty()!!)
+                    },
+                    onError = { callback.onCancel() },
+                    onComplete = { callback.onSucess() }
+                )
             }
 
             override fun onFailure(

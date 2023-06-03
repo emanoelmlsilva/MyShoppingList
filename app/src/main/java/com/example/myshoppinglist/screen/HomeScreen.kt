@@ -217,7 +217,7 @@ class HomeFieldViewModel : BaseFieldViewModel() {
         isVisibleValue.value = !isVisibleValue.value!!
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         TODO("Not yet implemented")
     }
 

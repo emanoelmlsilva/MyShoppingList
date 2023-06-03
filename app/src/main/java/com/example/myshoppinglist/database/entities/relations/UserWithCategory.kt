@@ -1,18 +1,9 @@
 package com.example.myshoppinglist.database.entities.relations
 
-import androidx.compose.ui.graphics.toArgb
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.PrimaryKey
-import androidx.room.Relation
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.User
-import com.example.myshoppinglist.enums.CardCreditFlag
-import com.example.myshoppinglist.enums.TypeCard
-import com.example.myshoppinglist.ui.theme.card_blue
 import com.google.gson.annotations.SerializedName
-import org.jetbrains.annotations.NotNull
 
 class UserWithCategory(
     @SerializedName("user")
@@ -25,13 +16,51 @@ class UserWithCategory(
     val idImage: String = "",
     @SerializedName("color")
     @ColumnInfo(name = "color")
-    val color: Int = 0
+    val color: Int = 0,
+    @SerializedName("id")
+    @ColumnInfo(name = "id")
+    var id: Long = 0L,
+    @SerializedName("idCategory")
+    @ColumnInfo(name = "idCategory")
+    var idCategory: Long = 0L
 ) {
 
     constructor() : this(User(), "", "", 0) {}
 
+    constructor(user: User, id: Long, category: String, idImage: String, color: Int) : this(
+        user,
+        category,
+        idImage,
+        color
+    ) {
+        this.id = id
+    }
+
+    constructor(user: User, idCategory: Long, id: Long, category: String, idImage: String, color: Int) : this(
+        user,
+        id,
+        category,
+        idImage,
+        color
+    ) {
+        this.idCategory = idCategory
+    }
+
     fun toCategory(): Category {
         return Category(
+            user.email,
+            id,
+            category,
+            idImage,
+            color
+        )
+    }
+
+    fun toCategoryId(): Category {
+        return Category(
+            user.email,
+            id,
+            idCategory,
             category,
             idImage,
             color

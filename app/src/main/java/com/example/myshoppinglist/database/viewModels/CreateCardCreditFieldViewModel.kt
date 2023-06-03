@@ -90,7 +90,7 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
         isErrorNameCard.value = newIsError
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true)
             return false

@@ -47,7 +47,6 @@ import com.example.myshoppinglist.database.viewModels.CategoryViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
-import com.example.myshoppinglist.services.MyShoppingListService
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.ui.theme.*
 import retrofit2.Call
@@ -95,10 +94,10 @@ fun CreateUserScreen(
     }
 
     fun saveUser() {
-        if (createUserViewModel.checkFileds()) {
+        if (createUserViewModel.checkFields()) {
             if (!isUpdate!!) {
                 categoryCollections.forEach {
-                    val category = Category(user.email, it.category, it.idImage, it.color)
+                    val category = Category(user.email, it.id, it.category, it.idImage, it.color)
                     categoryViewModel.insertCategory(category)
                 }
             }
@@ -401,7 +400,7 @@ class CreateUserFieldViewModel : BaseFieldViewModel() {
         isErrorNickName.value = newIsErrorNickName
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true)
