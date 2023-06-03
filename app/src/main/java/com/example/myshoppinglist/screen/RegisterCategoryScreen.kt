@@ -120,7 +120,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         )
     }
 
-    fun saveCategory(category: Category) {
+    fun saveCategory(category: Category, callback: Callback) {
         categoryController.saveCategory(
             UserWithCategory(
                 user,
@@ -128,11 +128,12 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                 category.category,
                 category.idImage,
                 category.color
-            ))
+            ), callback = callback)
     }
 
     fun goBackNavigation() {
         scope.launch(context = Dispatchers.Main) {
+            registerCategoryFieldViewModel.reset()
             navController.popBackStack()
         }
     }
@@ -156,7 +157,15 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                     }
                 })
             } else {
-                saveCategory(newCategory)
+                saveCategory(newCategory, object : Callback {
+                    override fun onCancel() {
+
+                    }
+
+                    override fun onSucess() {
+                        goBackNavigation()
+                    }
+                })
             }
         }
     }, hasToolbar = true, hasDoneButton = true, hasBackButton = false, content = {
@@ -261,8 +270,14 @@ class RegisterCategoryFieldViewModel : BaseFieldViewModel() {
     val iconCategoryCollection = MutableLiveData<List<IconCategory>>()
     val categoryCurrent = MutableLiveData("")
     val idImage = MutableLiveData("")
-    val color = MutableLiveData(Color.Black.toArgb())
+    val color = MutableLiveData(Color.Red.toArgb())
     var isErrorCategory: MutableLiveData<Boolean> = MutableLiveData(false)
+
+    fun reset(){
+        this.color.value = Color.Red.toArgb()
+        this.categoryCurrent.value = ""
+        this.idImage.value = ""
+    }
 
     fun onChangeColor(newColor: Int) {
         this.color.value = newColor

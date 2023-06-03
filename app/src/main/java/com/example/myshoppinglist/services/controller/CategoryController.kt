@@ -29,14 +29,14 @@ class CategoryController {
         return categoryService
     }
 
-    fun saveCategory(userWithCategory: UserWithCategory, isRecover: Boolean = false){
+    fun saveCategory(userWithCategory: UserWithCategory, isRecover: Boolean = false, callback: com.example.myshoppinglist.callback.Callback){
         if(!isRecover){
             categoryService.save(userWithCategory).enqueue(object : Callback<UserWithCategory> {
                 override fun onResponse(
                     call: Call<UserWithCategory>,
                     response: Response<UserWithCategory>
                 ) {
-                    categoryViewModel.insertCategory(userWithCategory.toCategory())
+                    categoryViewModel.insertCategory(userWithCategory.toCategoryId(), callback)
                 }
 
                 override fun onFailure(call: Call<UserWithCategory>, t: Throwable) {
@@ -44,8 +44,20 @@ class CategoryController {
                 }
             })
         }else{
-            categoryViewModel.insertCategory(userWithCategory.toCategoryId())
+            categoryViewModel.insertCategory(userWithCategory.toCategoryId(), callback)
         }
+    }
+
+    fun saveCategory(userWithCategory: UserWithCategory, isRecover: Boolean = false){
+        saveCategory(userWithCategory, isRecover, object : com.example.myshoppinglist.callback.Callback{
+            override fun onCancel() {
+                super.onCancel()
+            }
+
+            override fun onSucess() {
+                super.onSucess()
+            }
+        })
     }
 
     fun updateCategory(userWithCategory: UserWithCategory, callback: com.example.myshoppinglist.callback.Callback){

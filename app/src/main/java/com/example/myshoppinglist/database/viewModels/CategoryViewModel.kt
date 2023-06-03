@@ -1,11 +1,7 @@
 package com.example.myshoppinglist.database.viewModels
 
 import android.content.Context
-import android.database.sqlite.SQLiteException
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,15 +10,8 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.repositories.CategoryRepository
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.ui.uiState.CategoryUiState
 import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.functions.Action
-import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
     //repository
@@ -36,6 +25,8 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
 
     private var mLifecycleOwner: LifecycleOwner
 
+    private val TAG = "CategoryViewModel"
+
     init {
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val categoryDAO = myShopListDataBase.categoryDAO()
@@ -48,17 +39,27 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
         mLifecycleOwner = lifecycleOwner
     }
 
-    fun insertCategory(category: Category) {
-        repository.insertCateogry(category)
-//        Observable.just(repository.insertCateogry(category))
-//            .subscribeOn(Schedulers.newThread())
-////            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({ Log.d("TESTANDO", "value")  },
-//                { throwable -> Log.d("TESTANDO", "ERROR "+throwable.message)},
-//                { Log.d("TESTANDO", "COMPLETADO")
-//                    callback.onSucess()
-//                })
+    fun insertCategory(category: Category, callback: Callback) {
+        val action = Action {
+            repository.insertCateogry(category)
+        }
 
+        Completable.fromAction(action).subscribe({ callback.onSucess() }, { throwable ->
+            Log.d(TAG, "ERROR " + throwable.message)
+            callback.onCancel()
+        })
+    }
+
+    fun insertCategory(category: Category) {
+        insertCategory(category, object : Callback{
+            override fun onCancel() {
+                super.onCancel()
+            }
+
+            override fun onSucess() {
+                super.onSucess()
+            }
+        })
     }
 
     fun updateCategory(category: Category, callback: Callback) {
@@ -69,23 +70,12 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
         val completable = Completable.fromAction(action)
 
         completable.subscribe(
-            {Log.d("TESTANDO", "value")
-                callback.onSucess()},
-            { throwable ->  Log.d("TESTANDO", "ERROR " + throwable.message) }
+            { callback.onSucess() },
+            { throwable ->
+                Log.d(TAG, "ERROR " + throwable.message)
+                callback.onCancel()
+            }
         )
-
-//        Observable.just(category)
-//            .subscribeOn(Schedulers.newThread())
-////            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({ categoryObserver ->
-//                repository.updateCategory(categoryObserver)
-//                Log.d("TESTANDO", "value" + categoryObserver)
-//            },
-//                { throwable -> Log.d("TESTANDO", "ERROR " + throwable.message) },
-//                {
-//                    Log.d("TESTANDO", "COMPLETADO")
-//                    callback.onSucess()
-//                })
     }
 
     fun getAll() {
