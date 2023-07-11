@@ -1,13 +1,15 @@
 package com.example.myshoppinglist.callback
 
-import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 
 interface CallbackItemList : Callback{
 
     fun onUpdateListAndCategory(list: List<ItemListAndCategory>){}
 
-    fun itemList(itemList: ItemList){}
+    fun onUpdate(itemList: ItemListDTO)
+
+    fun onInsert(itemList: ItemListDTO){}
 
     fun onDelete(){}
 

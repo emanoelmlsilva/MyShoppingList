@@ -20,7 +20,9 @@ interface Callback {
 
     }
 
-    fun onSucess(){}
+    fun onSuccess(){}
+
+    fun onFailed(messageError: String){}
 
     fun onCancel(){}
 }

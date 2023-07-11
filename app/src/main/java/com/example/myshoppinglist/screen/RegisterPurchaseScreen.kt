@@ -47,8 +47,8 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
@@ -69,7 +69,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val purchaseViewModel = PurchaseViewModel(context)
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
@@ -114,9 +114,9 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
         reset.value = it
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        registerTextFieldViewModel.onChangeCategoryCollection(it)
-    }
+//    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
+//        registerTextFieldViewModel.onChangeCategoryCollection(it)
+//    }
 
    suspend fun updatePurchase(){
 
@@ -135,7 +135,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                registerTextFieldViewModel.email
            )
 
-           purchase.id = purchaseEdit?.id ?: 0
+           purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
 
            purchaseViewModel.updatePurchase(purchase)
 
@@ -408,7 +408,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                             modifier = Modifier
                                 .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
                             onClick = {
-                                if (registerTextFieldViewModel.checkFileds() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
+                                if (registerTextFieldViewModel.checkFields() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
                                     registerTextFieldViewModel.addPurchase()
                                     registerTextFieldViewModel.onChangeResetDate()
                                     isCheck = false
@@ -452,7 +452,7 @@ fun CategoryProduct(
 
 
     fun onClick(category: Category) {
-        registerTextFieldViewModel.onChangeCategory(category.id!!)
+        registerTextFieldViewModel.onChangeCategory(category.myShoppingId!!)
         registerTextFieldViewModel.onChangeCategoryCurrent(category)
     }
 
@@ -478,7 +478,7 @@ fun CategoryProduct(
         LazyRow(state = scrollState,
             modifier = Modifier.padding(start = 8.dp)) {
             categoryCollections.forEachIndexed { index, categoryScope ->
-                if (categoryScope.id == categoryChoice) {
+                if (categoryScope.myShoppingId == categoryChoice) {
                     scope.launch { scrollState.animateScrollToItem(index) }
                 }
             }
@@ -494,7 +494,7 @@ fun CategoryProduct(
                     Row(
                         modifier = Modifier
                             .height(33.dp)
-                            .background(if (category.id == categoryChoice) background_card_light else background_card),
+                            .background(if (category.myShoppingId == categoryChoice) background_card_light else background_card),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -536,9 +536,9 @@ fun PurchaseAndPaymentComponent(
     error: Boolean? = false
 ) {
     val context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-    val cardCreditCollection =
-        creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
+    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
+//    val cardCreditCollection =
+//        creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
@@ -784,7 +784,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         discount.value = purchase.discount.toString()
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         productError.value = product.value!!.isBlank()
 

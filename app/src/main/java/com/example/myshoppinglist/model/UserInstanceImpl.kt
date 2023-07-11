@@ -1,26 +1,25 @@
 package com.example.myshoppinglist.model
 
 import android.content.Context
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 
 class UserInstanceImpl{
 
     companion object {
-        var userViewModel: UserViewModel? = null
+        private var userViewModel: UserViewModelDB? = null
         private var instance: UserInstanceImpl? = null
 
-        fun getInstance(context: Context, email: String): UserInstanceImpl {
-            userViewModel = UserViewModel(context)
+        fun getInstance(context: Context): UserInstanceImpl {
+            userViewModel = UserViewModelDB(context)
 
             if (instance == null) {
                 instance = UserInstanceImpl()
-                userViewModel!!.findUserByName(email)
             }
             return this.instance!!
         }
 
 
-        fun getUserViewModelCurrent(): UserViewModel{
+        fun getUserViewModelCurrent(): UserViewModelDB{
             return userViewModel!!
         }
 

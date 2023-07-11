@@ -2,77 +2,165 @@ package com.example.myshoppinglist.components
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
-
 @Composable
 fun BoxItemListComponent(
-    modifier: Modifier = Modifier,
     context: Context,
+    itemListDTO: ItemListDTO,
     isMarket: Boolean,
     isCheck: Boolean,
     isRemoved: Boolean = false,
     idItem: Long,
     category: Category,
     product: String,
-    backgroundColor: Color,
     price: Float?,
     discount: Float?,
     isCheckDiscount: Boolean?,
-    quantOrKilo: String?,
+    amountOrKilo: String?,
     type: TypeProduct?,
     callback: CallbackItemList?,
     callbackPrice: CustomTextFieldOnClick?,
-    callbackQuantOrKilo: CustomTextFieldOnClick?,
+    callbackAmountOrKilo: CustomTextFieldOnClick?,
     callbackDiscount: CustomTextFieldOnClick?
 ) {
 
-    Column(
-        modifier = modifier
-            .background(backgroundColor)
+    var enabledDeleteDialog by remember { mutableStateOf(false) }
+    var showOptions by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect(key1 = isCheck){
+        if(!isCheck && showOptions){
+            showOptions = false
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .background(background_card_light)
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
     ) {
+
+        if (enabledDeleteDialog) {
+            Dialog(
+                onDismissRequest = { },
+                content = {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = text_secondary,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(text_secondary)
+
+                        ) {
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 18.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier.padding(horizontal = 6.dp),
+                                    imageVector = Icons.Rounded.Warning,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFFEA0F)
+                                )
+
+                                Text(
+                                    buildAnnotatedString {
+                                        append("Deseja remover o item")
+                                        withStyle(style = SpanStyle(fontFamily = LatoBlack)) {
+                                            append("  $product")
+                                        }
+                                        append(" da lista?")
+                                    },
+                                    fontFamily = LatoRegular,
+                                )
+
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(
+                                    colors = ButtonDefaults.textButtonColors(contentColor = text_primary_light),
+                                    onClick = {
+                                        enabledDeleteDialog = false
+                                    })
+                                {
+                                    Text(
+                                        text = "Não", fontFamily = LatoRegular
+                                    )
+                                }
+
+                                TextButton(
+                                    colors = ButtonDefaults.textButtonColors(contentColor = primary_dark),
+                                    onClick = {
+                                        callback?.onDelete()
+                                        enabledDeleteDialog = false
+                                    })
+                                { Text(text = "Sim", fontFamily = LatoBlack) }
+                            }
+
+                        }
+                    }
+                })
+        }
+
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.height(65.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth(.75f)
             ) {
-                Spacer(
-                    Modifier
-                        .width(5.dp)
-                )
 
                 IconCategoryComponent(
-                    modifier = Modifier.padding(start = 6.dp),
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp),
                     iconCategory = AssetsUtils.readIconBitmapById(
                         context,
                         category.idImage
@@ -81,11 +169,6 @@ fun BoxItemListComponent(
                     colorIcon = Color(category.color),
                     size = 40.dp,
                     enabledBackground = true
-                )
-
-                Spacer(
-                    Modifier
-                        .width(5.dp)
                 )
 
                 Text(
@@ -110,13 +193,84 @@ fun BoxItemListComponent(
 
 
             }
-            Checkbox(
-                colors = CheckboxDefaults.colors(checkedColor = primary_dark),
-                checked = isCheck,
-                onCheckedChange = {
-                    callback?.onChangeValue(idItem)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(modifier = Modifier
+                    .size(if (isCheck) 30.dp else 50.dp),
+                    colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                    checked = isCheck,
+                    onCheckedChange = {
+                        callback?.onChangeValue(idItem)
+                    }
+                )
+
+                if (isCheck) {
+                    IconButton(
+                        modifier = Modifier.size(32.dp),
+                        onClick = { showOptions = !showOptions }) {
+                        Icon(
+                            imageVector = if (showOptions) Icons.Filled.KeyboardArrowRight else Icons.Filled.KeyboardArrowLeft,
+                            contentDescription = "show screen purchase",
+                            tint = secondary_dark,
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        if (showOptions) {
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        showOptions = false
+                                        enabledDeleteDialog = true
+                                    }) {
+                                Icon(
+                                    modifier = Modifier
+                                        .background(text_primary)
+                                        .padding(6.dp)
+                                        .size(16.dp),
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = null,
+                                    tint = text_secondary,
+                                )
+                            }
+
+                            Spacer(
+                                Modifier
+                                    .height(2.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        callback?.onUpdate(itemListDTO)
+                                        showOptions = false
+                                    }) {
+                                Icon(
+                                    modifier = Modifier
+                                        .background(text_primary)
+                                        .padding(6.dp)
+                                        .size(16.dp),
+                                    imageVector = Icons.Rounded.Edit,
+                                    contentDescription = null,
+                                    tint = text_secondary,
+                                )
+                            }
+                        }
+
+                    }
                 }
-            )
+
+            }
+
         }
 
         BoxItemInfo(
@@ -124,10 +278,10 @@ fun BoxItemListComponent(
             price,
             discount,
             isCheckDiscount!!,
-            quantOrKilo,
+            amountOrKilo,
             type,
             callbackPrice,
-            callbackQuantOrKilo,
+            callbackAmountOrKilo,
             callbackDiscount
         )
     }
@@ -155,16 +309,16 @@ fun BoxItemInfo(
     var priceError by remember { mutableStateOf(false) }
     var quantOrKiloError by remember { mutableStateOf(false) }
     var isMarketCurrent by remember { mutableStateOf(false) }
-    var discount by remember { mutableStateOf(newDiscount.toString())}
-    var discountError by remember { mutableStateOf(false)}
-    var isCheck by remember {mutableStateOf(false)}
+    var discount by remember { mutableStateOf(newDiscount.toString()) }
+    var discountError by remember { mutableStateOf(false) }
+    var isCheck by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = newPrice) {
         price = newPrice.toString()
         priceError = price == "0.00" || price == "0.0"
     }
 
-    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount){
+    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount) {
         discount = newDiscount.toString()
         discountError = isCheckDiscount && newDiscount == 0F
     }
@@ -250,7 +404,8 @@ fun BoxItemInfo(
                     }
 
                     if (isCheck) {
-                        NumberInputComponent(maxChar = 13,
+                        NumberInputComponent(
+                            maxChar = 13,
                             keyboardType = KeyboardType.Number,
                             value = discount,
                             modifier = Modifier
@@ -258,7 +413,8 @@ fun BoxItemInfo(
                                 .padding(end = 16.dp),
                             label = "Desconto",
                             error = discountError,
-                            customOnClick = callbackDiscount!!)
+                            customOnClick = callbackDiscount!!
+                        )
                     }
 
                     Spacer(Modifier.height(3.dp))

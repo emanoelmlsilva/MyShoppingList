@@ -1,9 +1,12 @@
 package com.example.myshoppinglist.database.entities
 
+import androidx.compose.ui.graphics.toArgb
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.myshoppinglist.ui.theme.card_red_dark
+import com.google.gson.annotations.SerializedName
 import com.squareup.moshi.JsonClass
 import org.jetbrains.annotations.NotNull
 
@@ -12,20 +15,25 @@ import org.jetbrains.annotations.NotNull
 class Category{
 
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
-    var id: Long = 0L
+    @ColumnInfo(name = "myShoppingIdCategory")
+    var myShoppingId: Long = 0L
+
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0
 
     @ColumnInfo(name = "category")
     var category: String = ""
 
     @ColumnInfo(name = "idImage")
-    var idImage: String = ""
+    var idImage: String = "fastfood.png"
 
     @ColumnInfo(name = "color")
-    var color: Int = 0
+    var color: Int = card_red_dark.toArgb()
 
     @ColumnInfo(name = "categoryUserId")
     var categoryUserId: String = ""
+
 
     constructor(): super(){
     }
@@ -43,8 +51,17 @@ class Category{
         this.categoryUserId = emailUser
     }
 
+    constructor(emailUser: String, idApi: Long, category: String, idImage: String, color: Int):this(category, idImage, color){
+        this.categoryUserId = emailUser
+        this.idMyShoppingApi = idApi
+    }
+
+    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int):this(emailUser, idMyShoppingApi, category, idImage, color){
+        this.myShoppingId = id
+    }
+
     override fun toString(): String {
-        return "Category(id=$id, category='$category', idImage='$idImage', color=$color)"
+        return "Category(myShoppingId=$myShoppingId, idMyShoppingApi=$idMyShoppingApi, category='$category', idImage='$idImage', color=$color, categoryUserId='$categoryUserId')"
     }
 
 

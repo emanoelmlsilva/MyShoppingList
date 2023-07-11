@@ -23,16 +23,24 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.entities.Category
+import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.database.entities.relations.UserWithCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
+import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.IconCategory
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
-import com.example.myshoppinglist.ui.theme.card_red_dark
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.godaddy.android.colorpicker.HsvColor
@@ -42,30 +50,32 @@ import com.godaddy.android.colorpicker.toColorInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+val registerCategoryFieldViewModel = RegisterCategoryFieldViewModel()
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val iconsCategories = remember { mutableListOf<IconCategory>() }
     val scope = rememberCoroutineScope()
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
-    val registerCategoryFieldViewModel = RegisterCategoryFieldViewModel()
     val scrollState = rememberLazyListState()
-    var idCurrent by remember {
-        mutableStateOf("")
-    }
-    var colorCurrent by remember {
-        mutableStateOf(0)
-    }
-    var categoryCurrent by remember {
-        mutableStateOf("")
-    }
+
+    val iconsCategories = remember { mutableListOf<IconCategory>() }
 
     val isErrorName: Boolean by registerCategoryFieldViewModel.isErrorCategory.observeAsState(false)
 
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+
+    val categoryCurrent = registerCategoryFieldViewModel.categoryCurrent.observeAsState().value!!
+
+    val idImageCurrent = registerCategoryFieldViewModel.idImage.observeAsState().value!!
+
+    val colorCurrent = registerCategoryFieldViewModel.color.observeAsState().value!!
+
+    var idMyShoppingApi by remember { mutableStateOf(0L) }
+
     LaunchedEffect(Unit) {
-        registerCategoryFieldViewModel.onChangeIconCategoryCollection(
+        iconsCategories.addAll(
             AssetsUtils.readIconCollections(
                 context
             ) as List<IconCategory>
@@ -73,68 +83,97 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     }
 
     LaunchedEffect(idCategory) {
-
-        this.launch(context = Dispatchers.Main) {
-            if (idCategory != 0L) {
-                Thread.sleep(250)
-                categoryViewModel.getCategoryById(idCategory!!)
+        if (idCategory != 0L) {
+            categoryController.getCategoryByIdDB(idCategory!!).observe(lifecycleOwner) {
+                if (it != null) {
+                    idMyShoppingApi = it.idMyShoppingApi
+                    registerCategoryFieldViewModel.onChangeCategory(it.category)
+                    registerCategoryFieldViewModel.onChangeColor(it.color)
+                    registerCategoryFieldViewModel.onChangeIdImageCurrent(it.idImage)
+                }
             }
         }
-
     }
 
-    registerCategoryFieldViewModel.iconCategoryCollection.observe(lifecycleOwner) {
 
-        iconsCategories.addAll(it)
+//    userViewModel.searchResult.observe(lifecycleOwner) {
+//        user = it
+//    }
 
+//    categoryViewModel.searchResult.observe(lifecycleOwner) {
+//        if (it != null) {
+//            idMyShoppingApi = it.idMyShoppingApi
+//            registerCategoryFieldViewModel.onChangeCategory(it.category)
+//            registerCategoryFieldViewModel.onChangeColor(it.color)
+//            registerCategoryFieldViewModel.onChangeIdImageCurrent(it.idImage)
+//        }
+//    }
+
+    fun updateCategory(category: CategoryDTO, callback: Callback) {
+        categoryController.updateCategory(category, object : CallbackObject<CategoryDTO> {
+            override fun onSuccess() {
+                callback.onSuccess()
+            }
+
+            override fun onFailed(messageError: String) {
+                callback.onFailed(messageError)
+            }
+        })
     }
 
-    registerCategoryFieldViewModel.id.observe(lifecycleOwner) {
-        idCurrent = it
-    }
+    fun saveCategory(category: CategoryDTO, callback: Callback) {
+        categoryController.saveCategory(
+            category, object : CallbackObject<CategoryDTO> {
+                override fun onSuccess() {
+                    callback.onSuccess()
+                }
 
-    registerCategoryFieldViewModel.color.observe(lifecycleOwner) {
-        colorCurrent = it
-    }
-
-    registerCategoryFieldViewModel.categoryCurrent.observe(lifecycleOwner) {
-        categoryCurrent = it
-    }
-
-    categoryViewModel.searchResult.observe(lifecycleOwner) { it ->
-        if (it != null) {
-            registerCategoryFieldViewModel.onChangeCategory(it.category)
-            registerCategoryFieldViewModel.onChangeColor(it.color)
-            registerCategoryFieldViewModel.onChangeIdCurrent(it.idImage)
-        }
-    }
-
-    fun updateCategory(category: Category) {
-        categoryViewModel.updateCategory(category)
-    }
-
-    fun saveCategory(category: Category) {
-        categoryViewModel.insertCategory(category)
+                override fun onFailed(messageError: String) {
+                    callback.onFailed(messageError)
+                }
+            })
     }
 
     fun goBackNavigation() {
-        navController.popBackStack()
+        scope.launch(context = Dispatchers.Main) {
+            registerCategoryFieldViewModel.reset()
+            navController.popBackStack()
+        }
     }
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
-        val email = UserLoggedShared.getEmailUserCurrent()
 
-        val newCategory = Category(email, categoryCurrent, idCurrent, colorCurrent)
+        val newCategory = CategoryDTO(
+            idMyShoppingApi,
+            idCategory ?: 0,
+            categoryCurrent,
+            idImageCurrent,
+            colorCurrent
+        )
 
-        if(newCategory.category.isNotBlank()){
+        if (newCategory.category.isNotBlank() && newCategory.idImage.isNotBlank()) {
             if (idCategory != null && idCategory > 0) {
-                newCategory.id = idCategory
-                updateCategory(newCategory)
-            }else{
-                saveCategory(newCategory)
-            }
+                newCategory.id = idMyShoppingApi
+                updateCategory(newCategory, object : Callback {
+                    override fun onCancel() {
 
-            goBackNavigation()
+                    }
+
+                    override fun onSuccess() {
+                        goBackNavigation()
+                    }
+                })
+            } else {
+                saveCategory(newCategory, object : Callback {
+                    override fun onFailed(messageError: String) {
+                        super.onFailed(messageError)
+                    }
+
+                    override fun onSuccess() {
+                        goBackNavigation()
+                    }
+                })
+            }
         }
     }, hasToolbar = true, hasDoneButton = true, hasBackButton = false, content = {
 
@@ -150,7 +189,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                 IconCategoryComponent(
                     iconCategory = AssetsUtils.readIconImageBitmapById(
                         context,
-                        idCurrent.ifEmpty { "fastfood.png" }
+                        idImageCurrent.ifEmpty { "fastfood.png" }
                     )!!,
                     colorIcon = Color(colorCurrent),
                     size = 56.dp,
@@ -181,7 +220,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                 Text("Escolha uma cor", fontFamily = LatoBold, fontSize = 18.sp)
 
                 HarmonyColorPicker(
-                    harmonyMode = ColorHarmonyMode.NONE,
+                    harmonyMode = ColorHarmonyMode.MONOCHROMATIC,
                     onColorChanged = { color: HsvColor ->
                         registerCategoryFieldViewModel.onChangeColor(color.toColorInt())
                     }
@@ -198,7 +237,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                     cells = GridCells.Fixed(8)
                 ) {
                     iconsCategories.forEachIndexed { index, iconCategory ->
-                        if (iconCategory.idImage.lowercase() == idCurrent.lowercase()) {
+                        if (iconCategory.idImage.lowercase() == idImageCurrent.lowercase()) {
                             //esse calculo deve ser feito porque é um grid
                             scope.launch { scrollState.animateScrollToItem(((index / 8))) }
                         }
@@ -213,13 +252,13 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                                 IconCategoryComponent(
                                     iconCategory = iconCategory.imageBitmap!!.asImageBitmap(),
                                     size = 36.dp,
-                                    colorIcon = if (idCurrent == iconCategory.idImage) Color(
+                                    colorIcon = if (idImageCurrent == iconCategory.idImage) Color(
                                         colorCurrent
                                     ) else text_primary,
                                     enableClick = true,
                                     callback = object : Callback {
                                         override fun onClick() {
-                                            registerCategoryFieldViewModel.onChangeIdCurrent(
+                                            registerCategoryFieldViewModel.onChangeIdImageCurrent(
                                                 iconCategory.idImage
                                             )
                                         }
@@ -237,21 +276,22 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 class RegisterCategoryFieldViewModel : BaseFieldViewModel() {
     val iconCategoryCollection = MutableLiveData<List<IconCategory>>()
     val categoryCurrent = MutableLiveData("")
-    val id = MutableLiveData("fastfood.png")
-    val color = MutableLiveData(card_red_dark.toArgb())
-    val category = MutableLiveData(Category())
+    val idImage = MutableLiveData("")
+    val color = MutableLiveData(Color.Red.toArgb())
     var isErrorCategory: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    fun onChangeCategory(newCategory: Category) {
-        this.category.value = newCategory
+    fun reset() {
+        this.color.value = Color.Red.toArgb()
+        this.categoryCurrent.value = ""
+        this.idImage.value = ""
     }
 
     fun onChangeColor(newColor: Int) {
         this.color.value = newColor
     }
 
-    fun onChangeIdCurrent(newId: String) {
-        this.id.value = newId
+    fun onChangeIdImageCurrent(newId: String) {
+        this.idImage.value = newId
     }
 
     fun onChangeCategory(newCategory: String) {
@@ -267,7 +307,7 @@ class RegisterCategoryFieldViewModel : BaseFieldViewModel() {
         this.iconCategoryCollection.value = newIconCategoryCollection
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         return this.categoryCurrent.value!!.isNotBlank()
 

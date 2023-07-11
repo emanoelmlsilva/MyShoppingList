@@ -25,6 +25,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
 
     companion object {
         private var instance: MyShopListDataBase? = null
+        val DATABASE_NAME = "MyShopList.db"
 
         fun getInstance(context: Context): MyShopListDataBase {
 
@@ -32,7 +33,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "MyShopList.db"
+                        DATABASE_NAME
                     ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
                 }
                 return this.instance!!

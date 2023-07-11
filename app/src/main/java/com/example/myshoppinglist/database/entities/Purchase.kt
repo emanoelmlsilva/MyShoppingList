@@ -5,14 +5,18 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.enums.TypeProduct
+import com.google.gson.annotations.SerializedName
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "purchases")
 class Purchase {
 
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "idPruchase")
-    var id: Long = 0
+    @ColumnInfo(name = "myShoppingId")
+    var myShoppingId: Long = 0
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0
     @ColumnInfo(name = "name")
     var name: String = ""
     @ColumnInfo(name = "locale")
@@ -78,12 +82,39 @@ class Purchase {
         this.discount = discount
     }
 
+    constructor(
+        idMyShoppingApi: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double
+    ) {
+        this.idMyShoppingApi = idMyShoppingApi
+        this.name = name
+        this.locale = locale
+        this.purchaseCardId = purchaseCardId
+        this.quantiOrKilo = quantiOrKilo
+        this.typeProduct = typeProduct
+        this.date = date
+        this.price = price
+        this.categoryOwnerId = categoryOwnerId
+        this.purchaseUserId = purchaseUserId
+        this.discount = discount
+    }
+
     override fun toString(): String {
-        return "Purchase(id=$id, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
+        return "Purchase(myShoppingId=$myShoppingId, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
 
     fun toDTO(purchaseDTO: PurchaseDTO) {
-        this.id = purchaseDTO.id
+        this.idMyShoppingApi = purchaseDTO.idMyShoppingApi
+        this.myShoppingId = purchaseDTO.myShoppingId
         this.name = purchaseDTO.name
         this.locale = purchaseDTO.locale
         this.purchaseCardId = purchaseDTO.purchaseCardId

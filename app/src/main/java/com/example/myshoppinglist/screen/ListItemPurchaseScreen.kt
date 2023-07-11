@@ -1,10 +1,9 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.example.myshoppinglist.screen
 
 import DialogRegisterItemList
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -15,24 +14,23 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
-import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import com.example.myshoppinglist.database.viewModels.ItemListViewModel
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.ItemListController
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -42,31 +40,44 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
     var visibleAnimation by remember { mutableStateOf(true) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val itemListCollection = remember { mutableStateListOf<ItemListAndCategory>() }
-    val itemListViewModel = ItemListViewModel(context, lifecycleOwner)
+    val itemListCollection = remember { mutableStateListOf<ItemListDTO>() }
     var enabledDialog by remember { mutableStateOf(false) }
-    var itemListUpdate by remember { mutableStateOf<ItemListAndCategory?>(null) }
-    val scope = rememberCoroutineScope()
+    var itemListUpdate by remember { mutableStateOf<ItemListDTO?>(null) }
+    var creditCardDTO by remember { mutableStateOf(CreditCardDTODB()) }
+    val itemListController = ItemListController.getData(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
 
     fun selectedCheckAll() {
         itemCheckCollection.removeAll(itemCheckCollection)
         itemListCollection.forEach {
-            itemCheckCollection.add(it.itemList.id)
+            itemCheckCollection.add(it.myShoppingId)
         }
 
     }
 
-    LaunchedEffect(key1 = idCard) {
-        itemListViewModel.getAll(idCard)
+    fun getItemListAll() {
+        itemListController.getAllWithCategoryDB(idCard)
+            .observe(lifecycleOwner) { itemListAndCategory ->
+                itemListUpdate = null
+                itemListCollection.removeAll(itemListCollection)
+                itemListCollection.addAll(itemListAndCategory.map {
+                    ItemListDTO(
+                        it.itemList,
+                        it.category
+                    )
+                })
+
+                if (checkAll) {
+                    selectedCheckAll()
+                }
+            }
     }
 
-    itemListViewModel.searchItemListResult.observe(lifecycleOwner) {
-        itemListUpdate = null
-        itemListCollection.removeAll(itemListCollection)
-        itemListCollection.addAll(it)
+    LaunchedEffect(key1 = idCard) {
+        getItemListAll()
 
-        if(checkAll){
-            selectedCheckAll()
+        creditCardController.findCreditCardByIdDB(idCard).observe(lifecycleOwner) {
+            creditCardDTO = CreditCardDTODB().fromCreditCardDTODB(it)
         }
     }
 
@@ -83,10 +94,23 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         icon = { Icon(Icons.Filled.ShoppingCart, null, tint = primary_dark) },
                         backgroundColor = text_secondary,
                         onClick = {
-                            if(itemCheckCollection.isNotEmpty()){
-                                navController.navigate("${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${ConversionUtils<ItemListAndCategoryDTO>().toJsonList(ItemListAndCategoryDTO().toItemListAndCategoryDTO(itemListCollection.filter { itemCheckCollection.indexOf(it.itemList.id) != -1}))}")
-                            }else{
-                                Toast.makeText(context, "Selecione pelo menos um produto!", Toast.LENGTH_SHORT).show()
+                            if (itemCheckCollection.isNotEmpty()) {
+                                navController.navigate(
+                                    "${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${
+                                        ConversionUtils<ItemListDTO>().toJsonList(
+                                            itemListCollection.filter {
+                                                itemCheckCollection.indexOf(
+                                                    it.myShoppingId
+                                                ) != -1
+                                            })
+                                    }"
+                                )
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Selecione pelo menos um produto!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
                         text = { Text("mercado".capitalize()) }
@@ -115,25 +139,37 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                 DialogRegisterItemList(
                     context,
                     lifecycleOwner,
-                    idCard,
                     enabledDialog,
                     itemListUpdate,
                     object : CallbackItemList {
-                        override fun itemList(itemList: ItemList) {
-                            itemListViewModel.insertItemList(itemList)
-                            itemListViewModel.getAll(idCard)
-                            scope.launch {
-                                enabledDialog = false
-                            }
+                        override fun onInsert(itemList: ItemListDTO) {
+                            itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
+
+                            itemListController.saveItemList(itemList, object : Callback {
+                                override fun onSuccess() {
+                                    getItemListAll()
+                                    enabledDialog = false
+                                }
+
+                                override fun onCancel() {
+                                    super.onCancel()
+                                }
+                            })
                         }
 
-                        override fun onUpdate(item: ItemListAndCategory) {
-                            scope.launch {
-                                itemListViewModel.updateItemList(item.itemList)
-                                itemListViewModel.getAll(idCard)
-                                enabledDialog = false
-                            }
+                        override fun onUpdate(itemList: ItemListDTO) {
+                            itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
+                            itemListController.updateItemList(itemList, object : Callback {
+                                override fun onSuccess() {
+                                    getItemListAll()
+                                    enabledDialog = false
+                                }
+
+                                override fun onCancel() {
+                                    enabledDialog = false
+                                }
+                            })
                         }
 
                         override fun onClick() {
@@ -200,25 +236,26 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                 }
 
                 BaseLazyColumnScroll(modifier = Modifier
-                    .fillMaxWidth(), callback = object : VisibleCallback() {
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Top,
+                    callback = object : VisibleCallback() {
                     override fun onChangeVisible(visible: Boolean) {
                         visibleAnimation = visible
                     }
                 }, content = {
-                    itemsIndexed(itemListCollection) { index, itemListAndCategory ->
-                        val itemListCurrent = itemListAndCategory.itemList
-                        val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
+                    itemsIndexed(itemListCollection) { index, itemList ->
+                        val isCheck = itemCheckCollection.indexOf(itemList.myShoppingId) != -1
                         SlidingItemListComponent(
                             context = context,
-                            itemListAndCategory = itemListAndCategory,
+                            itemListDTO = itemList,
                             isCheck = isCheck,
                             isMarket = false,
-                            isRemoved = itemListCurrent.isRemoved,
+                            isRemoved = itemList.isRemoved,
                             sizeCheckCollection = itemCheckCollection.isNotEmpty(),
-                            idItem = itemListCurrent.id,
-                            category = itemListAndCategory.category,
-                            product = itemListAndCategory.itemList.item,
-                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
+                            idItem = itemList.myShoppingId,
+                            category = itemList.categoryDTO.toCategory(),
+                            product = itemList.item,
                             callback = object : CallbackItemList {
                                 override fun onChangeValue(idCard: Long) {
                                     val isChecked = itemCheckCollection.indexOf(idCard) != -1
@@ -233,15 +270,21 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                                 }
 
                                 override fun onDelete() {
-                                    itemListViewModel.deleteItemList(itemListCurrent)
-                                    scope.launch {
-                                        itemListViewModel.getAll(idCard)
-                                    }
+                                    itemListController.deleteItemListDB(
+                                        itemList.toItemList(),
+                                        object : Callback {
+                                            override fun onSuccess() {
+                                                getItemListAll()
+                                            }
+
+                                            override fun onFailed(messageError: String) {
+                                            }
+                                        })
                                 }
 
-                                override fun onUpdate(item: ItemListAndCategory) {
+                                override fun onUpdate(itemListDTO: ItemListDTO) {
                                     enabledDialog = true
-                                    itemListUpdate = item
+                                    itemListUpdate = itemListDTO
 
                                 }
                             }

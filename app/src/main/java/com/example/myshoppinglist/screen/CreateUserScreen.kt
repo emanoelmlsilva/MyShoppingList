@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -35,18 +36,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.components.rememberImeState
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.services.UserService
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.kotlin.toObservable
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
@@ -56,87 +65,127 @@ fun CreateUserScreen(
     isUpdate: Boolean? = false,
     hasToolbar: Boolean? = false
 ) {
-    var createUserViewModel: CreateUserFieldViewModel = viewModel()
+    val TAG = "CREATE_USER_SCREEN"
+    val createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val userViewModel: UserViewModel = UserViewModel(context)
-    val categoryViewModel: CategoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryViewModel: CategoryViewModelDB = CategoryViewModelDB(context, lifecycleOwner)
+    var user by remember { mutableStateOf(UserDTO()) }
     val categoryCollections = listOf(
-        Category("Higiene", "outline_sanitizer_black_36.png", card_blue.toArgb()),
-        Category("Limpeza", "outline_cleaning_services_black_36.png", card_pink.toArgb()),
-        Category("Comida", "food_bank.png", card_red_dark.toArgb()),
-        Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
+        CategoryDTO(
+            category = "Higiene",
+            idImage = "outline_sanitizer_black_36.png",
+            color = card_blue.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Limpeza",
+            idImage = "outline_cleaning_services_black_36.png",
+            color = card_pink.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Comida",
+            idImage = "food_bank.png",
+            color = card_red_dark.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Bebida",
+            idImage = "outline_water_drop_black_36.png",
+            color = card_orange.toArgb(),
+            userDTO = user
+        )
     )
-    var user by remember { mutableStateOf(User()) }
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+    val loginViewModel =
+        LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
+
 
     LaunchedEffect(Unit) {
         val email = UserLoggedShared.getEmailUserCurrent()
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
-    }
+        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
+            lifecycleOwner
+        ) { userDTO ->
+            user = userDTO ?: UserDTO()
 
-    UserInstanceImpl.userViewModel?.searchResult?.observe(lifecycleOwner) {
-        user = it
+            createUserViewModel.onChangeName(user.name)
 
-        createUserViewModel.onChangeName(user.name)
+            createUserViewModel.onChangeNickName(user.nickName)
 
-        createUserViewModel.onChangeNickName(user.nickName)
+            createUserViewModel.onChangeIdAvatar(user.idAvatar)
 
-        createUserViewModel.onChangeIdAvatar(user.idAvatar)
+        }
     }
 
     fun saveUser() {
-        if (createUserViewModel.checkFileds()) {
+        if (createUserViewModel.checkFields()) {
             if (!isUpdate!!) {
-                categoryCollections.forEach {
-                    val category = Category(user.email, it.category, it.idImage, it.color)
-                    categoryViewModel.insertCategory(category)
-                }
+                categoryCollections.toObservable().subscribeBy(onNext = {
+                    categoryController.saveCategory(it, object : CallbackObject<CategoryDTO> {
+                        override fun onSuccess() {
+                        }
+
+                        override fun onFailed(messageError: String) {
+
+                        }
+                    })
+                }, onError = { throwable -> {} }, onComplete = {})
+
             }
             user.name = name.trim()
             user.nickName = nickName.trim()
             user.idAvatar = idAvatar
 
-            userViewModel.updateUser(user)
-            UserInstanceImpl.reset()
-            UserInstanceImpl.getInstance(context, user.email)
+            loginViewModel.updateUser(user, object : CallbackObject<UserDTO> {
+                override fun onSuccess(userDTO: UserDTO) {
+                    UserInstanceImpl.reset()
+                    UserInstanceImpl.getInstance(context)
 
-            if (isUpdate) {
-                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
+                    if (isUpdate) {
+                        navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+                        {
+                            popUpTo(Screen.Home.name) { inclusive = false }
+                        }
+                    } else {
+                        navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+                        {
+                            popUpTo(Screen.Home.name) { inclusive = false }
+                        }
+                    }
                 }
-            } else {
-                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
+
+                override fun onFailed(messageError: String) {
+
                 }
-            }
+            })
         }
     }
 
     TopAppBarScreen(
+        enableScroll = true,
         hasBackButton = !hasToolbar!!,
         hasToolbar = hasToolbar,
-        isScrollable = true,
         hasDoneButton = hasToolbar,
         onClickIcon = { navController?.popBackStack() },
         onClickIconDone = { saveUser() },
         content = {
             Column(
                 modifier = Modifier
+                    .fillMaxHeight()
                     .padding(start = 28.dp, end = 28.dp, top = 16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column {
-                    if (!hasToolbar) {
+                Column(modifier = Modifier) {
+                    if (!hasToolbar!!) {
                         HeaderText()
                     }
                     HeaderImage(createUserViewModel)
-                    ContentAvatares(createUserViewModel)
+                    ContentAvatars(createUserViewModel)
                     TextFieldContent(createUserViewModel, object : Callback {
                         override fun onClick() {
                             saveUser()
@@ -144,7 +193,7 @@ fun CreateUserScreen(
                     })
                 }
 
-                if (!hasToolbar) {
+                if (!hasToolbar!!) {
                     ButtonsFooterContent(
                         btnTextAccept = "PROXIMO",
                         iconAccept = Icons.Filled.ArrowForward,
@@ -214,7 +263,7 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
 
 @ExperimentalFoundationApi
 @Composable
-fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
+fun ContentAvatars(createUserViewModel: CreateUserFieldViewModel) {
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
     var idAvatarCurrent: Int by remember {
@@ -380,7 +429,7 @@ class CreateUserFieldViewModel : BaseFieldViewModel() {
         isErrorNickName.value = newIsErrorNickName
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true)

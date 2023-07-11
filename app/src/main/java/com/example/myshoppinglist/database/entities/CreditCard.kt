@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue
+import com.google.gson.annotations.SerializedName
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "credit_cards")
@@ -13,22 +14,43 @@ class CreditCard {
 
     @PrimaryKey(autoGenerate = true)
     @NotNull
-    @ColumnInfo(name = "idCard")
-    var id: Long = 0
+    @SerializedName("myShoppingId")
+    @ColumnInfo(name = "myShoppingId")
+    var myShoppingId: Long = 0
+
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0
+
+    @SerializedName("holderName")
     @ColumnInfo(name = "holderName")
     var holderName: String = ""
+
+    @SerializedName("cardName")
     @ColumnInfo(name = "cardName")
     var cardName: String = ""
+
+    @SerializedName("value")
     @ColumnInfo(name = "value")
     var value: Float = 0F
+
+    @SerializedName("colorCard")
     @ColumnInfo(name = "colorCard")
     var colorCard: Int = card_blue.toArgb()
+
+    @SerializedName("typeCard")
     @ColumnInfo(name = "typeCard")
     var typeCard: TypeCard = TypeCard.CREDIT
+
+    @SerializedName("cardUserId")
     @ColumnInfo(name = "cardUserId")
     var cardUserId: String = ""
+
+    @SerializedName("flag")
     @ColumnInfo(name = "flag")
     var flag: Int = CardCreditFlag.MONEY.flag
+
+    @SerializedName("position")
     @ColumnInfo(name = "position", defaultValue = 0.toString())
     var position: Int = 0
 
@@ -54,8 +76,54 @@ class CreditCard {
         this.position = position
     }
 
+    constructor(
+        myShoppingId: Long,
+        idMyShoppingApi: Long,
+        holderName: String,
+        cardName: String,
+        value: Float,
+        colorCard: Int,
+        typeCard: TypeCard,
+        cardUserId: String,
+        flag: Int,
+        position: Int
+    ) {
+        this.myShoppingId = myShoppingId
+        this.idMyShoppingApi = idMyShoppingApi
+        this.holderName = holderName
+        this.cardName = cardName
+        this.value = value
+        this.colorCard = colorCard
+        this.typeCard = typeCard
+        this.cardUserId = cardUserId
+        this.flag = flag
+        this.position = position
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        holderName: String,
+        cardName: String,
+        value: Float,
+        colorCard: Int,
+        typeCard: TypeCard,
+        cardUserId: String,
+        flag: Int,
+        position: Int
+    ) {
+        this.idMyShoppingApi = idMyShoppingApi
+        this.holderName = holderName
+        this.cardName = cardName
+        this.value = value
+        this.colorCard = colorCard
+        this.typeCard = typeCard
+        this.cardUserId = cardUserId
+        this.flag = flag
+        this.position = position
+    }
+
     override fun toString(): String {
-        return "CreditCard(id=$id, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag, position=$position"
+        return "CreditCard(myShoppingId=$myShoppingId, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag, position=$position)"
     }
 
 }

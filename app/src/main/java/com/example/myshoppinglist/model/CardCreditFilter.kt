@@ -1,6 +1,6 @@
 package com.example.myshoppinglist.model
 
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 
 class CardCreditFilter(){
     var id: Long = 0
@@ -13,9 +13,9 @@ class CardCreditFilter(){
         this.avatar = avatar
     }
 
-    constructor(creditCardDTO: CreditCardDTO?) : this() {
+    constructor(creditCardDTO: CreditCardDTODB?) : this() {
         if(creditCardDTO != null){
-            this.id = creditCardDTO.idCard
+            this.id = creditCardDTO.myShoppingId
             this.nickName = creditCardDTO.cardName
             this.avatar = creditCardDTO.flag
         }
