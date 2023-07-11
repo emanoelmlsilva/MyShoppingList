@@ -2,20 +2,17 @@
 
 package com.example.myshoppinglist.screen
 
-import android.util.Log
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -34,23 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.database.entities.User
-import com.example.myshoppinglist.database.entities.relations.UserWithCreditCard
+import com.example.myshoppinglist.components.rememberImeState
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
-import com.example.myshoppinglist.services.CreditCardService
-import com.example.myshoppinglist.services.MyShoppingListService
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.LoadingDataController
+import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.myshoppinglist.ui.viewModel.LoginViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,217 +55,221 @@ fun Login(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-    var isSuccess by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
     var errorLogin by remember { mutableStateOf(false) }
-    val userViewModel: UserViewModel = UserViewModel(context)
-    val userService = UserService.getUserService()
     var visibleLoading by remember { mutableStateOf(false) }
-
-    userViewModel.searchResult.observe(lifecycleOwner) {
-
-        navController.navigate(Screen.Home.name) {
-            popUpTo(Screen.Home.name) { inclusive = false }
-        }
-
-    }
+    val loginViewModel =
+        LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
     LaunchedEffect(Unit) {
         UserLoggedShared.getInstance(context)
     }
 
-    TopAppBarScreen(onClickIcon = { navController.popBackStack() }, content = {
-        Column(
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
+    TopAppBarScreen(
+        enableScroll = true,
+        onClickIcon = { navController.popBackStack() }, content = {
             Column(
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(.5f)
-                    .padding(top = 50.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Column(
-                    modifier = Modifier.fillMaxHeight(.5f),
-                    verticalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.my_shopping_list_logo_small),
-                        contentDescription = null
-                    )
-
-                    Text(
-                        text = "Bem vindo de volta!",
-                        fontFamily = LatoBlack,
-                        fontSize = 32.sp,
-                        color = text_primary_light
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .paint(
-                        painterResource(id = R.drawable.background_shape),
-                        contentScale = ContentScale.FillBounds
-                    )
-            ) {
-                Column(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .fillMaxHeight()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(top = 90.dp)
                 ) {
-
                     Column(
-                        modifier = Modifier.fillMaxHeight(.50f),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        TextInputComponent(
-                            label = "Email",
-                            value = email,
-                            reset = false,
-                            maxChar = 45,
-                            isCountChar = true,
-                            isMandatory = true,
-                            error = emailError,
-                            customOnClick = object : CustomTextFieldOnClick {
-                                override fun onChangeValue(newValue: String) {
-                                    email = newValue
-                                }
-                            })
+                        Image(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.my_shopping_list_logo_small),
+                            contentDescription = null
+                        )
 
-                        TextInputComponent(
-                            label = "Senha",
-                            value = password,
-                            reset = false,
-                            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            maxChar = 45,
-                            isCountChar = true,
-                            isMandatory = true,
-                            error = passwordError,
-                            customOnClick = object : CustomTextFieldOnClick {
-                                override fun onChangeValue(newValue: String) {
-                                    password = newValue
-                                }
-                            },
-                            trailingIcon = {
-                                val image = if (showPassword)
-                                    Icons.Filled.Visibility
-                                else Icons.Filled.VisibilityOff
-
-                                IconButton(onClick = { showPassword = !showPassword }) {
-                                    Icon(imageVector = image, null)
-                                }
-                            })
-                    }
-
-                    if (errorLogin) {
                         Text(
-                            text = "Email ou Senha incorreto!",
-                            fontFamily = LatoRegular,
-                            fontSize = 14.sp,
-                            color = message_error
+                            text = "Bem vindo de volta!",
+                            fontFamily = LatoBlack,
+                            fontSize = 32.sp,
+                            color = text_primary_light
                         )
                     }
+                }
 
-                    Button(colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                Divider(
+                    color = secondary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(266.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .paint(
+                            painterResource(id = R.drawable.background_shape),
+                            contentScale = ContentScale.FillBounds
+                        )
+                ) {
+                    Column(
                         modifier = Modifier
-                            .padding(vertical = 4.dp),
-                        onClick = {
+                            .fillMaxHeight()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
 
-                            emailError = email.isBlank()
-                            passwordError = password.isBlank()
-
-                            if (emailError || passwordError) {
-                                errorLogin = true
-                                return@Button
-                            }
-
-                            visibleLoading = true
-
-                            userService.findUser(email, password).enqueue(object :
-                                Callback<User> {
-                                override fun onResponse(
-                                    call: Call<User>,
-                                    response: Response<User>
-                                ) {
-                                    Log.d(
-                                        LOG,
-                                        "success = $response , user ${response.body().toString()}"
-                                    )
-
-                                    if(response.isSuccessful){
-                                        val user = response.body()
-
-                                        errorLogin = false
-
-                                        UserInstanceImpl.reset()
-                                        UserInstanceImpl.getInstance(context, email)
-                                        UserLoggedShared.insertUserLogged(email)
-
-                                        userViewModel.insertUser(user!!, CoroutineExceptionHandler { _, exception -> })
-
-                                        LoadingDataController.getData(context, lifecycleOwner).loadingData(user, object : com.example.myshoppinglist.callback.Callback{
-                                            override fun onSucess() {
-                                                userViewModel.findUserByName(email)
-                                                visibleLoading = false
-                                            }
-
-                                            override fun onCancel() {
-                                                visibleLoading = false
-                                                errorLogin = true
-                                            }
-                                        })
-
-                                    }else{
-                                        visibleLoading = false
-                                        errorLogin = true
+                        Column(
+                            modifier = Modifier.fillMaxHeight(.50f),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextInputComponent(
+                                label = "Email",
+                                value = email,
+                                reset = false,
+                                maxChar = 45,
+                                isCountChar = true,
+                                isMandatory = true,
+                                error = emailError,
+                                customOnClick = object : CustomTextFieldOnClick {
+                                    override fun onChangeValue(newValue: String) {
+                                        email = newValue
                                     }
+                                })
 
+                            TextInputComponent(
+                                label = "Senha",
+                                value = password,
+                                reset = false,
+                                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                maxChar = 45,
+                                isCountChar = true,
+                                isMandatory = true,
+                                error = passwordError,
+                                customOnClick = object : CustomTextFieldOnClick {
+                                    override fun onChangeValue(newValue: String) {
+                                        password = newValue
+                                    }
+                                },
+                                trailingIcon = {
+                                    val image = if (showPassword)
+                                        Icons.Filled.Visibility
+                                    else Icons.Filled.VisibilityOff
+
+                                    IconButton(onClick = { showPassword = !showPassword }) {
+                                        Icon(imageVector = image, null)
+                                    }
+                                })
+
+                        }
+
+                        if (errorLogin) {
+                            Text(
+                                text = "Email ou Senha incorreto!",
+                                fontFamily = LatoRegular,
+                                fontSize = 14.sp,
+                                color = message_error
+                            )
+                        }
+
+                        Button(colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                            modifier = Modifier
+                                .padding(vertical = 4.dp),
+                            onClick = {
+
+                                emailError = email.isBlank()
+                                passwordError = password.isBlank()
+
+                                if (emailError || passwordError) {
+                                    errorLogin = true
+                                    return@Button
                                 }
 
-                                override fun onFailure(call: Call<User>?, t: Throwable?) {
-                                }
-                            })
-                        }) {
+                                visibleLoading = true
 
-                        if(!visibleLoading){
-                            Text(text = "ENTRAR", fontFamily = LatoRegular, fontSize = 14.sp)
-                        }else{
-                            Column(modifier = Modifier.fillMaxWidth(.17f), horizontalAlignment = Alignment.CenterHorizontally){
-                                CircularProgressIndicator(
-                                    color = text_secondary,
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 1.dp
-                                )
+
+                                loginViewModel.login(
+                                    email,
+                                    password,
+                                    object : CallbackObject<UserDTO> {
+                                        override fun onSuccess(userDTO: UserDTO) {
+
+                                            val user = userDTO.fromUser()
+
+                                            errorLogin = false
+
+                                            UserInstanceImpl.reset()
+                                            UserInstanceImpl.getInstance(context)
+                                            UserLoggedShared.insertUserLogged(email)
+
+                                            LoadingDataController.getData(context, lifecycleOwner)
+                                                .loadingData(
+                                                    user,
+                                                    object :
+                                                        com.example.myshoppinglist.callback.Callback {
+                                                        override fun onSuccess() {
+                                                            navController.navigate(Screen.Home.name) {
+                                                                popUpTo(Screen.Home.name) {
+                                                                    inclusive = false
+                                                                }
+                                                            }
+                                                            visibleLoading = false
+                                                        }
+
+                                                        override fun onCancel() {
+                                                            visibleLoading = false
+                                                            errorLogin = true
+                                                        }
+                                                    })
+                                        }
+
+                                        override fun onFailed(messageError: String) {
+                                            visibleLoading = false
+                                            errorLogin = true
+                                        }
+                                    })
+
+                            }) {
+
+                            if (!visibleLoading) {
+                                Text(text = "ENTRAR", fontFamily = LatoRegular, fontSize = 14.sp)
+                            } else {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(.17f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = text_secondary,
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 1.dp
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    TextButton(modifier = Modifier.padding(bottom = 26.dp), onClick = {
-                        navController.navigate(
-                            Screen.Register.name
-                        )
-                    }) {
-                        Text(
-                            text = "Não tem conta criada? Sign up",
-                            fontFamily = LatoRegular,
-                            fontSize = 16.sp,
-                            color = Color(0xFF05290A),
-                        )
+                        TextButton(modifier = Modifier.padding(bottom = 26.dp), onClick = {
+                            navController.navigate(
+                                Screen.Register.name
+                            )
+                        }) {
+                            Text(
+                                text = "Não tem conta criada? Sign up",
+                                fontFamily = LatoRegular,
+                                fontSize = 16.sp,
+                                color = Color(0xFF05290A),
+                            )
+                        }
                     }
                 }
             }
-        }
-    })
+        })
 }

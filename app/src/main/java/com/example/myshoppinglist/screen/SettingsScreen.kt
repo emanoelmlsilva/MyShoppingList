@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -36,11 +33,11 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.DialogBackCustom
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
@@ -51,7 +48,7 @@ import org.burnoutcrew.reorderable.*
 fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: String) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
+    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var visibleAnimation by remember {
         mutableStateOf(true)
@@ -61,25 +58,23 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     val creditCardCollection by createCardCreditViewModel.creditCardCollection.observeAsState(
         mutableListOf()
     )
-    val userViewModel: UserViewModel = UserViewModel(context)
+    val userViewModel: UserViewModelDB = UserViewModelDB(context)
 
 
     LaunchedEffect(key1 = idAvatar) {
-        creditCardViewModel.getAll()
-    }
+        creditCardViewModel.getAll().observe(lifecycleOwner){
+            creditCardCollection?.addAll(it.map { creditCard ->
+                CreditCardDTODB().fromCreditCardDTODB(
+                    creditCard
+                )
+            })
 
-    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        creditCardCollection?.addAll(it.map { creditCard ->
-            CreditCardDTO().fromCreditCardDTO(
-                creditCard
-            )
-        })
-
-        createCardCreditViewModel.updateCreditCardCollection(it.map { creditCard ->
-            CreditCardDTO().fromCreditCardDTO(
-                creditCard
-            )
-        } as MutableList<CreditCardDTO>)
+            createCardCreditViewModel.updateCreditCardCollection(it.map { creditCard ->
+                CreditCardDTODB().fromCreditCardDTODB(
+                    creditCard
+                )
+            } as MutableList<CreditCardDTODB>)
+        }
     }
 
     DialogBackCustom(visibilityBackHandler, {
@@ -183,12 +178,12 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                 }
                             }) {
                             items(creditCardCollection,
-                                key = { creditCard -> creditCard.idCard }) { creditCardDTO ->
+                                key = { creditCard -> creditCard.myShoppingId }) { creditCardDTO ->
                                 BoxItemCard(creditCardDTO, state, object : Callback {
                                     override fun onClick() {
                                         navController.navigate(
                                             "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
-                                                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).toJsonList(
+                                                ConversionUtils<CreditCardDTODB>(CreditCardDTODB::class.java).toJsonList(
                                                     listOf(creditCardDTO)
                                                 )
                                             }"
@@ -205,14 +200,14 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 }
 
 @Composable
-fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack: Callback) {
+fun BoxItemCard(creditCardDTO: CreditCardDTODB, state: ReorderableState, callBack: Callback) {
     Card(
         backgroundColor = Color(creditCardDTO.colorCard),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .fillMaxWidth(.95f)
             .padding(vertical = 4.dp)
-            .draggedItem(state.offsetByKey(creditCardDTO.idCard))
+            .draggedItem(state.offsetByKey(creditCardDTO.myShoppingId))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -221,9 +216,9 @@ fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack:
                 .fillMaxWidth()
                 .padding(vertical = 8.dp, horizontal = 8.dp)
         ) {
-            Column(modifier = Modifier.padding(start = 16.dp)) {
+            Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
                 Image(
-                    painter = painterResource(id = creditCardDTO.flagBlack),
+                    painter = painterResource(id = creditCardDTO.fromFlagBlack()),
                     contentDescription = null,
                     modifier = Modifier.size(30.dp)
                 )
@@ -251,7 +246,6 @@ fun BoxItemCard(creditCardDTO: CreditCardDTO, state: ReorderableState, callBack:
                 }
 
                 IconButton(onClick = {
-                    callBack.onClick()
                 }) {
                     Icon(
                         imageVector = Icons.Outlined.Menu,

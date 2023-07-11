@@ -14,13 +14,13 @@ class CreditCard {
 
     @PrimaryKey(autoGenerate = true)
     @NotNull
-    @SerializedName("idCard")
-    @ColumnInfo(name = "idCard")
-    var id: Long = 0
+    @SerializedName("myShoppingId")
+    @ColumnInfo(name = "myShoppingId")
+    var myShoppingId: Long = 0
 
-    @SerializedName("idApi")
-    @ColumnInfo(name = "idApi")
-    var idApi: Long = 0
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0
 
     @SerializedName("holderName")
     @ColumnInfo(name = "holderName")
@@ -77,7 +77,8 @@ class CreditCard {
     }
 
     constructor(
-        idApi: Long,
+        myShoppingId: Long,
+        idMyShoppingApi: Long,
         holderName: String,
         cardName: String,
         value: Float,
@@ -87,7 +88,30 @@ class CreditCard {
         flag: Int,
         position: Int
     ) {
-        this.idApi = idApi
+        this.myShoppingId = myShoppingId
+        this.idMyShoppingApi = idMyShoppingApi
+        this.holderName = holderName
+        this.cardName = cardName
+        this.value = value
+        this.colorCard = colorCard
+        this.typeCard = typeCard
+        this.cardUserId = cardUserId
+        this.flag = flag
+        this.position = position
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        holderName: String,
+        cardName: String,
+        value: Float,
+        colorCard: Int,
+        typeCard: TypeCard,
+        cardUserId: String,
+        flag: Int,
+        position: Int
+    ) {
+        this.idMyShoppingApi = idMyShoppingApi
         this.holderName = holderName
         this.cardName = cardName
         this.value = value
@@ -99,7 +123,7 @@ class CreditCard {
     }
 
     override fun toString(): String {
-        return "CreditCard(id=$id, idApi=$idApi, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag, position=$position)"
+        return "CreditCard(myShoppingId=$myShoppingId, holderName='$holderName', cardName='$cardName', value=$value, colorCard=$colorCard, typeCard=$typeCard, cardUserId='$cardUserId', flag=$flag, position=$position)"
     }
 
 }

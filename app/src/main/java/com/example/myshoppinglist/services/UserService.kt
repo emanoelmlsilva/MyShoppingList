@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.services
 
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.User
 import retrofit2.Call
 import retrofit2.http.Body
@@ -19,11 +20,11 @@ interface UserService {
     }
 
     @GET("user/{email}/{password}")
-    fun findUser(@Path("email") email: String, @Path("password") password: String) : Call<User>
+    fun findUser(@Path("email") email: String, @Path("password") password: String) : Call<UserDTO>
 
     @POST("user")
-    fun save(@Body user: User): Call<User>
+    fun save(@Body user: UserDTO): Call<UserDTO>
 
     @PUT("user")
-    fun update(@Body user: User) : Call<User>
+    fun update(@Body userDTO: UserDTO) : Call<UserDTO>
 }

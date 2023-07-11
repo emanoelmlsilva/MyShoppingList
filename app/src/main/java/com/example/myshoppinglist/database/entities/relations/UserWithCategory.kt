@@ -8,6 +8,9 @@ import com.google.gson.annotations.SerializedName
 class UserWithCategory(
     @SerializedName("user")
     val user: User,
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0L,
     @SerializedName("category")
     @ColumnInfo(name = "category")
     var category: String = "",
@@ -25,20 +28,15 @@ class UserWithCategory(
     var idCategory: Long = 0L
 ) {
 
-    constructor() : this(User(), "", "", 0) {}
+    constructor() : this(User(), category = "", idImage = "", color = 0) {}
 
-    constructor(user: User, id: Long, category: String, idImage: String, color: Int) : this(
-        user,
-        category,
-        idImage,
-        color
-    ) {
-        this.id = id
+    constructor(user: User, idMyShoppingApi: Long, category: String, idImage: String, color: Int) : this(user = user, category = category, idImage =  idImage, color = color) {
+        this.idMyShoppingApi = idMyShoppingApi
     }
 
-    constructor(user: User, idCategory: Long, id: Long, category: String, idImage: String, color: Int) : this(
+    constructor(user: User, idCategory: Long, idMyShoppingApi: Long, category: String, idImage: String, color: Int) : this(
         user,
-        id,
+        idMyShoppingApi,
         category,
         idImage,
         color
@@ -49,7 +47,7 @@ class UserWithCategory(
     fun toCategory(): Category {
         return Category(
             user.email,
-            id,
+            idMyShoppingApi,
             category,
             idImage,
             color
@@ -59,7 +57,7 @@ class UserWithCategory(
     fun toCategoryId(): Category {
         return Category(
             user.email,
-            id,
+            idMyShoppingApi,
             idCategory,
             category,
             idImage,

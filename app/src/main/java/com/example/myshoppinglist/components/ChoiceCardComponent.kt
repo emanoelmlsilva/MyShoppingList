@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackCreditCard
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.background_card_light
@@ -21,13 +21,13 @@ import com.example.myshoppinglist.ui.theme.background_card_light
 @Composable
 fun ChoiceCardComponent(
     cardCurrent: Long,
-    cardCreditCollection: List<CreditCardDTO>,
+    cardCreditCollection: List<CreditCardDTODB>,
     callbackCard: CallbackCreditCard, modifier: Modifier = Modifier
         .fillMaxHeight(.2f)
         .fillMaxWidth()
         .padding(start = 16.dp)
 ) {
-    var cardCreditChoice by remember { mutableStateOf(CreditCardDTO(idCard = cardCurrent)) }
+    var cardCreditChoice by remember { mutableStateOf(CreditCardDTODB(myShoppingId = cardCurrent)) }
 
     Column {
         Spacer(Modifier.size(24.dp))
@@ -42,7 +42,7 @@ fun ChoiceCardComponent(
                     .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically
             ) {
                 items(cardCreditCollection) { cardCredit ->
-                    val isChoiceCurrent = cardCreditChoice.idCard == cardCredit.idCard
+                    val isChoiceCurrent = cardCreditChoice.myShoppingId == cardCredit.myShoppingId
 
                     CustomerChip(
                         paddingVertical = 0.dp,
@@ -55,7 +55,7 @@ fun ChoiceCardComponent(
                         callback = object : Callback {
                             override fun onClick() {
                                 cardCreditChoice = cardCredit
-                                callbackCard.onChangeValue(cardCreditChoice.idCard)
+                                callbackCard.onChangeValue(cardCreditChoice.myShoppingId)
                                 callbackCard.onChangeFilterCreditCard(
                                     CardCreditFilter(
                                         cardCreditChoice

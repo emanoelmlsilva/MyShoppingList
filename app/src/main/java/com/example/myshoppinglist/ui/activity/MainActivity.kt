@@ -10,8 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,7 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.controller.NavController
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
 import com.example.myshoppinglist.ui.theme.primary
@@ -46,12 +45,17 @@ class MainActivity : ComponentActivity() {
             MyShoppingListTheme(darkTheme = false ) {
                 val navController = rememberNavController()
                 val context = LocalContext.current
-                val userViewModel: UserViewModel = UserViewModel(context)
+                val userViewModel: UserViewModelDB = UserViewModelDB(context)
                 val bottomBarState = rememberSaveable { (mutableStateOf(false)) }
+                var route by remember { mutableStateOf<Screen?>(null) }
 
                 val email = UserLoggedShared.getEmailUserCurrent()
 
-                val route = if(userViewModel.hasExistUser(email)) Screen.Home else Screen.ChoiceLogin
+                LaunchedEffect(Unit){
+                    userViewModel.findUserByName(email).observe(this@MainActivity){ userDTO ->
+                        route = if(userDTO != null && userDTO.email.isNotBlank()) Screen.Home else Screen.ChoiceLogin
+                    }
+                }
 
                 val screenBarCollection = listOf(
                     Screen.Home,
@@ -96,11 +100,13 @@ class MainActivity : ComponentActivity() {
                             })
                     }
                 ) { innerPadding ->
-                    NavController(navHostController = navController, window, route.name, object: VisibleCallback(){
-                        override fun onChangeVisible(visible: Boolean) {
-                            bottomBarState.value = visible
-                        }
-                    })
+                    if(route != null){
+                        NavController(navHostController = navController, window, route?.name ?: "", object: VisibleCallback(){
+                            override fun onChangeVisible(visible: Boolean) {
+                                bottomBarState.value = visible
+                            }
+                        })
+                    }
                 }
             }
         }

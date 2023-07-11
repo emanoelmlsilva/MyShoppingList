@@ -19,6 +19,9 @@ class UserWithCreditCard(
     @SerializedName("id")
     @ColumnInfo(name = "id")
     var id: Long = 0,
+    @SerializedName("idMyShoppingApi")
+    @ColumnInfo(name = "idMyShoppingApi")
+    var idMyShoppingApi: Long = 0,
     @SerializedName("holderName")
     @ColumnInfo(name = "holderName")
     val holderName: String = "",
@@ -42,11 +45,12 @@ class UserWithCreditCard(
     val position: Int = 0
 ) {
 
-    constructor() : this(User(), 0, "", "", 0F, 0, 0, 0, 0) {}
+    constructor() : this(User(), 0, 0, "", "", 0F, 0, 0, 0, 0) {}
 
     fun toCreditCard(): CreditCard {
         return CreditCard(
             id,
+            idMyShoppingApi,
             holderName,
             cardName,
             value,

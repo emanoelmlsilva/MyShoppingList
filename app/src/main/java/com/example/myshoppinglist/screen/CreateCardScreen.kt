@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,27 +31,26 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.UserDTO
-import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.entities.User
-import com.example.myshoppinglist.database.entities.relations.UserWithCreditCard
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.services.CreditCardService
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
+import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
 import com.example.myshoppinglist.utils.ConversionUtils
-import retrofit2.Call
-import retrofit2.Response
 
 @ExperimentalComposeUiApi
 @Composable
@@ -67,8 +65,8 @@ fun CreateCardScreen(
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-    val userViewModel = UserViewModel(context)
+    val creditCardViewModelDB = CreditCardViewModelDB(context, lifecycleOwner)
+    val userViewModel = UserViewModelDB(context)
     val holderName: String by createCardCreditViewModel.name.observeAsState(initial = holderNameUser)
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_blue)
@@ -76,21 +74,25 @@ fun CreateCardScreen(
     var userDTO by remember {
         mutableStateOf<UserDTO?>(null)
     }
-    var email by remember {
-        mutableStateOf("")
-    }
-    var user by remember {
-        mutableStateOf<User?>(null)
-    }
-    val creditCardService = CreditCardService.getCreditCardService()
+    val creditCardViewModel = CreditCardViewModel(
+        CreditCardRepository(CreditCardService.getCreditCardService()),
+        creditCardViewModelDB
+    )
 
     LaunchedEffect(Unit) {
-        email = UserLoggedShared.getEmailUserCurrent()
-        userViewModel.findUserByName(email)
-        creditCardViewModel.getAll()
+        val email = UserLoggedShared.getEmailUserCurrent()
+        userViewModel.findUserByName(email).observe(lifecycleOwner) {
+            userDTO = it
+        }
+
+        creditCardViewModelDB.getAll().observe(lifecycleOwner) {
+            if (creditCardDTOJson.isBlank()) {
+                createCardCreditViewModel.onChangeLastPosition(it.size)
+            }
+        }
     }
 
-    LaunchedEffect(key1 = holderNameUser){
+    LaunchedEffect(key1 = holderNameUser) {
         createCardCreditViewModel.onChangeName(holderNameUser)
     }
 
@@ -98,26 +100,19 @@ fun CreateCardScreen(
 
         if (creditCardDTOJson.isNotBlank()) {
             val creditCardDTO =
-                ConversionUtils<CreditCardDTO>(CreditCardDTO::class.java).fromJsonList(creditCardDTOJson)!![0]
+                ConversionUtils<CreditCardDTODB>(CreditCardDTODB::class.java).fromJsonList(
+                    creditCardDTOJson
+                )!![0]
+
             createCardCreditViewModel.onChangeName(creditCardDTO.holderName)
             createCardCreditViewModel.onChangeNameCard(creditCardDTO.cardName)
             createCardCreditViewModel.onChangeValue(creditCardDTO.value)
             createCardCreditViewModel.onChangeColorCurrent(Color(creditCardDTO.colorCard))
             createCardCreditViewModel.onChangeFlagCurrent(creditCardDTO.flag)
             createCardCreditViewModel.onChangeTypeCard(creditCardDTO.typeCard)
-            createCardCreditViewModel.onChangeIdCreditCard(creditCardDTO.idCard)
+            createCardCreditViewModel.onChangeIdCreditCard(creditCardDTO.myShoppingId)
             createCardCreditViewModel.onChangeLastPosition(creditCardDTO.position)
-        }
-    }
-
-    userViewModel.searchResult.observe(lifecycleOwner) {
-        user = it
-        userDTO = UserDTO(it)
-    }
-
-    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner){
-        if(creditCardDTOJson.isBlank()){
-            createCardCreditViewModel.onChangeLastPosition(it.size)
+            createCardCreditViewModel.onChangeIdCardApi(creditCardDTO.idMyShoppingApi)
         }
     }
 
@@ -130,108 +125,67 @@ fun CreateCardScreen(
                 val valueCreditCard = createCardCreditViewModel.value.value
                 val typeCardRecover = createCardCreditViewModel.typeCard.value
                 val idCreditCard = createCardCreditViewModel.idCreditCard.value
+                val idCreditCardApi = createCardCreditViewModel.idCardApi.value
 
-                val creditCard = CreditCard(
+                val creditCardDTO = CreditCardDTO(
+                    idCreditCardApi!!,
+                    0,
                     holderName.trim(),
                     nameCard.trim(),
                     valueCreditCard!!,
                     colorCurrent.toArgb(),
-                    (if(!isUpdate) typeCard else typeCardRecover)!!,
-                    email,
+                    (if (!isUpdate) typeCard.ordinal else typeCardRecover?.ordinal)!!,
+                    userDTO!!,
                     flagCurrent,
                     lastPosition!!
                 )
 
-                val userWithCreditCard = UserWithCreditCard(user!!, 0,   holderName.trim(),
-                    nameCard.trim(),
-                    valueCreditCard,
-                    colorCurrent.toArgb(),
-                    (if (!isUpdate) typeCard.ordinal else typeCardRecover!!.ordinal),
-                    flagCurrent,
-                    lastPosition
-                )
 
-                if(!isUpdate){
-                    creditCardService.save(userWithCreditCard).enqueue(object :
-                        retrofit2.Callback<UserWithCreditCard> {
-                        override fun onResponse(
-                            call: Call<UserWithCreditCard>,
-                            response: Response<UserWithCreditCard>
-                        ) {
-
-                            if(response.isSuccessful){
-                                Log.d(
-                                    LOG,
-                                    "save - success = $response , credit_card ${response.body().toString()}"
-                                )
-
-                                creditCardViewModel.insertCreditCard(creditCard)
-                                if (typeCard == TypeCard.MONEY) {
-                                    navController?.navigate(Screen.Home.name) {
-                                        popUpTo(Screen.Home.name) { inclusive = false }
-                                    }
-                                } else {
-                                    navController?.popBackStack()
+                if (!isUpdate) {
+                    creditCardViewModel.save(creditCardDTO, object : CallbackObject<CreditCardDTO> {
+                        override fun onSuccess() {
+                            if (typeCard == TypeCard.MONEY) {
+                                navController?.navigate(Screen.Home.name) {
+                                    popUpTo(Screen.Home.name) { inclusive = false }
                                 }
-                            }else{
-                                Log.d(
-                                    LOG,
-                                    "save - error = $response , message ${response.message()}, ${response.errorBody()}"
-                                )
+                            } else {
+                                navController?.popBackStack()
                             }
-
                         }
 
-                        override fun onFailure(call: Call<UserWithCreditCard>?, t: Throwable?) {
+                        override fun onFailed(messageError: String) {
+
                         }
                     })
-                }else{
+                } else {
+                    creditCardDTO.idCard = idCreditCard!!
 
-                    creditCard.id = idCreditCard!!
-                    userWithCreditCard.id = idCreditCard
-
-                    creditCardService.update(userWithCreditCard).enqueue(object :
-                        retrofit2.Callback<UserWithCreditCard> {
-                        override fun onResponse(
-                            call: Call<UserWithCreditCard>,
-                            response: Response<UserWithCreditCard>
-                        ) {
-
-                            if(response.isSuccessful){
-                                Log.d(
-                                    LOG,
-                                    "update - success = $response , credit_card ${response.body().toString()}"
-                                )
-
-                                creditCardViewModel.updateCreditCard(creditCard)
+                    creditCardViewModel.update(
+                        creditCardDTO,
+                        object : CallbackObject<CreditCardDTO> {
+                            override fun onSuccess() {
                                 navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${userDTO!!.idAvatar}?nickName=${userDTO!!.nickName}")
                                 {
                                     popUpTo(Screen.Home.name) { inclusive = false }
                                 }
-                            }else{
-                                Log.d(
-                                    LOG,
-                                    "update - error = $response , message ${response.message()}, ${response.errorBody().toString()}"
-                                )
                             }
 
-                        }
+                            override fun onFailed(messageError: String) {
 
-                        override fun onFailure(call: Call<UserWithCreditCard>?, t: Throwable?) {
-                        }
-                    })
+                            }
+                        })
                 }
             }
         }
     }
 
     TopAppBarScreen(
+        enableScroll = true,
         hasBackButton = !hasToolbar,
         hasDoneButton = hasToolbar,
         onClickIcon = { navController?.popBackStack() },
         onClickIconDone = { saveCreditCard() },
         hasToolbar = hasToolbar,
-        isScrollable = true,
         content = {
             Column(
                 modifier = Modifier
@@ -264,7 +218,7 @@ fun CreateCardScreen(
                         isDefault = false,
                         typeCard = typeCard,
                         isChoiceColor = true,
-                        cardCreditDTO = CreditCardDTO(
+                        cardCreditDTO = CreditCardDTODB(
                             colorCard = card_blue.toArgb(),
                             value = 0F,
                             cardName = nameCard,
@@ -313,7 +267,7 @@ fun CreateCardScreen(
                     }
                 }
 
-                if(!hasToolbar){
+                if (!hasToolbar) {
                     ButtonsFooterContent(
                         modifierButton = Modifier.padding(top = 26.dp),
                         btnTextAccept = "SALVAR",

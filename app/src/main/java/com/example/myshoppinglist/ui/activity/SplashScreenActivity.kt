@@ -24,7 +24,7 @@ class SplashScreenActivity: ComponentActivity()  {
 
             val email = UserLoggedShared.getEmailUserCurrent()
 
-            UserInstanceImpl.getInstance(applicationContext, email)
+            UserInstanceImpl.getInstance(applicationContext)
 
             delay(3000)
 

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.callback.CallbackColor
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
@@ -41,7 +41,7 @@ fun CardCreditComponent(
     isChoiceColor: Boolean,
     flagCardCredit: Int = CardCreditFlag.MONEY.flag,
     typeCard: TypeCard,
-    cardCreditDTO: CreditCardDTO,
+    cardCreditDTO: CreditCardDTODB,
     createCardCreditViewModel: CreateCardCreditFieldViewModel,
     modifier: Modifier?,
     callbackColor: CallbackColor?
@@ -91,7 +91,7 @@ fun CustomCardCredit(
     typeCard: TypeCard,
     flagCardCredit: Int,
     cardColor: Color,
-    cardCreditDTO: CreditCardDTO,
+    cardCreditDTO: CreditCardDTODB,
     modifier: Modifier?
 ) {
 
@@ -218,7 +218,7 @@ fun PreviewCardCredit() {
         typeCard = TypeCard.CREDIT,
         flagCardCredit = CardCreditFlag.MONEY.flag,
         cardColor = card_green_dark,
-        cardCreditDTO = CreditCardDTO(
+        cardCreditDTO = CreditCardDTODB(
             colorCard = card_purple.toArgb(),
             value = 123.4F,
             cardName = "Teste",

@@ -2,7 +2,7 @@ package com.example.myshoppinglist.database.viewModels
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue
@@ -15,20 +15,21 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
     var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
-    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTO>> =
+    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTODB>> =
         MutableLiveData(mutableListOf())
     var value: MutableLiveData<Float> = MutableLiveData(0F)
     var typeCard: MutableLiveData<TypeCard> = MutableLiveData(TypeCard.MONEY)
     var idCreditCard: MutableLiveData<Long> = MutableLiveData()
     var lastPosition: MutableLiveData<Int> = MutableLiveData(0)
+    var idCardApi: MutableLiveData<Long> = MutableLiveData(0)
 
-    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTO>) {
+    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTODB>) {
         creditCardCollection.value = newTesteList
     }
 
     fun onTaskReordered(
-        creditCardViewModel: CreditCardViewModel,
-        creditCardCollectionUpdate: MutableList<CreditCardDTO>,
+        creditCardViewModel: CreditCardViewModelDB,
+        creditCardCollectionUpdate: MutableList<CreditCardDTODB>,
         fromPos: ItemPosition,
         toPos: ItemPosition
     ) {
@@ -46,6 +47,10 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
         creditCardViewModel.updateCreditCard(auxCreditCardCollection[toPos.index].toCreditCard())
 
         updateCreditCardCollection(auxCreditCardCollection)
+    }
+
+    fun onChangeIdCardApi(newIdCardApi: Long){
+        idCardApi.value = newIdCardApi
     }
 
     fun onChangeLastPosition(newLastPosition: Int){

@@ -2,7 +2,6 @@ package com.example.myshoppinglist.database.viewModels
 
  import android.annotation.SuppressLint
 import android.content.Context
- import android.util.Log
  import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -25,12 +24,12 @@ class PurchaseViewModel(context: Context): ViewModel() {
     @SuppressLint("StaticFieldLeak")
     var contextTest: Context
 
-    private var userViewModel : UserViewModel
+    private var userViewModel : UserViewModelDB
 
     init{
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val purchaseDAO = myShopListDataBase.purchaseDAO()
-        userViewModel = UserViewModel(context)
+        userViewModel = UserViewModelDB(context)
         val email = UserLoggedShared.getEmailUserCurrent()
         userViewModel.findUserByName(email)
         repository = PurchaseRepository(purchaseDAO)
@@ -105,89 +104,89 @@ class PurchaseViewModel(context: Context): ViewModel() {
 
     fun getPurchaseAll() {
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchaseAll(emailUser)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchaseAll(emailUser)
+//        }
     }
 
     fun getPurchaseAll(idCard: Long){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchaseAll(emailUser, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchaseAll(emailUser, idCard)
+//        }
     }
 
     fun getPurchaseByMonth(idCard: Long, date: String){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchaseByMonth(emailUser, date, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchaseByMonth(emailUser, date, idCard)
+//        }
     }
 
     fun getPurchaseAllByIdCard(idCard: Long){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchaseAllByIdCard(emailUser, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchaseAllByIdCard(emailUser, idCard)
+//        }
     }
 
     fun getMonthByIdCard(idCard: Long){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getMonthByIdCard(emailUser, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getMonthByIdCard(emailUser, idCard)
+//        }
     }
 
     fun getMonthDistinctByIdCard(idCard: Long){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getMonthDistinctByIdCard(emailUser, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getMonthDistinctByIdCard(emailUser, idCard)
+//        }
     }
 
     fun sumPriceById(idCard: Long){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.sumPriceById(emailUser, idCard)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.sumPriceById(emailUser, idCard)
+//        }
     }
 
     fun sumPriceAllCard(){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.sumPriceAllCard(emailUser)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.sumPriceAllCard(emailUser)
+//        }
     }
 
     fun sumPriceByMonth(idCard: Long, date: String){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.sumPriceByMonth(emailUser, idCard, date)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.sumPriceByMonth(emailUser, idCard, date)
+//        }
     }
 
     fun getPurchasesWeek(){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchasesWeek(emailUser)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchasesWeek(emailUser)
+//        }
     }
 
     fun getPurchasesAndCategoryWeek(){
         var emailUser = ""
-        userViewModel.searchResult.observeForever {
-            emailUser = it.email
-            repository.getPurchasesAndCategoryWeek(emailUser)
-        }
+//        userViewModel.searchResult.observeForever {
+//            emailUser = it.email
+//            repository.getPurchasesAndCategoryWeek(emailUser)
+//        }
     }
 }

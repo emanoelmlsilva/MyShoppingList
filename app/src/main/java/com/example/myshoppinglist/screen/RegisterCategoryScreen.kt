@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
@@ -32,12 +32,15 @@ import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.entities.relations.UserWithCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
+import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.IconCategory
 import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
-import com.example.myshoppinglist.ui.theme.card_red_dark
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.godaddy.android.colorpicker.HsvColor
@@ -58,13 +61,6 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     val scrollState = rememberLazyListState()
 
     val iconsCategories = remember { mutableListOf<IconCategory>() }
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
-
-    val email = UserLoggedShared.getEmailUserCurrent()
-
-    var user by remember { mutableStateOf(User()) }
-
-    val userViewModel: UserViewModel = UserViewModel(context)
 
     val isErrorName: Boolean by registerCategoryFieldViewModel.isErrorCategory.observeAsState(false)
 
@@ -76,7 +72,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     val colorCurrent = registerCategoryFieldViewModel.color.observeAsState().value!!
 
-    var idApi by remember { mutableStateOf(0L) }
+    var idMyShoppingApi by remember { mutableStateOf(0L) }
 
     LaunchedEffect(Unit) {
         iconsCategories.addAll(
@@ -87,48 +83,55 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
     }
 
     LaunchedEffect(idCategory) {
-        userViewModel.findUserByName(email)
         if (idCategory != 0L) {
-            categoryViewModel.getCategoryById(idCategory!!)
+            categoryController.getCategoryByIdDB(idCategory!!).observe(lifecycleOwner) {
+                if (it != null) {
+                    idMyShoppingApi = it.idMyShoppingApi
+                    registerCategoryFieldViewModel.onChangeCategory(it.category)
+                    registerCategoryFieldViewModel.onChangeColor(it.color)
+                    registerCategoryFieldViewModel.onChangeIdImageCurrent(it.idImage)
+                }
+            }
         }
     }
 
 
-    userViewModel.searchResult.observe(lifecycleOwner) {
-        user = it
+//    userViewModel.searchResult.observe(lifecycleOwner) {
+//        user = it
+//    }
+
+//    categoryViewModel.searchResult.observe(lifecycleOwner) {
+//        if (it != null) {
+//            idMyShoppingApi = it.idMyShoppingApi
+//            registerCategoryFieldViewModel.onChangeCategory(it.category)
+//            registerCategoryFieldViewModel.onChangeColor(it.color)
+//            registerCategoryFieldViewModel.onChangeIdImageCurrent(it.idImage)
+//        }
+//    }
+
+    fun updateCategory(category: CategoryDTO, callback: Callback) {
+        categoryController.updateCategory(category, object : CallbackObject<CategoryDTO> {
+            override fun onSuccess() {
+                callback.onSuccess()
+            }
+
+            override fun onFailed(messageError: String) {
+                callback.onFailed(messageError)
+            }
+        })
     }
 
-    categoryViewModel.searchResult.observe(lifecycleOwner) {
-        if (it != null) {
-            idApi = it.idApi
-            registerCategoryFieldViewModel.onChangeCategory(it.category)
-            registerCategoryFieldViewModel.onChangeColor(it.color)
-            registerCategoryFieldViewModel.onChangeIdImageCurrent(it.idImage)
-        }
-    }
-
-    fun updateCategory(category: Category, callback: Callback) {
-        categoryController.updateCategory(
-            UserWithCategory(
-                user,
-                category.id,
-                category.idApi,
-                category.category,
-                category.idImage,
-                category.color
-            ), callback
-        )
-    }
-
-    fun saveCategory(category: Category, callback: Callback) {
+    fun saveCategory(category: CategoryDTO, callback: Callback) {
         categoryController.saveCategory(
-            UserWithCategory(
-                user,
-                category.idApi,
-                category.category,
-                category.idImage,
-                category.color
-            ), callback = callback)
+            category, object : CallbackObject<CategoryDTO> {
+                override fun onSuccess() {
+                    callback.onSuccess()
+                }
+
+                override fun onFailed(messageError: String) {
+                    callback.onFailed(messageError)
+                }
+            })
     }
 
     fun goBackNavigation() {
@@ -140,29 +143,33 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
 
-        val newCategory = Category(email, idApi, categoryCurrent, idImageCurrent, colorCurrent)
+        val newCategory = CategoryDTO(
+            idMyShoppingApi,
+            idCategory ?: 0,
+            categoryCurrent,
+            idImageCurrent,
+            colorCurrent
+        )
 
-
-        if (newCategory.category.isNotBlank()) {
+        if (newCategory.category.isNotBlank() && newCategory.idImage.isNotBlank()) {
             if (idCategory != null && idCategory > 0) {
-                newCategory.idApi = idApi
-                newCategory.id = idCategory
+                newCategory.id = idMyShoppingApi
                 updateCategory(newCategory, object : Callback {
                     override fun onCancel() {
 
                     }
 
-                    override fun onSucess() {
+                    override fun onSuccess() {
                         goBackNavigation()
                     }
                 })
             } else {
                 saveCategory(newCategory, object : Callback {
-                    override fun onCancel() {
-
+                    override fun onFailed(messageError: String) {
+                        super.onFailed(messageError)
                     }
 
-                    override fun onSucess() {
+                    override fun onSuccess() {
                         goBackNavigation()
                     }
                 })
@@ -273,7 +280,7 @@ class RegisterCategoryFieldViewModel : BaseFieldViewModel() {
     val color = MutableLiveData(Color.Red.toArgb())
     var isErrorCategory: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    fun reset(){
+    fun reset() {
         this.color.value = Color.Red.toArgb()
         this.categoryCurrent.value = ""
         this.idImage.value = ""

@@ -14,7 +14,7 @@ object CardUtils{
         creditCardColelction.forEachIndexed { index, creditCard ->
             cardCreditFormated.put(
                 creditCard.cardName,
-                creditCard.id
+                creditCard.myShoppingId
             )
         }
 

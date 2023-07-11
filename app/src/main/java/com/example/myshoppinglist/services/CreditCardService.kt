@@ -1,6 +1,6 @@
 package com.example.myshoppinglist.services
 
-import com.example.myshoppinglist.database.entities.relations.UserWithCreditCard
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -15,11 +15,11 @@ interface CreditCardService {
     }
 
     @GET("credit_card/email/{email}")
-    fun findAll(@Path("email") email: String) : Call<List<UserWithCreditCard>>
+    fun findAll(@Path("email") email: String) : Call<List<CreditCardDTO>>
 
     @POST("credit_card")
-    fun save(@Body userWithCreditCard: UserWithCreditCard) : Call<UserWithCreditCard>
+    fun save(@Body creditCardDTO: CreditCardDTO) : Call<CreditCardDTO>
 
     @PUT("credit_card")
-    fun update(@Body userWithCreditCard: UserWithCreditCard) : Call<UserWithCreditCard>
+    fun update(@Body creditCardDTO: CreditCardDTO) : Call<CreditCardDTO>
 }

@@ -44,12 +44,12 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.PositionDialog
 import com.example.myshoppinglist.enums.TypeProduct
@@ -74,7 +74,7 @@ fun ProductsManagerScreen(navController: NavController?) {
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val productManagerFieldViewModel: ProductManagerFieldViewModel =
         ProductManagerFieldViewModel(context)
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
+    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00") }
     var visibleAnimation by remember { mutableStateOf(true) }
@@ -84,13 +84,13 @@ fun ProductsManagerScreen(navController: NavController?) {
         productManagerFieldViewModel.mountObejctSearchDatabase(ObjectFilter())
     }
 
-    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) { creditCardCollection ->
-        productManagerFieldViewModel.onChangeCardCreditCollection(creditCardCollection.map { creditCard ->
-            CreditCardDTO().fromCreditCardDTO(
-                creditCard
-            )
-        })
-    }
+//    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) { creditCardCollection ->
+//        productManagerFieldViewModel.onChangeCardCreditCollection(creditCardCollection.map { creditCard ->
+//            CreditCardDTODB().fromCreditCardDTO(
+//                creditCard
+//            )
+//        })
+//    }
 
     productManagerFieldViewModel.purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner) {
         quantityPurchases =
@@ -242,7 +242,7 @@ fun SearchProduct(
                             }
 
                             value.categoryCollection.forEach { category ->
-                                listProductText.add("%category%, ${category.id}, ${category.category}, ${category.idImage}, ${category.color}")
+                                listProductText.add("%category%, ${category.myShoppingId}, ${category.category}, ${category.idImage}, ${category.color}")
                             }
 
                             if (value.priceMin != null && value.priceMax != null) {
@@ -359,7 +359,7 @@ fun SearchProduct(
                                 val color = splitValuesCategory[4].trim().toFloat().toInt()
 
                                 category = Category(categorySplit, idImageSplit, color)
-                                category.id = idSplit
+                                category.myShoppingId = idSplit
                             }
                             CustomerChip(
                                 context = context,
@@ -696,18 +696,18 @@ fun AlertDialogFilter(
     var month by remember { mutableStateOf("") }
     var idCardCredit by remember { mutableStateOf(0L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
-    var creditCardDTOCollection = remember { mutableListOf<CreditCardDTO>() }
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    var creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
+    val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
 
     LaunchedEffect(Unit) {
         keyboardController.hide()
         categoryViewModel.getAll()
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        categoryCollections.removeAll(categoryCollections)
-        categoryCollections.addAll(it)
-    }
+//    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
+//        categoryCollections.removeAll(categoryCollections)
+//        categoryCollections.addAll(it)
+//    }
 
     productManagerFieldViewModel.cardCreditCollection.observe(lifecycleOwner) {
         if (it.isNotEmpty()) {
@@ -1250,7 +1250,7 @@ fun ChoiceData(
 class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
     val purchaseViewModel = PurchaseViewModel(context)
     val product: MutableLiveData<String> = MutableLiveData("")
-    var cardCreditCollection: MutableLiveData<List<CreditCardDTO>> =
+    var cardCreditCollection: MutableLiveData<List<CreditCardDTODB>> =
         MutableLiveData(mutableListOf())
     var visibleAnimation: MutableLiveData<Boolean> = MutableLiveData(true)
     var purchaseInfoCollection: MutableLiveData<List<PurchaseInfo>> =
@@ -1268,7 +1268,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         product.value = newProduct
     }
 
-    fun onChangeCardCreditCollection(newCardCreditCollection: List<CreditCardDTO>) {
+    fun onChangeCardCreditCollection(newCardCreditCollection: List<CreditCardDTODB>) {
         cardCreditCollection.value = newCardCreditCollection
     }
 
@@ -1337,7 +1337,7 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
                 nameFields += "categoryOwnerId = ?"
-                collectionSeach.add(category.id)
+                collectionSeach.add(category.myShoppingId)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " OR "
@@ -1354,13 +1354,13 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
             collectionSeach.add(objectFilter.cardFilter.id)
         }
 
-        purchaseViewModel.getPurchasesOfSearch(
-            collectionSeach,
-            nameFields,
-            if (objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
-        )
-
-        purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)
+//        purchaseViewModel.getPurchasesOfSearch(
+//            collectionSeach,
+//            nameFields,
+//            if (objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
+//        )
+//
+//        purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)
     }
 
 }

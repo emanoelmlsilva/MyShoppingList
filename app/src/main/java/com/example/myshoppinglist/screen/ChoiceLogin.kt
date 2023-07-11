@@ -3,8 +3,10 @@ package com.example.myshoppinglist.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -28,9 +29,13 @@ import com.example.myshoppinglist.ui.theme.*
 
 @Composable
 fun ChoiceLogin(navController: NavController) {
-    TopAppBarScreen(onClickIcon = { navController.popBackStack() }, content = {
+    TopAppBarScreen(
+        onClickIcon = { navController.popBackStack() }, content = {
         Column(
-            verticalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight() ,
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -39,7 +44,7 @@ fun ChoiceLogin(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.55f)
+                    .fillMaxHeight(.65f)
             ) {
                 Image(
                     imageVector = ImageVector.vectorResource(id = R.drawable.my_shopping_list_logo),
@@ -47,63 +52,68 @@ fun ChoiceLogin(navController: NavController) {
                 )
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .paint(
-                        painterResource(id = R.drawable.background_shape),
-                        contentScale = ContentScale.FillBounds
-                    )
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            Column(  modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
+                        .paint(
+                            painterResource(id = R.drawable.background_shape),
+                            contentScale = ContentScale.FillBounds
+                        )
                 ) {
-
                     Column(
-                        modifier = Modifier.fillMaxHeight(.47f),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        verticalArrangement = Arrangement.Bottom,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(.8f)
                     ) {
-                        Button(colors = ButtonDefaults.buttonColors(backgroundColor = background_card),
-                            modifier = Modifier
-                                .fillMaxWidth(.75f)
-                                .padding(vertical = 4.dp),
-                            onClick = {
-                                navController.navigate(Screen.Login.name) {
-                                    popUpTo(0) { inclusive = false }
-                                }
-                            }) {
-                            Text(text = "LOGIN", fontFamily = LatoRegular, fontSize = 14.sp)
-                        }
 
-                        Text(
-                            text = "ou",
-                            fontFamily = LatoRegular,
-                            fontSize = 16.sp,
-                            color = text_primary_light)
-
-                        TextButton(onClick = { navController.navigate(Screen.Register.name)}) {
-                            Text(
-                                buildAnnotatedString {
-                                    append("Não tem conta criada?")
-                                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                                        append(" Sign up")
+                        Column(
+                            modifier = Modifier.fillMaxHeight(.7f),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Button(colors = ButtonDefaults.buttonColors(backgroundColor = background_card),
+                                modifier = Modifier
+                                    .fillMaxWidth(.75f)
+                                    .padding(vertical = 4.dp),
+                                onClick = {
+                                    navController.navigate(Screen.Login.name) {
+                                        popUpTo(0) { inclusive = false }
                                     }
-                                },
-//                                text = "Não tem conta criada? Sign up",
+                                }) {
+                                Text(text = "LOGIN", fontFamily = LatoRegular, fontSize = 14.sp)
+                            }
+
+                            Text(
+                                text = "ou",
                                 fontFamily = LatoRegular,
                                 fontSize = 16.sp,
-                                color = Color(0xFF05290A)
+                                color = text_primary_light
                             )
+
+                            TextButton(onClick = { navController.navigate(Screen.Register.name) }) {
+                                Text(
+                                    buildAnnotatedString {
+                                        append("Não tem conta criada?")
+                                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                            append(" Sign up")
+                                        }
+                                    },
+                                    fontFamily = LatoRegular,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF05290A)
+                                )
+                            }
                         }
                     }
                 }
             }
+
         }
     })
 }

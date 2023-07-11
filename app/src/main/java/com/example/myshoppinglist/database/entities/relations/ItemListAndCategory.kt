@@ -7,6 +7,6 @@ import com.example.myshoppinglist.database.entities.ItemList
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-class ItemListAndCategory(@Embedded val itemList: ItemList, @Relation(parentColumn = "categoryOwnerIdItem", entityColumn = "id") var category: Category) {
+class ItemListAndCategory(@Embedded val itemList: ItemList, @Relation(parentColumn = "categoryOwnerIdItem", entityColumn = "myShoppingIdCategory") var category: Category) {
 
 }

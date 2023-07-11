@@ -3,7 +3,7 @@ package com.example.myshoppinglist.database.viewModels
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.database.MyShopListDataBase
@@ -13,15 +13,9 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
 
-class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
+class CategoryViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
     //repository
     private val repository: CategoryRepository
-
-    val searchCollectionResult: MutableLiveData<List<Category>>
-    val searchResult: MutableLiveData<Category>
-
-    // user
-    private var userViewModel: UserViewModel
 
     private var mLifecycleOwner: LifecycleOwner
 
@@ -30,34 +24,53 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
     init {
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val categoryDAO = myShopListDataBase.categoryDAO()
-        userViewModel = UserViewModel(context)
         val email = UserLoggedShared.getEmailUserCurrent()
-        userViewModel.findUserByName(email)
         repository = CategoryRepository(categoryDAO)
-        searchCollectionResult = repository.searchCollectionResult
-        searchResult = repository.searchResult
         mLifecycleOwner = lifecycleOwner
+    }
+
+    fun insertCategories(categories: List<Category>, callback: Callback){
+        val action = Action{
+            repository.insertCategories(categories)
+        }
+
+        Completable.fromAction(action).subscribe({callback.onSuccess()}, {throwable ->
+            Log.d(TAG, "ERROR " + throwable.message)
+            callback.onCancel()
+        })
     }
 
     fun insertCategory(category: Category, callback: Callback) {
         val action = Action {
-            repository.insertCateogry(category)
+            repository.insertCategory(category)
         }
 
-        Completable.fromAction(action).subscribe({ callback.onSucess() }, { throwable ->
+        Completable.fromAction(action).subscribe({ callback.onSuccess() }, { throwable ->
             Log.d(TAG, "ERROR " + throwable.message)
             callback.onCancel()
         })
     }
 
     fun insertCategory(category: Category) {
-        insertCategory(category, object : Callback{
+        insertCategory(category, object : Callback {
             override fun onCancel() {
                 super.onCancel()
             }
 
-            override fun onSucess() {
-                super.onSucess()
+            override fun onSuccess() {
+                super.onSuccess()
+            }
+        })
+    }
+
+    fun updateCategory(category: Category) {
+        updateCategory(category, object : Callback {
+            override fun onCancel() {
+                super.onCancel()
+            }
+
+            override fun onSuccess() {
+                super.onSuccess()
             }
         })
     }
@@ -70,7 +83,7 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
         val completable = Completable.fromAction(action)
 
         completable.subscribe(
-            { callback.onSucess() },
+            { callback.onSuccess() },
             { throwable ->
                 Log.d(TAG, "ERROR " + throwable.message)
                 callback.onCancel()
@@ -78,27 +91,19 @@ class CategoryViewModel(context: Context, lifecycleOwner: LifecycleOwner) : View
         )
     }
 
-    fun getAll() {
-        var emailUser = ""
-        userViewModel.searchResult.observe(mLifecycleOwner) {
-            emailUser = it.email
-            repository.getAll(emailUser)
-        }
+    fun getAll(): LiveData<List<Category>> {
+        return repository.getAll()
     }
 
-    fun getCategoryById(idCategory: Long) {
-        var emailUser = ""
-        userViewModel.searchResult.observe(mLifecycleOwner) {
-            emailUser = it.email
-            repository.getCategoryById(emailUser, idCategory)
-        }
+    fun getCategoryById(idCategory: Long): LiveData<Category> {
+        return repository.getCategoryById(idCategory)
     }
 
     fun getCategoryByCategory(category: String) {
-        var emailUser = ""
-        userViewModel.searchResult.observe(mLifecycleOwner) {
-            emailUser = it.email
-            repository.getCategoryByCategory(emailUser, category)
-        }
+//        var emailUser = ""
+//        userViewModel.searchResult.observe(mLifecycleOwner) {
+//            emailUser = it.email
+//            repository.getCategoryByCategory(emailUser, category)
+//        }
     }
 }

@@ -3,40 +3,19 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleOwner
-import com.example.myshoppinglist.R
-import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
-import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.ItemListViewModel
+import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -53,7 +32,7 @@ fun DialogRecoveryItemList(
     var checkAll by remember { mutableStateOf(false) }
     var visibleAnimation by remember { mutableStateOf(true) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
-    val itemListViewModel = ItemListViewModel(context, lifecycleOwner)
+    val itemListViewModel = ItemListViewModelDB(context, lifecycleOwner)
     val itemListCollection = remember { mutableStateListOf<ItemListAndCategory>() }
     var showDialog by remember { mutableStateOf(enabledDialog) }
     val scope = rememberCoroutineScope()
@@ -61,7 +40,7 @@ fun DialogRecoveryItemList(
     fun selectedCheckAll() {
         itemCheckCollection.removeAll(itemCheckCollection)
         itemListCollection.forEach {
-            itemCheckCollection.add(it.itemList.id)
+            itemCheckCollection.add(it.itemList.myShoppingId)
         }
 
     }
@@ -79,22 +58,20 @@ fun DialogRecoveryItemList(
 
     LaunchedEffect(key1 = idCard, key2 = showDialog) {
         if (showDialog) {
-            itemListViewModel.getAll(idCard)
-        }
-    }
+            itemListViewModel.getAllDB(idCard).observe(lifecycleOwner){
+                if (it.isNotEmpty()) {
+                    itemListCollection.removeAll(itemListCollection)
+                    itemListCollection.addAll(it)
+                    val auxItemListCollection = it
+                    auxItemListCollection.forEach { auxItem ->
 
-    itemListViewModel.searchItemListResult.observe(lifecycleOwner) {
-        if (it.isNotEmpty()) {
-            itemListCollection.removeAll(itemListCollection)
-            itemListCollection.addAll(it)
-            val auxItemListCollection = it
-            auxItemListCollection.forEach { auxItem ->
+                        if (listItemChosen.find { findItem -> findItem.itemList.myShoppingId == auxItem.itemList.myShoppingId } != null) {
+                            itemListCollection.remove(auxItem)
+                        }
+                    }
 
-                if (listItemChosen.find { findItem -> findItem.itemList.id == auxItem.itemList.id } != null) {
-                    itemListCollection.remove(auxItem)
                 }
             }
-
         }
     }
 
@@ -176,35 +153,35 @@ fun DialogRecoveryItemList(
                         visibleAnimation = visible
                     }
                 }, content = {
-                    itemsIndexed(itemListCollection) { index, itemListAndCategory ->
-                        val itemListCurrent = itemListAndCategory.itemList
-                        val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
-                        SlidingItemListComponent(
-                            context = context,
-                            itemListAndCategory = itemListAndCategory,
-                            isCheck = isCheck,
-                            isMarket = false,
-                            isRemoved = itemListCurrent.isRemoved,
-                            sizeCheckCollection = itemCheckCollection.isNotEmpty(),
-                            idItem = itemListCurrent.id,
-                            category = itemListAndCategory.category,
-                            product = itemListAndCategory.itemList.item,
-                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
-                            callback = object : CallbackItemList {
-                                override fun onChangeValue(idCard: Long) {
-                                    val isChecked = itemCheckCollection.indexOf(idCard) != -1
-                                    checkAll = if (isChecked) {
-                                        itemCheckCollection.remove(idCard)
-                                        false
-                                    } else {
-                                        itemCheckCollection.add(idCard)
-                                        itemCheckCollection.size == itemListCollection.size
-
-                                    }
-                                }
-                            }
-                        )
-                    }
+//                    itemsIndexed(itemListCollection) { index, itemListAndCategory ->
+//                        val itemListCurrent = itemListAndCategory.itemList
+//                        val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
+//                        SlidingItemListComponent(
+//                            context = context,
+//                            itemListAndCategory = itemListAndCategory,
+//                            isCheck = isCheck,
+//                            isMarket = false,
+//                            isRemoved = itemListCurrent.isRemoved,
+//                            sizeCheckCollection = itemCheckCollection.isNotEmpty(),
+//                            idItem = itemListCurrent.id,
+//                            category = itemListAndCategory.category,
+//                            product = itemListAndCategory.itemList.item,
+//                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
+//                            callback = object : CallbackItemList {
+//                                override fun onChangeValue(idCard: Long) {
+//                                    val isChecked = itemCheckCollection.indexOf(idCard) != -1
+//                                    checkAll = if (isChecked) {
+//                                        itemCheckCollection.remove(idCard)
+//                                        false
+//                                    } else {
+//                                        itemCheckCollection.add(idCard)
+//                                        itemCheckCollection.size == itemListCollection.size
+//
+//                                    }
+//                                }
+//                            }
+//                        )
+//                    }
                 })
 
             }
@@ -215,7 +192,7 @@ fun DialogRecoveryItemList(
                 onClickAccept = {
                     if(itemCheckCollection.isNotEmpty()){
                         scope.launch {
-                            callback.onUpdateListAndCategory(itemListCollection.filter { itemChoice -> itemCheckCollection.find { itemCheck -> itemChoice.itemList.id == itemCheck } != null })
+                            callback.onUpdateListAndCategory(itemListCollection.filter { itemChoice -> itemCheckCollection.find { itemCheck -> itemChoice.itemList.myShoppingId == itemCheck } != null })
                         }.invokeOnCompletion {
                             cancel()
                         }

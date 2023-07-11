@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.services
 
 import com.example.myshoppinglist.database.entities.relations.UserWithCategory
+import com.example.myshoppinglist.services.dtos.CategoryDTO
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -15,11 +16,11 @@ interface CategoryService {
     }
 
     @GET("category/email/{email}")
-    fun findAll(@Path("email") email: String) : Call<List<UserWithCategory>>
+    fun findAll(@Path("email") email: String) : Call<List<CategoryDTO>>
 
     @POST("category")
-    fun save(@Body userWithCategory: UserWithCategory) : Call<UserWithCategory>
+    fun save(@Body categoryDTO: CategoryDTO) : Call<CategoryDTO>
 
     @PUT("category")
-    fun update(@Body userWithCategory: UserWithCategory) : Call<UserWithCategory>
+    fun update(@Body categoryDTO: CategoryDTO) : Call<CategoryDTO>
 }

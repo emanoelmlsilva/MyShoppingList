@@ -1,9 +1,10 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -28,19 +29,21 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BoxCardCreditCustom
 import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
 import com.example.myshoppinglist.components.HeaderComponent
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
 import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.services.CreditCardService
+import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.ui.theme.LatoBold
-import com.example.myshoppinglist.ui.theme.card_green
-import com.example.myshoppinglist.ui.theme.card_orange
 import com.example.myshoppinglist.ui.theme.text_secondary
+import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
 import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
+import kotlinx.coroutines.launch
 import java.lang.Math.abs
 
 @ExperimentalPagerApi
@@ -48,14 +51,13 @@ import java.lang.Math.abs
 @Composable
 fun HomeScreen(navController: NavController?) {
     val context = LocalContext.current
-    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val homeFieldViewModel = HomeFieldViewModel()
     val purchaseViewModel = PurchaseViewModel(context)
-    val userViewModel = UserViewModel(context)
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner.value)
+    val creditCardViewModel = CreditCardViewModel(CreditCardRepository(CreditCardService.getCreditCardService()), CreditCardViewModelDB(context, lifecycleOwner))
     val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     val visibleAnimation = remember { mutableStateOf(true) }
-    val creditCardCollection = remember { mutableStateListOf<CreditCardDTO>() }
+    val creditCardCollection = remember { mutableStateListOf<CreditCardDTODB>() }
     var idAvatar by remember {
         mutableStateOf(R.drawable.default_avatar)
     }
@@ -64,29 +66,28 @@ fun HomeScreen(navController: NavController?) {
     }
 
     LaunchedEffect(Unit) {
-        creditCardViewModel.getAllWithSum()
-    }
+        val email = UserLoggedShared.getEmailUserCurrent()
+        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(lifecycleOwner){
+            idAvatar = it.idAvatar;
+            nickName = it.nickName
+        }
 
-    UserInstanceImpl.getUserViewModelCurrent().searchResult.observe(lifecycleOwner.value){
-        idAvatar = it.idAvatar;
-        nickName = it.nickName
-    }
+        creditCardViewModel.getAllWithSum().observe(lifecycleOwner){ creditCollection ->
+            if (creditCollection.isNotEmpty()) {
+                purchaseViewModel.getPurchasesAndCategoryWeek()
 
-    purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
-        purchaseCollection.removeAll(purchaseCollection)
-        purchaseCollection.addAll(purchases.reversed())
-
-    }
-
-    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner.value) { creditCollection ->
-        if (creditCollection.isNotEmpty()) {
-            purchaseViewModel.getPurchasesAndCategoryWeek()
-
-            creditCardCollection.removeAll(creditCardCollection)
-            creditCardCollection.add(CreditCardDTO())
-            creditCardCollection.addAll(MountStructureCrediCard().mountSpedingDate(creditCollection))
+                creditCardCollection.removeAll(creditCardCollection)
+                creditCardCollection.add(CreditCardDTODB())
+                creditCardCollection.addAll(MountStructureCrediCard().mountSpedingDate(creditCollection))
+            }
         }
     }
+
+//    purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
+//        purchaseCollection.removeAll(purchaseCollection)
+//        purchaseCollection.addAll(purchases.reversed())
+//
+//    }
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -111,6 +112,7 @@ fun HomeScreen(navController: NavController?) {
                     .fillMaxHeight(.4f),
                 contentHeight = 265.dp,
                 content = { modifier, index ->
+
                     val creditCardDTO = creditCardCollection[index]
 
                     Column(modifier = modifier) {
