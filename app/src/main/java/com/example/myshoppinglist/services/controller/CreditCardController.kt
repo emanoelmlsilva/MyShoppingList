@@ -30,8 +30,16 @@ class CreditCardController {
         }
     }
 
+    fun getAllWithSumDB(): LiveData<List<CreditCard>>{
+        return creditCardViewModel.getAllWithSum()
+    }
+
     fun findCreditCardByIdDB(idCard: Long): LiveData<CreditCard>{
         return creditCardViewModel.findCreditCardById(idCard)
+    }
+
+    fun findAllDB(): LiveData<List<CreditCard>>{
+        return creditCardViewModel.getAll()
     }
 
     fun saveAllCreditCard(email: String, callback: CallbackObject<List<CreditCardDTO>>){

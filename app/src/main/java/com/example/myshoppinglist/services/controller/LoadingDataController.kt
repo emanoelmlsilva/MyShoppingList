@@ -3,6 +3,7 @@ package com.example.myshoppinglist.services.controller
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
@@ -17,11 +18,13 @@ class LoadingDataController {
         private lateinit var creditCardController: CreditCardController
         private lateinit var categoryController: CategoryController
         private lateinit var itemListController: ItemListController
+        private lateinit var purchaseController: PurchaseController
 
         fun getData(context: Context, lifecycleOwner: LifecycleOwner): LoadingDataController {
             categoryController = CategoryController.getData(context, lifecycleOwner)
             itemListController = ItemListController.getData(context, lifecycleOwner)
             creditCardController = CreditCardController.getData(context, lifecycleOwner)
+            purchaseController = PurchaseController.getData(context, lifecycleOwner)
 
             Log.d("TAG", "getData")
 
@@ -44,7 +47,10 @@ class LoadingDataController {
                         )
 
                         creditCardCollection.toObservable().subscribeBy(
-                            onNext = { loadingDataItemList(it.id, callback) },
+                            onNext = {
+                                loadingDataItemList(it.id, callback)
+                                loadingDataPurchase(it.id, callback)
+                            },
                             onError = { callback.onCancel() },
                             onComplete = {
                                 callback.onSuccess()
@@ -97,7 +103,7 @@ class LoadingDataController {
 //        })
     }
 
-    fun loadingDataCreditCard(email: String, callback: CallbackObject<List<CreditCardDTO>>){
+    fun loadingDataCreditCard(email: String, callback: CallbackObject<List<CreditCardDTO>>) {
         creditCardController.saveAllCreditCard(email, callback)
     }
 
@@ -133,5 +139,9 @@ class LoadingDataController {
 //
 //                }
 //            })
+    }
+
+    fun loadingDataPurchase(idCard: Long, callback: Callback) {
+        purchaseController.savePurchaseAll(idCard, callback)
     }
 }

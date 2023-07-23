@@ -1,10 +1,9 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
+import android.content.Context
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
@@ -33,17 +33,13 @@ import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.model.UserInstanceImpl
-import com.example.myshoppinglist.services.CreditCardService
-import com.example.myshoppinglist.services.repository.CreditCardRepository
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_secondary
-import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
 import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
-import kotlinx.coroutines.launch
 import java.lang.Math.abs
 
 @ExperimentalPagerApi
@@ -52,9 +48,7 @@ import java.lang.Math.abs
 fun HomeScreen(navController: NavController?) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val homeFieldViewModel = HomeFieldViewModel()
-    val purchaseViewModel = PurchaseViewModel(context)
-    val creditCardViewModel = CreditCardViewModel(CreditCardRepository(CreditCardService.getCreditCardService()), CreditCardViewModelDB(context, lifecycleOwner))
+    val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
     val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
     val visibleAnimation = remember { mutableStateOf(true) }
     val creditCardCollection = remember { mutableStateListOf<CreditCardDTODB>() }
@@ -72,22 +66,20 @@ fun HomeScreen(navController: NavController?) {
             nickName = it.nickName
         }
 
-        creditCardViewModel.getAllWithSum().observe(lifecycleOwner){ creditCollection ->
+        homeFieldViewModel.creditCardController.getAllWithSumDB().observe(lifecycleOwner){ creditCollection ->
             if (creditCollection.isNotEmpty()) {
-                purchaseViewModel.getPurchasesAndCategoryWeek()
-
                 creditCardCollection.removeAll(creditCardCollection)
                 creditCardCollection.add(CreditCardDTODB())
                 creditCardCollection.addAll(MountStructureCrediCard().mountSpedingDate(creditCollection))
             }
         }
-    }
 
-//    purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner.value) { purchases ->
-//        purchaseCollection.removeAll(purchaseCollection)
-//        purchaseCollection.addAll(purchases.reversed())
-//
-//    }
+        homeFieldViewModel.purchaseController.getPurchasesAndCategoryWeekDB().observe(lifecycleOwner) { purchases ->
+            purchaseCollection.removeAll(purchaseCollection)
+            purchaseCollection.addAll(purchases.reversed())
+
+        }
+    }
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -212,7 +204,11 @@ fun Carousel(
         })
 }
 
-class HomeFieldViewModel : BaseFieldViewModel() {
+class HomeFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
+
+    val purchaseController = PurchaseController.getData(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
+
     var isVisibleValue: MutableLiveData<Boolean> = MutableLiveData(true)
 
     fun onChangeVisibleValue() {

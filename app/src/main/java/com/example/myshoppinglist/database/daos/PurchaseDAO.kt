@@ -1,12 +1,7 @@
 package com.example.myshoppinglist.database.daos
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.RawQuery
-import androidx.room.Transaction
-import androidx.room.Update
+import androidx.lifecycle.LiveData
+import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
@@ -19,8 +14,11 @@ import java.util.*
 @Dao
 interface PurchaseDAO {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE )
     fun insetPurchase(purchase: List<Purchase>)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT )
+    fun insetPurchase(purchase: Purchase)
 
     @Update
     fun updatePurchase(purchase: Purchase)
@@ -37,14 +35,14 @@ interface PurchaseDAO {
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId ORDER BY date DESC")
-    fun getPurchaseAllByIdCard(emailUser: String, idCard: Long): List<Purchase>
+    fun getPurchaseAllByIdCard(emailUser: String, idCard: Long): LiveData<List<Purchase>>
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards, category WHERE category.myShoppingIdCategory = categoryOwnerId AND cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
-    fun getPurchaseByMonth(date: String, emailUser: String, idCard: Long): List<PurchaseAndCategory>
+    fun getPurchaseByMonth(date: String, emailUser: String, idCard: Long): LiveData<List<PurchaseAndCategory>>
 
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId GROUP BY date ORDER BY date DESC ")
-    fun getMonthByIdCard(emailUser: String, idCard: Long):List<String>
+    fun getMonthByIdCard(emailUser: String, idCard: Long): LiveData<List<String>>
 
     @Query("SELECT DISTINCT(SUBSTR(date, 1, LENGTH(date) - 3)) as date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId GROUP BY date ORDER BY date ASC")
     fun getMonthDistinctByIdCard(emailUser: String, idCard: Long):List<String>
@@ -60,7 +58,7 @@ interface PurchaseDAO {
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards, category WHERE categoryOwnerId = category.myShoppingIdCategory AND cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingId")
-    fun getPurchasesAndCategoryWeek(week: String, emailUser: String): List<PurchaseAndCategory>
+    fun getPurchasesAndCategoryWeek(week: String, emailUser: String): LiveData<List<PurchaseAndCategory>>
 
     @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingId")
     fun getPurchasesWeek(week: String, emailUser: String): List<Purchase>

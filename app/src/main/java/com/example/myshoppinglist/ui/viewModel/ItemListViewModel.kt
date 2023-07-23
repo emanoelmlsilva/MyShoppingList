@@ -18,7 +18,7 @@ class ItemListViewModel(
     private val itemListViewModelDB: com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
 ) : ViewModel() {
 
-    private val LOG = "ItemListViewModel"
+    private val TAG = "ItemListViewModel"
 
     fun deleteItemListDB(itemList: ItemList, callback: Callback){
         itemListViewModelDB.deleteItemList(itemList, callback)
@@ -62,7 +62,7 @@ class ItemListViewModel(
                                 val messageError =
                                     (result as ResultData.Error).exception.message
 
-                                Log.d(LOG, "error $messageError")
+                                Log.d(TAG, "error $messageError")
 
                                 callback.onFailed(messageError.toString())
                             }
@@ -72,7 +72,7 @@ class ItemListViewModel(
                     val messageError =
                         (result as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
 
                     callback.onFailed(messageError.toString())
                 }
@@ -107,7 +107,7 @@ class ItemListViewModel(
                                 val messageError =
                                     (result as ResultData.Error).exception.message
 
-                                Log.d(LOG, "error $messageError")
+                                Log.d(TAG, "error $messageError")
 
                                 callback.onFailed(messageError.toString())
                             }
@@ -117,7 +117,7 @@ class ItemListViewModel(
                     val messageError =
                         (result as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
 
                     callback.onFailed(messageError.toString())
                 }
@@ -137,7 +137,7 @@ class ItemListViewModel(
                 is ResultData.Success -> {
                     val itemListCollection = result.data
 
-                    Log.d(LOG, "itemListCollection $itemListCollection")
+                    Log.d(TAG, "itemListCollection $itemListCollection")
 
                     val itemListCollectionDB = itemListCollection.map { it.toItemListApi() }
 
@@ -152,7 +152,7 @@ class ItemListViewModel(
                                 val messageError =
                                     (result as ResultData.Error).exception.message
 
-                                Log.d(LOG, "error $messageError")
+                                Log.d(TAG, "error $messageError")
 
                                 callback.onFailed(messageError.toString())
                             }
@@ -161,7 +161,7 @@ class ItemListViewModel(
                 else -> {
                     val messageError = (result as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
 
                     callback.onFailed(messageError.toString())
                 }

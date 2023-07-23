@@ -23,6 +23,10 @@ class CreditCardViewModel(private val creditCardRepository: CreditCardRepository
         return creditCardViewModel.getAllWithSum()
     }
 
+    fun getAll() : LiveData<List<CreditCard>>{
+        return creditCardViewModel.getAll()
+    }
+
     fun update(creditCardDTO: CreditCardDTO, callback: CallbackObject<CreditCardDTO>){
         viewModelScope.launch {
             val result = try {

@@ -14,35 +14,46 @@ class Purchase {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "myShoppingId")
     var myShoppingId: Long = 0
+
     @SerializedName("idMyShoppingApi")
     @ColumnInfo(name = "idMyShoppingApi")
     var idMyShoppingApi: Long = 0
+
     @ColumnInfo(name = "name")
     var name: String = ""
+
     @ColumnInfo(name = "locale")
     var locale: String = ""
+
     @ColumnInfo(name = "purchaseCardId")
-    var purchaseCardId:Long = 0
+    var purchaseCardId: Long = 0
+
     @ColumnInfo(name = "quantiOrKilo")
     var quantiOrKilo: String = ""
+
     @ColumnInfo(name = "typeProduct")
     var typeProduct: TypeProduct = TypeProduct.QUANTITY
+
     @ColumnInfo(name = "date")
     var date: String = "24-01-2022"
+
     @ColumnInfo(name = "price")
     var price: Double = 0.0
+
     @ColumnInfo(name = "categoryOwnerId")
     var categoryOwnerId: Long = 0
+
     @ColumnInfo(name = "purchaseUserId")
-    var purchaseUserId:String = ""
+    var purchaseUserId: String = ""
+
     @ColumnInfo(name = "discount")
     var discount: Double = 0.0
 
-    constructor(name: String){
+    constructor(name: String) {
         this.name = name
     }
 
-    constructor(): super(){
+    constructor() : super() {
     }
 
     constructor(
@@ -78,7 +89,17 @@ class Purchase {
         categoryOwnerId: Long,
         purchaseUserId: String,
         discount: Double
-    ): this(name, locale, purchaseCardId, quantiOrKilo, typeProduct, date, price, categoryOwnerId, purchaseUserId) {
+    ) : this(
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId
+    ) {
         this.discount = discount
     }
 
@@ -106,6 +127,35 @@ class Purchase {
         this.categoryOwnerId = categoryOwnerId
         this.purchaseUserId = purchaseUserId
         this.discount = discount
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        myShoppingId: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double
+    ) : this(
+        idMyShoppingApi,
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId,
+        discount
+    ) {
+        this.myShoppingId = myShoppingId
     }
 
     override fun toString(): String {

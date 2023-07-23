@@ -38,12 +38,15 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.viewModel.PurchaseViewModel
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
@@ -54,17 +57,18 @@ import com.example.myshoppinglist.utils.MaskUtils
 @Composable
 fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val context = LocalContext.current
-    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner.value)
-    val purchaseViewModel = PurchaseViewModel(context)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val purchaseController: PurchaseController = PurchaseController.getData(context, lifecycleOwner)
+    val creditCardController: CreditCardController =
+        CreditCardController.getData(context, lifecycleOwner)
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseAndCategoryInfo>() }
-    val price = remember { mutableStateOf(0.0) }
+    var price by remember { mutableStateOf(0.0) }
     val monthsCollection = remember { mutableStateListOf<String>() }
-    val monthCurrent = remember { mutableStateOf("") }
+    var monthCurrent by remember { mutableStateOf("") }
     val creditCardCollection = remember { mutableListOf<CreditCard>() }
-    val currentCreditCard = remember { mutableStateOf<CreditCard?>(null) }
-    val visibleAnimation = remember { mutableStateOf(true) }
+    var currentCreditCard by remember { mutableStateOf<CreditCard?>(null) }
+    var visibleAnimation by remember { mutableStateOf(true) }
     var idPurchaseEdit by remember { mutableStateOf(0L) }
     var visibilityDialog by remember { mutableStateOf(false) }
     var reload by remember { mutableStateOf(false) }
@@ -73,41 +77,79 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     fun reset() {
         idPurchaseEdit = 0L
-        monthCurrent.value = ""
-        price.value = 0.0
+        monthCurrent = ""
+        price = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
     }
 
-    LaunchedEffect(key1 = idCard, key2 = reload) {
-        idPurchaseEdit = 0L
-        creditCardViewModel.getAll()
-//        creditCardViewModel.findCreditCardById(idCard)
-        purchaseViewModel.getPurchaseAll()
-    }
-
-
     fun getInforPurchaseByMonth(month: String) {
         val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(month)
+        val idCard = currentCreditCard!!.myShoppingId
 
-        purchaseViewModel.getPurchaseByMonth(currentCreditCard.value!!.myShoppingId, "$monthAndYearNumber-")
+        purchaseController.getPurchaseByMonthDB(idCard, "$monthAndYearNumber-")
+            .observe(lifecycleOwner) { purchaseAndCategoryCollection ->
 
-        purchaseViewModel.sumPriceByMonth(currentCreditCard.value!!.myShoppingId, "$monthAndYearNumber-")
+                val purchaseInfoFormattedCollection: MutableList<PurchaseAndCategoryInfo> =
+                    purchaseAndCategoryCollection.groupBy { it.purchase.date }.map { group ->
+                        PurchaseAndCategoryInfo(
+                            group.key,
+                            group.value.reversed().toMutableList()
+                        )
+                    } as MutableList<PurchaseAndCategoryInfo>
+
+                purchaseInfoCollection.removeAll(purchaseInfoCollection)
+
+                spendingTextFieldViewModel.onChangePurchaseInfoCollection(
+                    purchaseInfoFormattedCollection
+                )
+
+            }
+
+        price = purchaseController.sumPriceByMonthDB(idCard, "$monthAndYearNumber-")
     }
 
-//    creditCardViewModel.searchCollectionResult.observeForever {
-//        creditCardCollection.removeAll(creditCardCollection)
-//        creditCardCollection.addAll(it)
-//    }
-//
-//    creditCardViewModel.searchResult.observeForever {
-//        currentCreditCard.value = it
-//
-//        purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.id)
-//    }
 
-    purchaseViewModel.searchSumPriceResult.observeForever {
-        price.value = it
+    fun mounthIdCard(idCard: Long){
+        purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { months ->
+            monthsCollection.removeAll(monthsCollection)
+
+            val convertedMonth = months.groupBy {
+                val separaterDate = it.split("-")
+                "${separaterDate.get(0)}-${separaterDate.get(1)}"
+            }.map { group -> FormatUtils().getMonth("${group.key}-01") }
+
+            monthsCollection.addAll(convertedMonth)
+
+            if (convertedMonth.isNotEmpty()) {
+                val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
+
+                monthCurrent = monthAndYearNumber
+
+                getInforPurchaseByMonth(convertedMonth[0])
+            }
+
+        }
+
+    }
+
+    LaunchedEffect(key1 = idCard, key2 = reload) {
+
+        idPurchaseEdit = 0L
+
+        creditCardController.findAllDB().observe(lifecycleOwner) {
+            creditCardCollection.removeAll(it)
+            creditCardCollection.addAll(it)
+        }
+
+        creditCardController.findCreditCardByIdDB(idCard).observe(lifecycleOwner) {
+            currentCreditCard = it
+
+            mounthIdCard(idCard)
+
+        }
+
+
     }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
@@ -116,45 +158,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         }
     }
 
-    purchaseViewModel.searchResultMonths.observeForever { months ->
-
-        monthsCollection.removeAll(monthsCollection)
-
-        val convertedMonth = months.groupBy {
-            val separaterDate = it.split("-")
-            "${separaterDate.get(0)}-${separaterDate.get(1)}"
-        }.map { group -> FormatUtils().getMonth("${group.key}-01") }
-
-        monthsCollection.addAll(convertedMonth)
-
-        if (convertedMonth.isNotEmpty()) {
-            val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
-
-            monthCurrent.value = monthAndYearNumber
-
-            getInforPurchaseByMonth(convertedMonth[0])
-        }
-
-    }
-
     spendingTextFieldViewModel.purchaseInfoCollection.observeForever {
         purchaseInfoCollection.addAll(it)
-    }
-
-    purchaseViewModel.searchPurchaseAndCategory.observeForever { purchaseAndCategoryCollection ->
-
-        val purchaseInfoFormattedCollection: MutableList<PurchaseAndCategoryInfo> =
-            purchaseAndCategoryCollection.groupBy { it.purchase.date }.map { group ->
-                PurchaseAndCategoryInfo(
-                    group.key,
-                    group.value.reversed().toMutableList()
-                )
-            } as MutableList<PurchaseAndCategoryInfo>
-
-        purchaseInfoCollection.removeAll(purchaseInfoCollection)
-
-        spendingTextFieldViewModel.onChangePurchaseInfoCollection(purchaseInfoFormattedCollection)
-
     }
 
     TopAppBarScreen(
@@ -169,7 +174,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                     {
                         visibilityBackHandler = false
 
-                        purchaseViewModel.deletePurchase(purchaseCurrent)
+//                        purchaseViewModel.deletePurchase(purchaseCurrent)
 
                         reset()
 
@@ -185,15 +190,15 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 BoxSpendingFromMonth(
                     spendingTextFieldViewModel,
                     monthsCollection,
-                    price.value,
-                    currentCreditCard.value,
+                    price,
+                    currentCreditCard,
                     creditCardCollection,
                     object :
                         CallbackCreditCard {
                         override fun onChangeValueCreditCard(creditCard: CreditCard) {
-                            currentCreditCard.value = creditCard
+                            currentCreditCard = creditCard
 
-                            purchaseViewModel.getMonthByIdCard(currentCreditCard.value!!.myShoppingId)
+                            mounthIdCard(currentCreditCard!!.myShoppingId)
 
                             reset()
 
@@ -206,7 +211,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 )
 
                 BaseAnimationComponent(
-                    visibleAnimation = visibleAnimation.value,
+                    visibleAnimation = visibleAnimation,
                     contentBase = {
                         Column {
                             Row {
@@ -215,7 +220,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard.value?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}") }) {
+                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}") }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                             contentDescription = null,
@@ -242,7 +247,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard.value?.myShoppingId ?: idCard}") }) {
+                                        onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}") }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.list_view),
                                             contentDescription = null,
@@ -285,7 +290,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         visibilityDialog = false
                                         if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
                                             purchase.purchaseCardId = idCardCurrent
-                                            purchaseViewModel.updatePurchase(purchase)
+//                                            purchaseViewModel.updatePurchase(purchase)
                                             reset()
                                             reload = true
                                         }
@@ -305,8 +310,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                         modifier = Modifier.fillMaxWidth(),
                         callback = object : VisibleCallback() {
                             override fun onChangeVisible(visible: Boolean) {
-                                if (visibleAnimation.value != visible) {
-                                    visibleAnimation.value = visible
+                                if (visibleAnimation != visible) {
+                                    visibleAnimation = visible
                                 }
                             }
                         }
@@ -539,34 +544,34 @@ fun BoxPurchaseSpending(
                                 .fillMaxWidth(.85f)
                                 .padding(top = 8.dp)
                         ) {
-                                Text(
-                                    fontFamily = LatoRegular,
-                                    text = "desconto", modifier = Modifier,
-                                    textAlign = TextAlign.Start,
-                                    fontSize = 12.sp,
-                                )
-                                Text(
-                                    fontFamily = LatoRegular,
-                                    fontSize = 12.sp,
-                                    text = "R$ -${
-                                        MaskUtils.maskValue(
-                                            MaskUtils.convertValueDoubleToString(
-                                                purchase.discount
-                                            )
+                            Text(
+                                fontFamily = LatoRegular,
+                                text = "desconto", modifier = Modifier,
+                                textAlign = TextAlign.Start,
+                                fontSize = 12.sp,
+                            )
+                            Text(
+                                fontFamily = LatoRegular,
+                                fontSize = 12.sp,
+                                text = "R$ -${
+                                    MaskUtils.maskValue(
+                                        MaskUtils.convertValueDoubleToString(
+                                            purchase.discount
                                         )
-                                    }"
-                                )
-                                Text(
-                                    fontFamily = LatoBlack,
-                                    color = text_primary_light,
-                                    text = "R$ ${
-                                        MaskUtils.maskValue(
-                                            MaskUtils.convertValueDoubleToString(
-                                                purchase.price - purchase.discount
-                                            )
+                                    )
+                                }"
+                            )
+                            Text(
+                                fontFamily = LatoBlack,
+                                color = text_primary_light,
+                                text = "R$ ${
+                                    MaskUtils.maskValue(
+                                        MaskUtils.convertValueDoubleToString(
+                                            purchase.price - purchase.discount
                                         )
-                                    }",
-                                )
+                                    )
+                                }",
+                            )
 
                         }
                     }

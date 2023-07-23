@@ -2,7 +2,6 @@ package com.example.myshoppinglist.services.repository
 
 import ResultData
 import android.util.Log
-import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.services.ItemListService
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import kotlinx.coroutines.Dispatchers

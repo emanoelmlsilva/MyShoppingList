@@ -43,7 +43,7 @@ import com.example.myshoppinglist.database.entities.relations.ItemListAndCategor
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
@@ -470,7 +470,7 @@ fun DialogSaveProduct(
     }
     var visibilityDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val purchaseViewModel = PurchaseViewModel(context)
+    val purchaseViewModel = PurchaseViewModelDB(context)
     val itemListViewModelDB = ItemListViewModelDB(context, lifecycleOwner)
     val email = UserLoggedShared.getEmailUserCurrent()
 
@@ -483,7 +483,7 @@ fun DialogSaveProduct(
     }
 
     LaunchedEffect(key1 = idCard) {
-        registerTextFieldViewModel.onChangeIdCard(idCard)
+//        registerTextFieldViewModel.onChangeCreditCard(idCard)
     }
 
 //    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
@@ -527,7 +527,7 @@ fun DialogSaveProduct(
                         purchase
                     }
 
-            purchaseViewModel.insertPurchase(purchaseCollection)
+//            purchaseViewModel.insertPurchase(purchaseCollection)
 
             val itemRemovedCollection =
                 marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListAndCategory.itemList.myShoppingId) != -1 && it.itemListAndCategory.itemList.isRemoved }

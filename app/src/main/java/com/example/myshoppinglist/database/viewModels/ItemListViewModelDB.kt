@@ -18,12 +18,10 @@ class ItemListViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : Ba
     private val TAG = "ItemListViewModel"
     private val repository: ItemListRepository
     private var mLifecycleOwner: LifecycleOwner
-    private val email = UserLoggedShared.getEmailUserCurrent()
 
     init {
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val itemListDAO = myShopListDataBase.itemListDAO()
-        val email = UserLoggedShared.getEmailUserCurrent()
         repository = ItemListRepository(itemListDAO)
         mLifecycleOwner = lifecycleOwner
     }
