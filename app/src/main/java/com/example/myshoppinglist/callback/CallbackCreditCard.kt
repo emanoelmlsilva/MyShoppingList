@@ -16,4 +16,6 @@ interface CallbackCreditCard : Callback{
     fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter){
 
     }
+
+    fun onChangeDataMonth(month: String){}
 }

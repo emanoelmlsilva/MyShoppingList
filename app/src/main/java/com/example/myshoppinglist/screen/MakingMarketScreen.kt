@@ -1,12 +1,16 @@
 package com.example.myshoppinglist.screen
 
+import DialogRecoveryItemList
+import DialogRegisterItemList
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -33,37 +37,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.dtos.ItemListAndCategoryDTO
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.services.controller.ItemListController
+import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.ItemListDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-
-class MarketItem(
-    var price: Float,
-    var discount: Float,
-    var amount: String,
-    var type: TypeProduct,
-    var isCheckDiscount: Boolean,
-    var itemListAndCategory: ItemListAndCategory
-) {
-    override fun toString(): String {
-        return "MarketItem(price=$price, amount='$amount', type=$type, itemListAndCategory=$itemListAndCategory)"
-    }
-}
 
 @Composable
 fun MakingMarketScreen(
@@ -77,7 +71,8 @@ fun MakingMarketScreen(
     var checkAll by remember { mutableStateOf(false) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val marketItemCollection = remember { mutableStateListOf<MarketItem>() }
-    val itemListViewModel = ItemListViewModelDB(context, lifecycleOwner)
+    val itemListController = ItemListController.getData(context, lifecycleOwner)
+
     var visibility by remember {
         mutableStateOf(false)
     }
@@ -99,115 +94,82 @@ fun MakingMarketScreen(
     var enabledDialogList by remember {
         mutableStateOf(false)
     }
+    var visibilityActions by remember {
+        mutableStateOf(true)
+    }
 
     BackHandler {
         visibilityBackHandler = true
     }
 
+    LaunchedEffect(key1 = !enabledDialog) {
+
+//        itemListController.getAllWithCategoryDB(idCard)
+//            .observe(lifecycleOwner) { itemListAndCategoryCollection ->
+//                val itemListAndCategory = itemListAndCategoryCollection.last()
+//
+//                val notExist =
+//                    marketItemCollection.find { it.itemListDTO.myShoppingId != itemListAndCategory.itemList.myShoppingId } == null
+//
+//                if (notExist) {
+//                    val marketItem =
+//                        MarketItem(
+//                            0F,
+//                            0F,
+//                            "0",
+//                            TypeProduct.QUANTITY,
+//                            false,
+//                            ItemListDTO(itemListAndCategory.itemList, itemListAndCategory.category)
+//                        )
+//                    marketItemCollection.add(marketItem)
+//                }
+//            }
+
+    }
+
     LaunchedEffect(key1 = idCard, key2 = itemListJson) {
-        itemListViewModel.getAllDB(idCard).observe(lifecycleOwner){ itemListAndCategoryCollection ->
-            if (updateItemList) {
-                val itemListAndCategory = itemListAndCategoryCollection.last()
+//        if (updateItemList) {
+//            itemListController.getAllWithCategoryDB(idCard)
+//                .observe(lifecycleOwner) { itemListAndCategoryCollection ->
+//                    val itemListAndCategory = itemListAndCategoryCollection.last()
+//
+//                    val marketItem =
+//                        MarketItem(
+//                            0F,
+//                            0F,
+//                            "0",
+//                            TypeProduct.QUANTITY,
+//                            false,
+//                            ItemListDTO(itemListAndCategory.itemList, itemListAndCategory.category)
+//                        )
+//                    marketItemCollection.add(marketItem)
+//
+//                    updateItemList = false
+//
+//                }
+//        }
 
+        val itemListCollection =
+            ConversionUtils<ItemListDTO>(ItemListDTO::class.java).fromJsonList(itemListJson)
+
+        itemListCollection?.forEach { itemList ->
+            val notExist =
+                marketItemCollection.find { it.itemListDTO.myShoppingId == itemList.myShoppingId } == null
+
+            if (notExist) {
                 val marketItem =
-                    MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, itemListAndCategory)
+                    MarketItem(
+                        0F,
+                        0F,
+                        "0",
+                        TypeProduct.QUANTITY,
+                        false,
+                        itemList
+                    )
                 marketItemCollection.add(marketItem)
-
-                updateItemList = false
             }
+
         }
-
-        ConversionUtils<ItemListAndCategoryDTO>().fromJsonList(itemListJson)!!.forEach { itemList ->
-            val marketItem =
-                MarketItem(
-                    0F,
-                    0F,
-                    "0",
-                    TypeProduct.QUANTITY,
-                    false,
-                    itemList.toItemListAndCategory()
-                )
-            marketItemCollection.add(marketItem)
-        }
-    }
-
-    fun findMarketItem(idItemAndCategory: Long): MarketItem? {
-        return marketItemCollection.find { it.itemListAndCategory.itemList.myShoppingId == idItemAndCategory }
-    }
-
-    fun updatePrice(idItemAndCategory: Long, price: Float) {
-        val marketItem = findMarketItem(idItemAndCategory)
-        val index = marketItemCollection.indexOf(marketItem)
-        val auxMarketItemCollection = ArrayList(marketItemCollection)
-
-        if (marketItem != null) {
-            marketItem.price = price
-            auxMarketItemCollection[index] = marketItem
-
-            marketItemCollection.removeAll(marketItemCollection)
-            marketItemCollection.addAll(auxMarketItemCollection)
-        }
-    }
-
-    fun updateTypeProduct(idItemAndCategory: Long, typeProduct: TypeProduct) {
-        val marketItem = findMarketItem(idItemAndCategory)
-        val index = marketItemCollection.indexOf(marketItem)
-        val auxMarketItemCollection = ArrayList(marketItemCollection)
-
-        if (marketItem != null) {
-            marketItem.type = typeProduct
-            auxMarketItemCollection[index] = marketItem
-
-            marketItemCollection.removeAll(marketItemCollection)
-            marketItemCollection.addAll(auxMarketItemCollection)
-        }
-    }
-
-    fun updateAmount(idItemAndCategory: Long, amount: String) {
-        val marketItem = findMarketItem(idItemAndCategory)
-        val index = marketItemCollection.indexOf(marketItem)
-        val auxMarketItemCollection = ArrayList(marketItemCollection)
-
-        if (marketItem != null) {
-            marketItem.amount = amount
-            auxMarketItemCollection[index] = marketItem
-
-            marketItemCollection.removeAll(marketItemCollection)
-            marketItemCollection.addAll(auxMarketItemCollection)
-        }
-
-    }
-
-    fun updateDiscount(idItemAndCategory: Long, discount: Float) {
-        val marketItem = findMarketItem(idItemAndCategory)
-        val index = marketItemCollection.indexOf(marketItem)
-        val auxMarketItemCollection = ArrayList(marketItemCollection)
-
-        if (marketItem != null) {
-            marketItem.discount = discount
-            auxMarketItemCollection[index] = marketItem
-
-            marketItemCollection.removeAll(marketItemCollection)
-            marketItemCollection.addAll(auxMarketItemCollection)
-        }
-    }
-
-    fun updateCheckDiscount(idItemAndCategory: Long, checkDiscount: Boolean) {
-        val marketItem = findMarketItem(idItemAndCategory)
-        val index = marketItemCollection.indexOf(marketItem)
-        val auxMarketItemCollection = ArrayList(marketItemCollection)
-
-        if (marketItem != null) {
-            marketItem.isCheckDiscount = checkDiscount
-            auxMarketItemCollection[index] = marketItem
-
-            marketItemCollection.removeAll(marketItemCollection)
-            marketItemCollection.addAll(auxMarketItemCollection)
-        }
-    }
-
-    fun checkFieldProduct(marketItem: MarketItem): Boolean {
-        return marketItem.amount.isNotBlank() && marketItem.amount != "0" && marketItem.price > 0 && (!marketItem.isCheckDiscount || marketItem.discount > 0F)
     }
 
     TopAppBarScreen(
@@ -254,30 +216,32 @@ fun MakingMarketScreen(
         },
         paddingFloatingButton = 12.dp,
         floatingActionButton = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 52.dp), horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ButtonsFooterContent(
-                    modifierButton = Modifier.padding(start = 6.dp, end = 6.dp),
-                    iconAccept = Icons.Filled.Add,
-                    btnTextAccept = "NOVO ITEM",
-                    onClickAccept = {
-                        enabledDialog = true
-                    },
-                    callback = object : Callback {
-                        override fun onClick() {
-                            updateItemList = true
-                        }
-                    })
+            if (visibilityActions) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 52.dp), horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ButtonsFooterContent(
+                        modifierButton = Modifier.padding(start = 6.dp, end = 6.dp),
+                        iconAccept = Icons.Filled.Add,
+                        btnTextAccept = "NOVO ITEM",
+                        onClickAccept = {
+                            enabledDialog = true
+                        },
+                        callback = object : Callback {
+                            override fun onClick() {
+                                updateItemList = true
+                            }
+                        })
 
-                OutlinedButton(
-                    onClick = {
-                        enabledDialogList = true
-                    }, border = BorderStroke(1.dp, primary)){
-                    Text("ADICIONAR", color = primary)
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    OutlinedButton(
+                        onClick = {
+                            enabledDialogList = true
+                        }, border = BorderStroke(1.dp, primary)
+                    ) {
+                        Text("ADICIONAR", color = primary)
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
 
                         Icon(
                             ImageVector.vectorResource(id = R.drawable.ic_baseline_playlist_add_24),
@@ -285,169 +249,207 @@ fun MakingMarketScreen(
                             modifier = Modifier.size(24.dp)
                         )
 
+                    }
                 }
             }
+
         },
         content = {
-//            Column(modifier = Modifier.fillMaxWidth()) {
-//
-//                DialogRecoveryItemList(context, lifecycleOwner, idCard, enabledDialogList, marketItemCollection.map { it.itemListAndCategory } ,object: CallbackItemList{
-//                    override fun onInsert(itemListDTO: ItemListDTO) {
-//
-//                    }
-//
-//                    override fun onChangeValue(newValue: Boolean) {
-//                        enabledDialogList = newValue
-//                    }
-//
-//                    override fun onUpdateListAndCategory(list: List<ItemListAndCategory>) {
-//                        list.forEach {
-//                            val marketItem =
-//                                MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, it)
-//                            marketItemCollection.add(marketItem)
-//
-//                        }
-//                    }
-//
-//                    override fun onUpdate(itemList: ItemListDTO) {
-//
-//                    }
-//                })
-//
-//                DialogShowPurchase(context, visibilityShowDialog, MaskUtils.maskValue(
-//                    MaskUtils.convertValueDoubleToString(
-//                        valueTotal.toDouble()
-//                    )
-//                ), marketItemCollection, object : Callback {
-//                    override fun onSuccess() {
-//                        visibility = true
-//                    }
-//
-//                    override fun onCancel() {
-//                        visibilityShowDialog = false
-//                    }
-//                })
-//
-//                DialogBackCustom(visibilityBackHandler, {
-//                    visibilityBackHandler = false
-//                    navController.popBackStack()
-//                }, {
-//                    visibilityBackHandler = false
-//                }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
-//
-//                DialogSaveProduct(
-//                    visibility,
-//                    context,
-//                    lifecycleOwner,
-//                    navController,
-//                    idCard,
-//                    marketItemCollection,
-//                    itemCheckCollection,
-//                    object : Callback {
-//                        override fun onChangeValue(newValue: Boolean) {
-//                            visibility = newValue
-//                        }
-//                    })
-//
-//                DialogRegisterItemList(
-//                    context,
-//                    lifecycleOwner,
-//                    enabledDialog,
-//                    null,
-//                    object : CallbackItemList {
-//                        override fun onInsert(itemListDTO: ItemListDTO) {
-////                            itemListViewModel.insertItemList(itemListDTO.toItemList())
-//                            itemListViewModel.getAll(idCard)
-//                            enabledDialog = false
-//                        }
-//
-//                        override fun onClick() {
-//                            enabledDialog = false
-//                        }
-//                    })
-//
-//                BaseLazyColumnScroll(modifier = Modifier
-//                    .fillMaxWidth(), callback = object : VisibleCallback() {
-//                    override fun onChangeVisible(visible: Boolean) {
-//                        visibleAnimation = visible
-//                    }
-//                }, content = {
-//                    itemsIndexed(marketItemCollection) { index, marketItem ->
-//                        val itemListAndCategory = marketItem.itemListAndCategory
-//                        val itemListCurrent = marketItem.itemListAndCategory.itemList
-//                        val category = marketItem.itemListAndCategory.category
-//                        val idItemAndCategory = itemListAndCategory.itemList.id
-//
-//                        val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
-//                        SlidingItemListComponent(
-//                            context,
-//                            itemListAndCategory,
-//                            isCheck,
-//                            true,
-//                            isRemoved = itemListCurrent.isRemoved,
-//                            sizeCheckCollection = true,
-//                            idItem = itemListCurrent.id,
-//                            category = category,
-//                            product = itemListCurrent.item,
-//                            price = marketItem.price,
-//                            discount = marketItem.discount,
-//                            isCheckDiscount = marketItem.isCheckDiscount,
-//                            quantOrKilo = marketItem.amount,
-//                            type = marketItem.type,
-//                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
-//                            callback = object : CallbackItemList {
-//                                override fun onChangeValue(idCard: Long) {
-//                                    val isChecked = itemCheckCollection.indexOf(idCard) != -1
-//
-//                                    if (isChecked) {
-//                                        valueTotal -= (marketItem.price * if (marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
-//                                        itemCheckCollection.remove(idCard)
-//                                        checkAll = false
-//                                    } else if (checkFieldProduct(marketItem)) {
-//                                        valueTotal += (marketItem.price * if (marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
-//                                        itemCheckCollection.add(idCard)
-//                                        checkAll =
-//                                            itemCheckCollection.size == marketItemCollection.size
-//
-//                                    }
-//
-//                                }
-//                            },
-//                            callbackPrice = object : CustomTextFieldOnClick {
-//                                override fun onChangeValue(newValue: String) {
-//                                    updatePrice(
-//                                        idItemAndCategory,
-//                                        MaskUtils.convertValueStringToDouble(newValue).toFloat()
-//                                    )
-//
-//                                }
-//
-//                            }, callbackQuantOrKilo = object : CustomTextFieldOnClick {
-//                                override fun onChangeValue(newValue: String) {
-//                                    updateAmount(idItemAndCategory, newValue)
-//                                }
-//
-//                                override fun onChangeTypeProduct(newProduct: TypeProduct) {
-//                                    updateTypeProduct(idItemAndCategory, newProduct)
-//                                }
-//
-//                            },
-//                            callbackDiscount = object : CustomTextFieldOnClick {
-//                                override fun onChangeValue(newValue: String) {
-//                                    updateDiscount(
-//                                        idItemAndCategory,
-//                                        MaskUtils.convertValueStringToDouble(newValue).toFloat()
-//                                    )
-//                                }
-//
-//                                override fun onChangeValue(newValue: Boolean) {
-//                                    updateCheckDiscount(idItemAndCategory, newValue)
-//                                }
-//                            }
-//                        )
-//                    }
-//                })
-//            }
+            Column(modifier = Modifier.fillMaxWidth()) {
+
+                DialogRecoveryItemList(
+                    context,
+                    lifecycleOwner,
+                    idCard,
+                    enabledDialogList,
+                    marketItemCollection.map { it.itemListDTO },
+                    object :
+                        CallbackItemList {
+                        override fun onInsert(itemListDTO: ItemListDTO) {
+
+                        }
+
+                        override fun onChangeValue(newValue: Boolean) {
+                            enabledDialogList = newValue
+                        }
+
+                        override fun onUpdate(itemList: ItemListDTO) {
+                            val marketItem =
+                                MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, itemList)
+                            marketItemCollection.add(marketItem)
+                        }
+                    })
+
+                DialogShowPurchase(context, visibilityShowDialog, MaskUtils.maskValue(
+                    MaskUtils.convertValueDoubleToString(
+                        valueTotal.toDouble()
+                    )
+                ), marketItemCollection, object : Callback {
+                    override fun onSuccess() {
+                        visibility = true
+                    }
+
+                    override fun onCancel() {
+                        visibilityShowDialog = false
+                    }
+                })
+
+                DialogBackCustom(visibilityBackHandler, {
+                    visibilityBackHandler = false
+                    navController.popBackStack()
+                }, {
+                    visibilityBackHandler = false
+                }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
+
+                DialogSaveProduct(
+                    visibility,
+                    context,
+                    lifecycleOwner,
+                    navController,
+                    idCard,
+                    marketItemCollection,
+                    itemCheckCollection,
+                    object : Callback {
+                        override fun onChangeValue(newValue: Boolean) {
+                            visibility = newValue
+                        }
+                    })
+
+                DialogRegisterItemList(
+                    context,
+                    lifecycleOwner,
+                    enabledDialog,
+                    null,
+                    object : CallbackItemList {
+                        override fun onUpdate(itemList: ItemListDTO) {
+
+                        }
+
+                        override fun onInsert(itemListDTO: ItemListDTO) {
+                            itemListController.saveItemList(itemListDTO, object : Callback {
+                                override fun onSuccess() {
+                                    super.onSuccess()
+                                }
+
+                                override fun onFailed(messageError: String) {
+                                    super.onFailed(messageError)
+                                }
+                            })
+                            enabledDialog = false
+                        }
+
+                        override fun onClick() {
+                            enabledDialog = false
+                        }
+                    })
+
+                BaseLazyColumnScroll(
+                    modifier = Modifier
+                        .fillMaxWidth(), callback = object : VisibleCallback {
+                        override fun onChangeVisible(visible: Boolean) {
+                            visibleAnimation = visible
+                        }
+
+                    }, content = {
+                        itemsIndexed(marketItemCollection) { index, marketItem ->
+                            val itemListDTO = marketItem.itemListDTO
+                            val itemListCurrent = marketItem.itemListDTO
+                            val category = marketItem.itemListDTO.categoryDTO
+                            val idItemAndCategory = itemListDTO.myShoppingId
+
+                            val isCheck =
+                                itemCheckCollection.indexOf(itemListCurrent.myShoppingId) != -1
+                            Column(modifier = Modifier.padding(bottom = if (index == (marketItemCollection.size - 1)) 110.dp else 0.dp)) {
+
+                                SlidingItemListComponent(
+                                    context,
+                                    itemListDTO,
+                                    isCheck,
+                                    true,
+                                    isRemoved = itemListCurrent.isRemoved,
+                                    sizeCheckCollection = true,
+                                    idItem = itemListCurrent.myShoppingId,
+                                    category = category.toCategoryApi(),
+                                    product = itemListCurrent.item,
+                                    price = marketItem.price,
+                                    discount = marketItem.discount,
+                                    isCheckDiscount = marketItem.isCheckDiscount,
+                                    type = marketItem.type,
+                                    amountOrKilo = marketItem.amount,
+                                    callback = object : CallbackItemList {
+                                        override fun onUpdate(itemList: ItemListDTO) {
+
+                                        }
+
+                                        override fun onChangeValue(idCard: Long) {
+                                            val isChecked =
+                                                itemCheckCollection.indexOf(idCard) != -1
+
+                                            if (isChecked) {
+                                                valueTotal -= (marketItem.price * if (marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
+                                                itemCheckCollection.remove(idCard)
+                                                checkAll = false
+                                            } else if (checkFieldProduct(marketItem)) {
+                                                valueTotal += (marketItem.price * if (marketItem.type == TypeProduct.KILO) 1 else marketItem.amount.toInt())
+                                                itemCheckCollection.add(idCard)
+                                                checkAll =
+                                                    itemCheckCollection.size == marketItemCollection.size
+
+                                            }
+                                        }
+                                    },
+                                    callbackPrice = object : CustomTextFieldOnClick {
+                                        override fun onChangeValue(newValue: String) {
+                                            updatePrice(
+                                                marketItemCollection,
+                                                idItemAndCategory,
+                                                MaskUtils.convertValueStringToDouble(newValue)
+                                                    .toFloat()
+                                            )
+
+                                        }
+
+                                    }, callbackQuantOrKilo = object : CustomTextFieldOnClick {
+                                        override fun onChangeValue(newValue: String) {
+                                            updateAmount(
+                                                marketItemCollection,
+                                                idItemAndCategory,
+                                                newValue
+                                            )
+                                        }
+
+                                        override fun onChangeTypeProduct(newProduct: TypeProduct) {
+                                            updateTypeProduct(
+                                                marketItemCollection,
+                                                idItemAndCategory,
+                                                newProduct
+                                            )
+                                        }
+
+                                    },
+                                    callbackDiscount = object : CustomTextFieldOnClick {
+                                        override fun onChangeValue(newValue: String) {
+                                            updateDiscount(
+                                                marketItemCollection,
+                                                idItemAndCategory,
+                                                MaskUtils.convertValueStringToDouble(newValue)
+                                                    .toFloat()
+                                            )
+                                        }
+
+                                        override fun onChangeValue(newValue: Boolean) {
+                                            updateCheckDiscount(
+                                                marketItemCollection,
+                                                idItemAndCategory,
+                                                newValue
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    })
+            }
         })
 }
 
@@ -473,6 +475,7 @@ fun DialogSaveProduct(
     val purchaseViewModel = PurchaseViewModelDB(context)
     val itemListViewModelDB = ItemListViewModelDB(context, lifecycleOwner)
     val email = UserLoggedShared.getEmailUserCurrent()
+    val purchaseController = PurchaseController.getData(context, lifecycleOwner)
 
     LaunchedEffect(Unit) {
         creditCardViewModel.getAll()
@@ -501,46 +504,84 @@ fun DialogSaveProduct(
         return false
     }
 
-    suspend fun savePurchases() {
+    fun savePurchases(callback: Callback) {
+        val purchases =
+            marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListDTO.myShoppingId) != -1 }
+                .map {
+                    val itemList = it.itemListDTO
+                    val category = it.itemListDTO.categoryDTO
 
-        val purchaserSaveCoroutine = coroutineScope.async {
-            val purchaseCollection =
-                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListAndCategory.itemList.myShoppingId) != -1 }
-                    .map {
-                        val itemList = it.itemListAndCategory.itemList
-                        val category = it.itemListAndCategory.category
+                    val purchase = Purchase(
+                        itemList.item,
+                        registerTextFieldViewModel.locale.value!!,
+                        itemList.creditCardDTO.id,
+                        it.amount,
+                        it.type,
+                        registerTextFieldViewModel.dateCurrent.value!!,
+                        MaskUtils.convertValueStringToDouble(
+                            it.price.toString()
+                        ),
+                        category.myShoppingId,
+                        email,
+                        MaskUtils.convertValueStringToDouble(it.discount.toString())
+                    )
+                    Log.d("TESTANDO", "PURCHASE ${purchase.toString()}, category ${category.toCategoryApi().toString()}, creditCardDTO ${itemList.creditCardDTO.toCreditCardIdApi().toString()}")
+                    PurchaseDTO(
+                        purchase,
+                        category.toCategory(),
+                        itemList.creditCardDTO.toCreditCard()
+                    )
+                }
 
-                        val purchase = Purchase(
-                            itemList.item,
-                            registerTextFieldViewModel.locale.value!!,
-                            itemList.creditCardOwnerIdItem,
-                            it.amount,
-                            it.type,
-                            registerTextFieldViewModel.dateCurrent.value!!,
-                            MaskUtils.convertValueStringToDouble(
-                                it.price.toString()
-                            ),
-                            category.myShoppingId,
-                            email,
-                            MaskUtils.convertValueStringToDouble(it.discount.toString())
-                        )
-                        purchase
-                    }
+//        val purchases = mutableListOf<PurchaseDTO>()
+//
+//        purchaseInfoCollection.forEach { purchaseInfo -> purchases.addAll(purchaseInfo.purchaseCollection.map { PurchaseDTO(it.purchase, it.category,
+//            registerTextFieldViewModel.creditCard.value!!
+//        ) }) }
 
-//            purchaseViewModel.insertPurchase(purchaseCollection)
-
-            val itemRemovedCollection =
-                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListAndCategory.itemList.myShoppingId) != -1 && it.itemListAndCategory.itemList.isRemoved }
-                    .map { it.itemListAndCategory.itemList }
-
-            itemRemovedCollection.forEach { itemListViewModelDB.deleteItemList(it) }
-        }
-
-        purchaserSaveCoroutine.await()
-
-        visibilityDialog = false
-        navController.popBackStack()
+        purchaseController.savePurchases(purchases, callback)
     }
+
+//    suspend fun savePurchases() {
+//
+//        val purchaserSaveCoroutine = coroutineScope.async {
+//            val purchaseCollection =
+//                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListDTO.myShoppingId) != -1 }
+//                    .map {
+//                        val itemList = it.itemListDTO
+//                        val category = it.itemListDTO
+//
+//                        val purchase = Purchase(
+//                            itemList.item,
+//                            registerTextFieldViewModel.locale.value!!,
+//                            itemList.creditCardDTO.id,
+//                            it.amount,
+//                            it.type,
+//                            registerTextFieldViewModel.dateCurrent.value!!,
+//                            MaskUtils.convertValueStringToDouble(
+//                                it.price.toString()
+//                            ),
+//                            category.myShoppingId,
+//                            email,
+//                            MaskUtils.convertValueStringToDouble(it.discount.toString())
+//                        )
+//                        purchase
+//                    }
+//
+////            purchaseViewModel.insertPurchase(purchaseCollection)
+//
+//            val itemRemovedCollection =
+//                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListDTO.myShoppingId) != -1 && it.itemListDTO.isRemoved }
+//                    .map { it.itemListDTO }
+//
+//            itemRemovedCollection.forEach { itemListViewModelDB.deleteItemList(it.toItemList()) }
+//        }
+//
+//        purchaserSaveCoroutine.await()
+//
+//        visibilityDialog = false
+//        navController.popBackStack()
+//    }
 
     DialogCustom(visibilityDialog) {
         Column(
@@ -672,7 +713,18 @@ fun DialogSaveProduct(
                     onClickAccept = {
                         if (checkFields()) {
                             coroutineScope.launch {
-                                savePurchases()
+
+                                val callback = object : Callback {
+                                    override fun onSuccess() {
+                                        visibilityDialog = false
+                                        navController!!.popBackStack()
+                                    }
+
+                                    override fun onFailed(messageError: String) {
+                                        super.onFailed(messageError)
+                                    }
+                                }
+                                savePurchases(callback)
                             }
                         }
                     })
@@ -742,14 +794,15 @@ fun DialogShowPurchase(
                                 .fillMaxWidth()
                                 .fillMaxHeight(.9f)
                                 .background(background_card),
-                            callback = object : VisibleCallback() {
+                            callback = object : VisibleCallback {
                                 override fun onChangeVisible(visible: Boolean) {
                                 }
+
                             },
                             content = {
                                 items(valuesMarketCollection) { marketItem ->
-                                    val category = marketItem.itemListAndCategory.category
-                                    val itemList = marketItem.itemListAndCategory.itemList
+                                    val category = marketItem.itemListDTO.categoryDTO
+                                    val itemList = marketItem.itemListDTO
 
                                     Column() {
                                         Row(
@@ -916,4 +969,121 @@ fun DialogShowPurchase(
                 }
             })
     }
+}
+
+
+class MarketItem(
+    var price: Float,
+    var discount: Float,
+    var amount: String,
+    var type: TypeProduct,
+    var isCheckDiscount: Boolean,
+    var itemListDTO: ItemListDTO
+) {
+    override fun toString(): String {
+        return "MarketItem(price=$price, amount='$amount', type=$type, itemListAndCategory=$itemListDTO)"
+    }
+}
+
+
+fun findMarketItem(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long
+): MarketItem? {
+    return marketItemCollection.find { it.itemListDTO.myShoppingId == idItemAndCategory }
+}
+
+fun updatePrice(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long,
+    price: Float
+) {
+    val marketItem = findMarketItem(marketItemCollection, idItemAndCategory)
+    val index = marketItemCollection.indexOf(marketItem)
+    val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+    if (marketItem != null) {
+        marketItem.price = price
+        auxMarketItemCollection[index] = marketItem
+
+        marketItemCollection.removeAll(marketItemCollection)
+        marketItemCollection.addAll(auxMarketItemCollection)
+    }
+}
+
+fun updateTypeProduct(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long,
+    typeProduct: TypeProduct
+) {
+    val marketItem = findMarketItem(marketItemCollection, idItemAndCategory)
+    val index = marketItemCollection.indexOf(marketItem)
+    val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+    if (marketItem != null) {
+        marketItem.type = typeProduct
+        auxMarketItemCollection[index] = marketItem
+
+        marketItemCollection.removeAll(marketItemCollection)
+        marketItemCollection.addAll(auxMarketItemCollection)
+    }
+}
+
+fun updateAmount(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long,
+    amount: String
+) {
+    val marketItem = findMarketItem(marketItemCollection, idItemAndCategory)
+    val index = marketItemCollection.indexOf(marketItem)
+    val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+    if (marketItem != null) {
+        marketItem.amount = amount
+        auxMarketItemCollection[index] = marketItem
+
+        marketItemCollection.removeAll(marketItemCollection)
+        marketItemCollection.addAll(auxMarketItemCollection)
+    }
+
+}
+
+fun updateDiscount(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long,
+    discount: Float
+) {
+    val marketItem = findMarketItem(marketItemCollection, idItemAndCategory)
+    val index = marketItemCollection.indexOf(marketItem)
+    val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+    if (marketItem != null) {
+        marketItem.discount = discount
+        auxMarketItemCollection[index] = marketItem
+
+        marketItemCollection.removeAll(marketItemCollection)
+        marketItemCollection.addAll(auxMarketItemCollection)
+    }
+}
+
+fun updateCheckDiscount(
+    marketItemCollection: MutableList<MarketItem>,
+    idItemAndCategory: Long,
+    checkDiscount: Boolean
+) {
+    val marketItem = findMarketItem(marketItemCollection, idItemAndCategory)
+    val index = marketItemCollection.indexOf(marketItem)
+    val auxMarketItemCollection = ArrayList(marketItemCollection)
+
+    if (marketItem != null) {
+        marketItem.isCheckDiscount = checkDiscount
+        auxMarketItemCollection[index] = marketItem
+
+        marketItemCollection.removeAll(marketItemCollection)
+        marketItemCollection.addAll(auxMarketItemCollection)
+    }
+}
+
+fun checkFieldProduct(marketItem: MarketItem): Boolean {
+    return marketItem.amount.isNotBlank() && marketItem.amount != "0" && marketItem.price > 0 && (!marketItem.isCheckDiscount || marketItem.discount > 0F)
 }

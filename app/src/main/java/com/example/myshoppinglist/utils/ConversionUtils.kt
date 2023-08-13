@@ -6,6 +6,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 
@@ -47,5 +48,16 @@ class ConversionUtils<T>(type: Type = ItemListAndCategoryDTO::class.java) {
             .build()
         val jsonAdapter: JsonAdapter<List<T>> = moshi.adapter(typeList)
         return jsonAdapter.fromJson(itemListJson)
+    }
+
+    fun getGenericTypeClass(): Class<T> {
+        val type = javaClass.genericSuperclass
+        if (type is ParameterizedType) {
+            val typeArgs = type.actualTypeArguments
+            if (typeArgs.isNotEmpty()) {
+                return typeArgs[0] as Class<T>
+            }
+        }
+        throw IllegalStateException("Unable to determine the generic type.")
     }
 }

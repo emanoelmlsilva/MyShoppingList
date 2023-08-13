@@ -118,7 +118,7 @@ fun CategoriesScreen(navController: NavHostController?) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 36.dp),
-                    callback = object : VisibleCallback() {
+                    callback = object : VisibleCallback {
                         override fun onChangeVisible(visible: Boolean) {
                             if (visibleAnimation != visible) {
                                 visibleAnimation = visible

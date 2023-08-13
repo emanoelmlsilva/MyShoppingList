@@ -129,7 +129,7 @@ fun HomeScreen(navController: NavController?) {
             BoxPurchaseHistoryComponent(
                 visibleAnimation.value,
                 purchaseCollection,
-                object : VisibleCallback() {
+                object : VisibleCallback {
                     override fun onChangeVisible(visible: Boolean) {
                         if (visibleAnimation.value != visible) {
                             visibleAnimation.value = visible

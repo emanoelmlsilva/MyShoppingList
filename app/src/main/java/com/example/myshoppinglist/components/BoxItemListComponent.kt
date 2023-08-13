@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -60,7 +61,7 @@ fun BoxItemListComponent(
 
     var enabledDeleteDialog by remember { mutableStateOf(false) }
     var showOptions by remember { mutableStateOf(false) }
-
+    var isInitial by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = isCheck){
         if(!isCheck && showOptions){
@@ -68,7 +69,7 @@ fun BoxItemListComponent(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .background(background_card_light)
             .fillMaxWidth()
@@ -200,15 +201,18 @@ fun BoxItemListComponent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(modifier = Modifier
-                    .size(if (isCheck) 30.dp else 50.dp),
+                    .size(if (isCheck && !isMarket) 30.dp else 50.dp),
                     colors = CheckboxDefaults.colors(checkedColor = primary_dark),
                     checked = isCheck,
                     onCheckedChange = {
+                        if(isInitial){
+                            isInitial = false
+                        }
                         callback?.onChangeValue(idItem)
                     }
                 )
 
-                if (isCheck) {
+                if (isCheck && !isMarket) {
                     IconButton(
                         modifier = Modifier.size(32.dp),
                         onClick = { showOptions = !showOptions }) {
@@ -274,6 +278,7 @@ fun BoxItemListComponent(
         }
 
         BoxItemInfo(
+            isInitial,
             isMarket && !isCheck,
             price,
             discount,
@@ -290,6 +295,7 @@ fun BoxItemListComponent(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BoxItemInfo(
+    isInitial: Boolean = false,
     isMarket: Boolean,
     newPrice: Float?,
     newDiscount: Float?,
@@ -307,25 +313,25 @@ fun BoxItemInfo(
         mutableStateOf(newType)
     }
     var priceError by remember { mutableStateOf(false) }
-    var quantOrKiloError by remember { mutableStateOf(false) }
+    var amountOrKiloError by remember { mutableStateOf(false) }
     var isMarketCurrent by remember { mutableStateOf(false) }
     var discount by remember { mutableStateOf(newDiscount.toString()) }
     var discountError by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = newPrice) {
+    LaunchedEffect(key1 = newPrice, key2 = isInitial) {
         price = newPrice.toString()
-        priceError = price == "0.00" || price == "0.0"
+        priceError = !isInitial && (price == "0.00" || price == "0.0")
     }
 
-    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount) {
+    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount, key3 = isInitial) {
         discount = newDiscount.toString()
-        discountError = isCheckDiscount && newDiscount == 0F
+        discountError = !isInitial && isCheckDiscount && newDiscount == 0F
     }
 
-    LaunchedEffect(key1 = newQuantOrKilo) {
+    LaunchedEffect(key1 = newQuantOrKilo, key2 = isInitial) {
         quantOrKilo = newQuantOrKilo!!
-        quantOrKiloError = quantOrKilo!!.isBlank() || quantOrKilo == "0" || quantOrKilo == "0.000"
+        amountOrKiloError = !isInitial && ( quantOrKilo!!.isBlank() || quantOrKilo == "0" || quantOrKilo == "0.000")
     }
 
     LaunchedEffect(key1 = newType) {
@@ -335,6 +341,7 @@ fun BoxItemInfo(
     LaunchedEffect(key1 = isMarket) {
         isMarketCurrent = isMarket
     }
+
     if (isMarketCurrent) {
         Card(
             elevation = 2.dp,
@@ -342,7 +349,7 @@ fun BoxItemInfo(
             backgroundColor = text_secondary,
             modifier = Modifier
                 .fillMaxWidth(.98f)
-                .padding(start = 16.dp, top = 16.dp)
+                .padding(start = 16.dp, bottom = 8.dp)
         ) {
             Column {
                 Row(
@@ -367,7 +374,7 @@ fun BoxItemInfo(
                         hasIcon = true,
                         isKilogram = type == TypeProduct.KILO,
                         value = quantOrKilo,
-                        error = quantOrKiloError,
+                        error = amountOrKiloError,
                         isMandatory = false,
                         modifier = Modifier
                             .padding(vertical = 1.dp)

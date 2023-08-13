@@ -172,7 +172,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                             })
                             .detectReorderAfterLongPress(state),
                             listState = state.listState,
-                            callback = object : VisibleCallback() {
+                            callback = object : VisibleCallback {
                                 override fun onChangeVisible(visible: Boolean) {
                                     visibleAnimation = visible
                                 }

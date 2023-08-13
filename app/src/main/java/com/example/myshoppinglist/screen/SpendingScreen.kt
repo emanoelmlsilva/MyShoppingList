@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
@@ -38,7 +40,6 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
@@ -46,11 +47,12 @@ import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.ui.viewModel.PurchaseViewModel
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import java.text.SimpleDateFormat
+import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -109,30 +111,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         price = purchaseController.sumPriceByMonthDB(idCard, "$monthAndYearNumber-")
     }
 
-
-    fun mounthIdCard(idCard: Long){
-        purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { months ->
-            monthsCollection.removeAll(monthsCollection)
-
-            val convertedMonth = months.groupBy {
-                val separaterDate = it.split("-")
-                "${separaterDate.get(0)}-${separaterDate.get(1)}"
-            }.map { group -> FormatUtils().getMonth("${group.key}-01") }
-
-            monthsCollection.addAll(convertedMonth)
-
-            if (convertedMonth.isNotEmpty()) {
-                val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
-
-                monthCurrent = monthAndYearNumber
-
-                getInforPurchaseByMonth(convertedMonth[0])
-            }
-
-        }
-
-    }
-
     LaunchedEffect(key1 = idCard, key2 = reload) {
 
         idPurchaseEdit = 0L
@@ -145,9 +123,9 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         creditCardController.findCreditCardByIdDB(idCard).observe(lifecycleOwner) {
             currentCreditCard = it
 
-            mounthIdCard(idCard)
-
         }
+
+//        monthIdCard(idCard)
 
 
     }
@@ -188,8 +166,9 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 )
 
                 BoxSpendingFromMonth(
+                    lifecycleOwner,
+                    purchaseController,
                     spendingTextFieldViewModel,
-                    monthsCollection,
                     price,
                     currentCreditCard,
                     creditCardCollection,
@@ -198,10 +177,14 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                         override fun onChangeValueCreditCard(creditCard: CreditCard) {
                             currentCreditCard = creditCard
 
-                            mounthIdCard(currentCreditCard!!.myShoppingId)
+//                            monthIdCard(currentCreditCard!!.myShoppingId)
 
                             reset()
 
+                        }
+
+                        override fun onChangeDataMonth(month: String) {
+                            getInforPurchaseByMonth(month)
                         }
                     })
 
@@ -308,7 +291,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                     BaseLazyColumnScroll(
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.fillMaxWidth(),
-                        callback = object : VisibleCallback() {
+                        callback = object : VisibleCallback {
                             override fun onChangeVisible(visible: Boolean) {
                                 if (visibleAnimation != visible) {
                                     visibleAnimation = visible
@@ -373,18 +356,71 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
 @Composable
 fun BoxSpendingFromMonth(
+    lifecycleOwner: LifecycleOwner,
+    purchaseController: PurchaseController,
     spendingField: SpendingTextFieldViewModel,
-    months: List<String>,
     price: Double,
     currentCreditCard: CreditCard?,
     creditCards: List<CreditCard>,
     callbackCreditCard: CallbackCreditCard
 ) {
-    val hasMonths = months.isNotEmpty()
-    val monthCurrent = remember { mutableStateOf(if (hasMonths) months[0] else "") }
+    val monthList = remember { mutableStateListOf<String>() }
+
+    var monthCurrent by remember { mutableStateOf("") }
+
+    fun monthIdCard(idCard: Long) {
+        purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { months ->
+            monthList.removeAll(monthList)
+
+            val convertedMonth = months.groupBy {
+                val separaterDate = it.split("-")
+                "${separaterDate[0]}-${separaterDate.get(1)}"
+            }.map { group -> FormatUtils().getMonth("${group.key}-01") }
+
+            monthList.addAll(convertedMonth)
+
+            val monthCurrentDefault = FormatUtils().getMonthCurrent()
+
+            val isNotExist =
+                months.find { FormatUtils().getMonth("${it}-01") == monthCurrentDefault } == null
+
+            if (isNotExist && (monthCurrent.isBlank() || FormatUtils().getNumberMonth(
+                    monthCurrentDefault
+                )!!.toInt() > FormatUtils().getNumberMonth(monthCurrent)!!.toInt())
+            ) {
+                monthCurrent = FormatUtils().getNumberMonth(monthCurrentDefault).toString()
+                val yearCurrent = FormatUtils().getYearCurrent()
+
+                val formatMonth = if(monthCurrent.toInt() > 9) monthCurrent else "0$monthCurrent"
+
+                monthCurrent = "$yearCurrent-$formatMonth-01"
+
+                monthList.add(0, monthCurrentDefault)
+
+            } else if (convertedMonth.isNotEmpty()) {
+                val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
+
+                monthCurrent = "$monthAndYearNumber-01"
+            }
+
+            val convertMonthNumberCurrent = FormatUtils().getMonth(monthCurrent)
+
+            callbackCreditCard.onChangeDataMonth(convertMonthNumberCurrent)
+
+        }
+
+    }
+
+    LaunchedEffect(key1 = currentCreditCard) {
+        if (currentCreditCard != null) monthIdCard(currentCreditCard!!.myShoppingId)
+    }
+
     spendingField.monthCurrent.observeForever {
-        if (it.isNotBlank()) monthCurrent.value = it else if (hasMonths) monthCurrent.value =
-            months[0]
+        val hasMonths = monthList.isNotEmpty()
+        monthCurrent = if (hasMonths) monthList[0] else ""
+
+        if (it.isNotBlank()) monthCurrent = it else if (hasMonths) monthCurrent =
+            monthList[0]
     }
 
     Column(verticalArrangement = Arrangement.Center) {
@@ -396,13 +432,16 @@ fun BoxSpendingFromMonth(
                 fontFamily = LatoBlack,
                 color = text_primary_light
             )
-            CustomDropDownMonth(
-                object : CustomTextFieldOnClick {
-                    override fun onChangeValue(newValue: String) {
-                        spendingField.onChangeMonth(newValue)
-                    }
-                }, months, monthCurrent.value
-            )
+            if (monthList.isNotEmpty()) {
+                CustomDropDownMonth(
+                    object : CustomTextFieldOnClick {
+                        override fun onChangeValue(newValue: String) {
+                            spendingField.onChangeMonth(newValue)
+                        }
+                    }, monthList, monthCurrent
+                )
+            }
+
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(

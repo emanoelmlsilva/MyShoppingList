@@ -11,7 +11,7 @@ class FormatUtils {
     private val dayOfWeek = 3
     private val localeBr = Locale("pt", "BR")
 
-    fun getDateFromatted(date: Date): String{
+    fun getDateFormatted(date: Date): String{
         val calendar = Calendar.getInstance()
         calendar.time = date
 
@@ -107,5 +107,36 @@ class FormatUtils {
         val formatter = SimpleDateFormat("MMMM", localeBr)
         val nameMonth = formatter.format(dateCurrent)
         return nameMonth
+    }
+
+    fun getMonthCurrent(): String {
+        val cal = Calendar.getInstance()
+        val format = SimpleDateFormat("MMMM", Locale("pt", "BR"))
+        return format.format(cal.time)
+    }
+
+    fun getYearCurrent(): String {
+        val cal = Calendar.getInstance()
+        val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
+        return format.format(cal.time.year)
+    }
+
+    fun getNumberMonth(month: String): Int? {
+        val meses = mapOf(
+            "janeiro" to 1,
+            "fevereiro" to 2,
+            "março" to 3,
+            "abril" to 4,
+            "maio" to 5,
+            "junho" to 6,
+            "julho" to 7,
+            "agosto" to 8,
+            "setembro" to 9,
+            "outubro" to 10,
+            "novembro" to 11,
+            "dezembro" to 12
+        )
+
+        return meses[month.toLowerCase()]
     }
 }

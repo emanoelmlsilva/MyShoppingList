@@ -439,7 +439,7 @@ fun BoxPurchaseItems(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp),
-        callback = object : VisibleCallback() {
+        callback = object : VisibleCallback {
             override fun onChangeVisible(visible: Boolean) {
                 productManagerFieldViewModel.onChangeVisibleAnimation(visible)
             }
