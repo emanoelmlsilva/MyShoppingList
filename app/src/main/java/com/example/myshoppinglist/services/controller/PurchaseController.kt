@@ -16,9 +16,6 @@ import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
 import com.example.myshoppinglist.ui.viewModel.PurchaseViewModel
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Observer
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.kotlin.toObservable
 
 class PurchaseController {
 
@@ -39,7 +36,6 @@ class PurchaseController {
             return PurchaseController()
         }
     }
-
 
     fun getMonthByIdCardDB(idCard: Long): LiveData<List<String>>{
         return purchaseViewModel.getMonthByIdCardDB(idCard)
@@ -149,5 +145,19 @@ class PurchaseController {
                     callback.onFailed(messageError)
                 }
             })
+    }
+
+    fun deletePurchase(idPurchaseApi: Long, idPurchase: Long, callback: Callback){
+        purchaseViewModel.deletePurchase(idPurchaseApi, idPurchase, object : CallbackObject<Any> {
+            override fun onSuccess() {
+                Log.d(TAG, "delete Purchase By Id - onSuccess")
+                callback.onSuccess()
+            }
+
+            override fun onFailed(messageError: String) {
+                Log.d(TAG, "delete Purchase By Id - onFailed ")
+                callback.onFailed(messageError)
+            }
+        })
     }
 }

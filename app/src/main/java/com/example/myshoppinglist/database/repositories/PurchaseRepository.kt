@@ -35,9 +35,15 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         }
     }
 
-    fun deletePurchase(purchase: Purchase) {
+    fun deletePurchaseByIdApi(myShoppingIdApi: Long) {
         coroutineScope.launch(Dispatchers.IO) {
-            purchaseDAO.deletePurchaseById(purchase)
+            purchaseDAO.deletePurchaseByIdApi(myShoppingIdApi, email)
+        }
+    }
+
+    fun deletePurchaseById(myShoppingId: Long) {
+        coroutineScope.launch(Dispatchers.IO) {
+            purchaseDAO.deletePurchaseById(myShoppingId, email)
         }
     }
 

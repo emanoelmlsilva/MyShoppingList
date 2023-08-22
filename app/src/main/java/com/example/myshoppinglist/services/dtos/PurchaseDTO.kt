@@ -26,14 +26,14 @@ class PurchaseDTO() {
     var price: Double = 0.0
     @SerializedName("category")
     lateinit var category: CategoryDTO
-    @SerializedName("idPurchase")
+    @SerializedName("id")
     var idPurchase: Long = 0
     @SerializedName("discount")
     var discount: Double = 0.0
 
     constructor(purchase: Purchase) : this() {
 
-        this.idPurchase = purchase.idMyShoppingApi
+        this.idPurchase = purchase.idPurchaseApi
         this.myShoppingId = purchase.myShoppingId
         this.name = purchase.name
         this.locale = purchase.locale
@@ -64,7 +64,8 @@ class PurchaseDTO() {
         purchase.categoryOwnerId = this.category.id
         purchase.purchaseCardId = this.creditCard.id
 
-        purchase.myShoppingId = this.idPurchase
+        purchase.idPurchaseApi = this.idPurchase
+        purchase.myShoppingId = this.myShoppingId
         return purchase
     }
 }

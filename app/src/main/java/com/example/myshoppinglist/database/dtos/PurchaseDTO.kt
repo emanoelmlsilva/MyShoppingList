@@ -1,9 +1,7 @@
 package com.example.myshoppinglist.database.dtos
 
-import androidx.room.ColumnInfo
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.TypeProduct
-import com.google.gson.annotations.SerializedName
 
 class PurchaseDTO() {
 
@@ -21,7 +19,7 @@ class PurchaseDTO() {
     var discount: Double = 0.0
 
     constructor(purchase: Purchase) : this() {
-        this.idMyShoppingApi = purchase.idMyShoppingApi
+        this.idMyShoppingApi = purchase.idPurchaseApi
         this.myShoppingId = purchase.myShoppingId
         this.name = purchase.name
         this.locale = purchase.locale

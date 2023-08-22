@@ -14,6 +14,9 @@ interface PurchaseService {
         }
     }
 
+    @DELETE("purchase/{id}")
+    fun delete(@Path("id") id: Long): Call<PurchaseDTO>
+    
     @POST("purchase")
     fun save(@Body purchaseDTO: PurchaseDTO) : Call<PurchaseDTO>
 

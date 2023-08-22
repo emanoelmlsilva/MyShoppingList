@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.enums.TypeProduct
 import com.google.gson.annotations.SerializedName
-import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "purchases")
 class Purchase {
@@ -16,8 +15,8 @@ class Purchase {
     var myShoppingId: Long = 0
 
     @SerializedName("idMyShoppingApi")
-    @ColumnInfo(name = "idMyShoppingApi")
-    var idMyShoppingApi: Long = 0
+    @ColumnInfo(name = "idPurchaseApi")
+    var idPurchaseApi: Long = 0
 
     @ColumnInfo(name = "name")
     var name: String = ""
@@ -116,7 +115,7 @@ class Purchase {
         purchaseUserId: String,
         discount: Double
     ) {
-        this.idMyShoppingApi = idMyShoppingApi
+        this.idPurchaseApi = idMyShoppingApi
         this.name = name
         this.locale = locale
         this.purchaseCardId = purchaseCardId
@@ -163,7 +162,7 @@ class Purchase {
     }
 
     fun toDTO(purchaseDTO: PurchaseDTO) {
-        this.idMyShoppingApi = purchaseDTO.idMyShoppingApi
+        this.idPurchaseApi = purchaseDTO.idMyShoppingApi
         this.myShoppingId = purchaseDTO.myShoppingId
         this.name = purchaseDTO.name
         this.locale = purchaseDTO.locale

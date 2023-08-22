@@ -11,6 +11,21 @@ class PurchaseRepository(private val purchaseService: PurchaseService) {
 
     private val TAG = "PurchaseRepository"
 
+    suspend fun delete(idPurchaseApi: Long): ResultData<PurchaseDTO>{
+        return withContext(Dispatchers.IO){
+            val purchaseExecute = purchaseService.delete(idPurchaseApi).execute()
+
+            return@withContext if(purchaseExecute.isSuccessful){
+                val purchaseResponse = purchaseExecute.body()?: PurchaseDTO()
+                ResultData.Success(purchaseResponse)
+            }else{
+                Log.d(TAG, "message error ${purchaseExecute.message()}")
+
+                ResultData.Error(Exception("ERROR DELETE ${purchaseExecute.errorBody()}"))
+            }
+        }
+    }
+
     suspend fun save(purchase: PurchaseDTO): ResultData<PurchaseDTO>{
         return withContext(Dispatchers.IO){
             val purchaseExecute = purchaseService.save(purchase).execute()

@@ -21,7 +21,7 @@ class PurchaseViewModel(
 
     private val TAG = "PurchaseViewModel"
 
-    fun getMonthByIdCardDB(idCard: Long): LiveData<List<String>>{
+    fun getMonthByIdCardDB(idCard: Long): LiveData<List<String>> {
         return purchaseViewModelDB.getMonthByIdCard(idCard)
     }
 
@@ -48,11 +48,11 @@ class PurchaseViewModel(
         return purchaseViewModelDB.getPurchasesOfSearch(arguments, condition)
     }
 
-    fun getPurchaseByMonthDB(idCard: Long, month: String): LiveData<List<PurchaseAndCategory>>{
+    fun getPurchaseByMonthDB(idCard: Long, month: String): LiveData<List<PurchaseAndCategory>> {
         return purchaseViewModelDB.getPurchaseByMonth(idCard, month)
     }
 
-    fun sumPriceByMonthDB(idCard: Long, month: String): Double{
+    fun sumPriceByMonthDB(idCard: Long, month: String): Double {
         return purchaseViewModelDB.sumPriceByMonth(idCard, month)
     }
 
@@ -190,6 +190,61 @@ class PurchaseViewModel(
 
                     callback.onFailed(messageError.toString())
                 }
+            }
+        }
+    }
+
+
+    fun deletePurchase(idPurchaseApi: Long, idPurchase: Long, callback: CallbackObject<Any>) {
+        viewModelScope.launch {
+            if (idPurchaseApi.compareTo(0) != 0) {
+                val result = try {
+                    purchaseRepository.delete(idPurchaseApi)
+                } catch (e: Exception) {
+                    ResultData.Error(e)
+                }
+
+                when (result) {
+                    is ResultData.Success -> {
+
+                        purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError = (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+
+                    }
+                    else -> {
+                        val messageError =
+                            (result as ResultData.Error).exception.message
+
+                        Log.d(TAG, "error $messageError")
+
+                        callback.onFailed(messageError.toString())
+                    }
+                }
+            } else {
+                purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
+                    override fun onSuccess() {
+                        callback.onSuccess()
+                    }
+
+                    override fun onFailed(messageError: String) {
+
+                        Log.d(TAG, "error $messageError")
+
+                        callback.onFailed(messageError)
+                    }
+                })
+                callback.onSuccess()
             }
         }
     }

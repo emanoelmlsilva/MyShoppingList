@@ -3,12 +3,10 @@ package com.example.myshoppinglist.database.daos
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.utils.FormatUtils
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Dao
@@ -23,8 +21,11 @@ interface PurchaseDAO {
     @Update
     fun updatePurchase(purchase: Purchase)
 
-    @Delete
-    fun deletePurchaseById(purchase: Purchase)
+    @Query("DELETE FROM purchases WHERE myShoppingId = :myShoppingId AND purchaseUserId = :emailUser")
+    fun deletePurchaseById(myShoppingId: Long, emailUser: String)
+
+    @Query("DELETE FROM purchases WHERE idPurchaseApi = :myShoppingIdApi AND purchaseUserId = :emailUser")
+    fun deletePurchaseByIdApi(myShoppingIdApi: Long, emailUser: String)
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards  WHERE purchaseCardId = :idCard AND cardUserId = :emailUser ORDER BY date DESC")
@@ -38,7 +39,7 @@ interface PurchaseDAO {
     fun getPurchaseAllByIdCard(emailUser: String, idCard: Long): LiveData<List<Purchase>>
 
     @Transaction
-    @Query("SELECT * FROM purchases, credit_cards, category WHERE category.myShoppingIdCategory = categoryOwnerId AND cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
+    @Query("SELECT * FROM purchases, category WHERE category.myShoppingIdCategory = purchases.categoryOwnerId AND category.categoryUserId = :emailUser AND purchaseCardId = :idCard AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
     fun getPurchaseByMonth(date: String, emailUser: String, idCard: Long): LiveData<List<PurchaseAndCategory>>
 
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId GROUP BY date ORDER BY date DESC ")

@@ -131,8 +131,26 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         })
     }
 
-    fun deletePurchase(purchase: Purchase) {
-        repository.deletePurchase(purchase)
+    fun deletePurchaseByIdApi(myShoppingIdApi: Long, callback: Callback) {
+        val action = Action {
+            repository.deletePurchaseByIdApi(myShoppingIdApi)
+        }
+
+        Completable.fromAction(action).subscribe({ callback.onSuccess() }, { throwable ->
+            Log.d(TAG, "ERROR " + throwable.message)
+            callback.onCancel()
+        })
+    }
+
+    fun deletePurchaseByI(myShoppingId: Long, callback: Callback) {
+        val action = Action {
+            repository.deletePurchaseById(myShoppingId)
+        }
+
+        Completable.fromAction(action).subscribe({ callback.onSuccess() }, { throwable ->
+            Log.d(TAG, "ERROR " + throwable.message)
+            callback.onCancel()
+        })
     }
 
     fun getPurchaseAll(): List<Purchase> {

@@ -51,8 +51,6 @@ import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
-import java.text.SimpleDateFormat
-import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -125,9 +123,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
         }
 
-//        monthIdCard(idCard)
-
-
     }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
@@ -152,11 +147,22 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                     {
                         visibilityBackHandler = false
 
-//                        purchaseViewModel.deletePurchase(purchaseCurrent)
+                        purchaseController.deletePurchase(
+                            purchaseCurrent.idPurchaseApi,
+                            purchaseCurrent.myShoppingId,
+                            object : Callback {
+                                override fun onSuccess() {
+                                    reset()
 
-                        reset()
+                                    reload = true
+                                }
 
-                        reload = true
+                                override fun onFailed(messageError: String) {
+                                    super.onFailed(messageError)
+                                }
+                            })
+
+
                     },
                     {
                         visibilityBackHandler = false
@@ -312,6 +318,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                             items(purchaseInfo.purchaseCollection) { purchase ->
                                 BoxPurchaseSpending(purchase, idPurchaseEdit, object : Callback {
                                     override fun onClick() {
+                                        Log.d(
+                                            "TESTANDO",
+                                            "idPurchaseEdit ${idPurchaseEdit}, purchase.purchase.myShoppingId ${purchase.purchase.idPurchaseApi}, TESTE ${idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId}"
+                                        )
                                         idPurchaseEdit =
                                             if (idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId) {
                                                 purchase.purchase.myShoppingId
@@ -391,7 +401,7 @@ fun BoxSpendingFromMonth(
                 monthCurrent = FormatUtils().getNumberMonth(monthCurrentDefault).toString()
                 val yearCurrent = FormatUtils().getYearCurrent()
 
-                val formatMonth = if(monthCurrent.toInt() > 9) monthCurrent else "0$monthCurrent"
+                val formatMonth = if (monthCurrent.toInt() > 9) monthCurrent else "0$monthCurrent"
 
                 monthCurrent = "$yearCurrent-$formatMonth-01"
 
