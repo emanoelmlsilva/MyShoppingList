@@ -119,7 +119,7 @@ class PurchaseController {
             purchaseDTO.category.userDTO = it
             purchaseDTO.creditCard.userDTO = it
 
-            purchaseViewModel.save(purchaseDTO, object : CallbackObject<PurchaseDTO> {
+            purchaseViewModel.update(purchaseDTO, object : CallbackObject<PurchaseDTO> {
                 override fun onSuccess() {
                     Log.d(TAG, "saveItemList - onSuccess")
                     callback.onSuccess()

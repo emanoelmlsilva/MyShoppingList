@@ -11,7 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,24 +34,24 @@ import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
-import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -74,6 +75,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     var reload by remember { mutableStateOf(false) }
     var purchaseCurrent by remember { mutableStateOf(Purchase()) }
     var visibilityBackHandler by remember { mutableStateOf(false) }
+    val categoryCollection = remember { mutableListOf<Category>() }
 
     fun reset() {
         idPurchaseEdit = 0L
@@ -89,6 +91,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
         purchaseController.getPurchaseByMonthDB(idCard, "$monthAndYearNumber-")
             .observe(lifecycleOwner) { purchaseAndCategoryCollection ->
+
+                categoryCollection.addAll(purchaseAndCategoryCollection.map { it.category })
 
                 val purchaseInfoFormattedCollection: MutableList<PurchaseAndCategoryInfo> =
                     purchaseAndCategoryCollection.groupBy { it.purchase.date }.map { group ->
@@ -278,10 +282,33 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     ) {
                                         visibilityDialog = false
                                         if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
+                                            val creditCard =
+                                                creditCardCollection.find { it.myShoppingId == idCardCurrent }
+
+                                            val category =
+                                                categoryCollection.find { it.myShoppingId == purchase.categoryOwnerId }
+
                                             purchase.purchaseCardId = idCardCurrent
-//                                            purchaseViewModel.updatePurchase(purchase)
-                                            reset()
-                                            reload = true
+
+                                            val purchaseDTO = PurchaseDTO(
+                                                purchase, category!!,
+                                                creditCard!!
+                                            )
+
+                                            purchaseController.updatePurchase(
+                                                purchaseDTO,
+                                                object : Callback {
+                                                    override fun onSuccess() {
+                                                        reset()
+                                                        reload = true
+                                                    }
+
+                                                    override fun onFailed(messageError: String) {
+                                                        super.onFailed(messageError)
+                                                    }
+                                                })
+
+
                                         }
 
                                     }
@@ -348,9 +375,9 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         override fun onEditable(idCardCurrent: Long) {
                                             navController?.navigate(
                                                 "${Screen.RegisterPurchase.name}?idCardCurrent=${idCardCurrent}?isEditable=${true}?purchaseEdit=${
-                                                    ConversionUtils<PurchaseDTO>(
-                                                        PurchaseDTO::class.java
-                                                    ).toJson(PurchaseDTO(purchaseCurrent))
+                                                    ConversionUtils<PurchaseDaoDTO>(
+                                                        PurchaseDaoDTO::class.java
+                                                    ).toJson(PurchaseDaoDTO(purchaseCurrent))
                                                 }"
                                             )
                                         }
@@ -742,27 +769,25 @@ fun DialogTransferPurchase(
 ) {
     val creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
     var idCardCurrent by remember { mutableStateOf(idCard) }
 
     LaunchedEffect(Unit) {
-        creditCardViewModel.getAll()
+        creditCardController.findAllDB().observe(lifecycleOwner) {
+            if (it.isNotEmpty()) {
+                creditCardDTOCollection.removeAll(creditCardDTOCollection)
+                creditCardDTOCollection.addAll(it.map { creditCard ->
+                    CreditCardDTODB().fromCreditCardDTODB(
+                        creditCard
+                    )
+                })
+            }
+        }
     }
 
     fun reset() {
         idCardCurrent = idCard
     }
-
-//    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
-//        if (it.isNotEmpty()) {
-//            creditCardDTOCollection.removeAll(creditCardDTOCollection)
-//            creditCardDTOCollection.addAll(it.map { creditCard ->
-//                CreditCardDTODB().fromCreditCardDTO(
-//                    creditCard
-//                )
-//            })
-//        }
-//    }
 
     DialogCustom(visibilityDialog = visibilityDialog, percentHeight = 2f) {
         Column(
