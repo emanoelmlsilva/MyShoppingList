@@ -70,7 +70,7 @@ fun DatePickerCustom(
 
     registerTextFieldViewModel.dateCurrent.observeForever {
         if (it.isNotBlank()) {
-            date.value = FormatUtils().getDateFromatted(Date(it.toString().replace("-", "/")))
+            date.value = FormatUtils().getDateFormatted(Date(it.toString().replace("-", "/")))
         }
     }
 

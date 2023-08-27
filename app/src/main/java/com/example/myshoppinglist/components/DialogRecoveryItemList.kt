@@ -15,6 +15,7 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -25,7 +26,7 @@ fun DialogRecoveryItemList(
     lifecycleOwner: LifecycleOwner,
     idCard: Long,
     enabledDialog: Boolean,
-    listItemChosen: List<ItemListAndCategory>,
+    listItemChosen: List<ItemListDTO>,
     callback: CallbackItemList
 ) {
 
@@ -65,7 +66,7 @@ fun DialogRecoveryItemList(
                     val auxItemListCollection = it
                     auxItemListCollection.forEach { auxItem ->
 
-                        if (listItemChosen.find { findItem -> findItem.itemList.myShoppingId == auxItem.itemList.myShoppingId } != null) {
+                        if (listItemChosen.find { findItem -> findItem.myShoppingId == auxItem.itemList.myShoppingId } != null) {
                             itemListCollection.remove(auxItem)
                         }
                     }
@@ -148,7 +149,7 @@ fun DialogRecoveryItemList(
                 }
 
                 BaseLazyColumnScroll(modifier = Modifier
-                    .fillMaxWidth(), callback = object : VisibleCallback() {
+                    .fillMaxWidth(), callback = object : VisibleCallback {
                     override fun onChangeVisible(visible: Boolean) {
                         visibleAnimation = visible
                     }

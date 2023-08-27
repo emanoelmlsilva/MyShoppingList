@@ -1,11 +1,14 @@
 package com.example.myshoppinglist.controller
 
+import android.content.Context
 import android.view.Window
+import android.view.WindowManager
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -31,6 +34,11 @@ fun NavController(
     routeInitial: String,
     callback: VisibleCallback
 ) {
+
+    fun softInputMode(isKeyBoard: Boolean){
+        window.setSoftInputMode(if(isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+    }
+
     NavHost(navController = navHostController, startDestination = routeInitial) {
         composable(Screen.CreateUser.name) {
             callback.onChangeVisible(false)
@@ -66,6 +74,7 @@ fun NavController(
             )
         }
         composable(Screen.Home.name) {
+            softInputMode(true)
             callback.onChangeVisible(true)
             HomeScreen(navHostController)
         }
@@ -100,6 +109,7 @@ fun NavController(
             }
         }
         composable(Screen.ProductsManager.name) {
+            softInputMode(false)
             callback.onChangeVisible(true)
             ProductsManagerScreen(navHostController)
         }
@@ -108,6 +118,7 @@ fun NavController(
             FinanceScreen(navHostController)
         }
         composable(Screen.Categories.name) {
+            softInputMode(true)
             callback.onChangeVisible(true)
             CategoriesScreen(navHostController)
         }

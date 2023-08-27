@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     if(route != null){
-                        NavController(navHostController = navController, window, route?.name ?: "", object: VisibleCallback(){
+                        NavController(navHostController = navController, window, route?.name ?: "", object: VisibleCallback{
                             override fun onChangeVisible(visible: Boolean) {
                                 bottomBarState.value = visible
                             }

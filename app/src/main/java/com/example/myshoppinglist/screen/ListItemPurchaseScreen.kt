@@ -95,14 +95,24 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         backgroundColor = text_secondary,
                         onClick = {
                             if (itemCheckCollection.isNotEmpty()) {
+                                val convertList = itemListCollection.map { itemListDTO ->
+
+                                        itemListDTO.creditCardDTO =
+                                            creditCardDTO.fromCreditCardDTO()
+
+                                        itemListDTO
+
+                                }.filter {
+                                    itemCheckCollection.indexOf(
+                                        it.myShoppingId
+                                    ) != -1
+                                }
+
                                 navController.navigate(
                                     "${Screen.MakingMarketScreen.name}?idCard=${idCard}?itemListCollection=${
-                                        ConversionUtils<ItemListDTO>().toJsonList(
-                                            itemListCollection.filter {
-                                                itemCheckCollection.indexOf(
-                                                    it.myShoppingId
-                                                ) != -1
-                                            })
+                                        ConversionUtils<ItemListDTO>(ItemListDTO::class.java).toJsonList(
+                                            convertList
+                                        )
                                     }"
                                 )
                             } else {
@@ -239,58 +249,58 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                     .fillMaxHeight()
                     .fillMaxWidth(),
                     verticalArrangement = Arrangement.Top,
-                    callback = object : VisibleCallback() {
-                    override fun onChangeVisible(visible: Boolean) {
-                        visibleAnimation = visible
-                    }
-                }, content = {
-                    itemsIndexed(itemListCollection) { index, itemList ->
-                        val isCheck = itemCheckCollection.indexOf(itemList.myShoppingId) != -1
-                        SlidingItemListComponent(
-                            context = context,
-                            itemListDTO = itemList,
-                            isCheck = isCheck,
-                            isMarket = false,
-                            isRemoved = itemList.isRemoved,
-                            sizeCheckCollection = itemCheckCollection.isNotEmpty(),
-                            idItem = itemList.myShoppingId,
-                            category = itemList.categoryDTO.toCategory(),
-                            product = itemList.item,
-                            callback = object : CallbackItemList {
-                                override fun onChangeValue(idCard: Long) {
-                                    val isChecked = itemCheckCollection.indexOf(idCard) != -1
-                                    checkAll = if (isChecked) {
-                                        itemCheckCollection.remove(idCard)
-                                        false
-                                    } else {
-                                        itemCheckCollection.add(idCard)
-                                        itemCheckCollection.size == itemListCollection.size
+                    callback = object : VisibleCallback {
+                        override fun onChangeVisible(visible: Boolean) {
+                            visibleAnimation = visible
+                        }
+                    }, content = {
+                        itemsIndexed(itemListCollection) { index, itemList ->
+                            val isCheck = itemCheckCollection.indexOf(itemList.myShoppingId) != -1
+                            SlidingItemListComponent(
+                                context = context,
+                                itemListDTO = itemList,
+                                isCheck = isCheck,
+                                isMarket = false,
+                                isRemoved = itemList.isRemoved,
+                                sizeCheckCollection = itemCheckCollection.isNotEmpty(),
+                                idItem = itemList.myShoppingId,
+                                category = itemList.categoryDTO.toCategory(),
+                                product = itemList.item,
+                                callback = object : CallbackItemList {
+                                    override fun onChangeValue(idCard: Long) {
+                                        val isChecked = itemCheckCollection.indexOf(idCard) != -1
+                                        checkAll = if (isChecked) {
+                                            itemCheckCollection.remove(idCard)
+                                            false
+                                        } else {
+                                            itemCheckCollection.add(idCard)
+                                            itemCheckCollection.size == itemListCollection.size
+
+                                        }
+                                    }
+
+                                    override fun onDelete() {
+                                        itemListController.deleteItemListDB(
+                                            itemList.toItemList(),
+                                            object : Callback {
+                                                override fun onSuccess() {
+                                                    getItemListAll()
+                                                }
+
+                                                override fun onFailed(messageError: String) {
+                                                }
+                                            })
+                                    }
+
+                                    override fun onUpdate(itemListDTO: ItemListDTO) {
+                                        enabledDialog = true
+                                        itemListUpdate = itemListDTO
 
                                     }
                                 }
-
-                                override fun onDelete() {
-                                    itemListController.deleteItemListDB(
-                                        itemList.toItemList(),
-                                        object : Callback {
-                                            override fun onSuccess() {
-                                                getItemListAll()
-                                            }
-
-                                            override fun onFailed(messageError: String) {
-                                            }
-                                        })
-                                }
-
-                                override fun onUpdate(itemListDTO: ItemListDTO) {
-                                    enabledDialog = true
-                                    itemListUpdate = itemListDTO
-
-                                }
-                            }
-                        )
-                    }
-                })
+                            )
+                        }
+                    })
             }
         })
 }

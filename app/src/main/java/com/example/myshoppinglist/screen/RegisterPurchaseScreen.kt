@@ -43,33 +43,40 @@ import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
+import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
-fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long, isEditable: Boolean? = false, purchaseEdit: Purchase? = null) {
+fun RegisterPurchaseScreen(
+    navController: NavHostController?,
+    idCardCurrent: Long,
+    isEditable: Boolean? = false,
+    purchaseEdit: Purchase? = null
+) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val purchaseViewModel = PurchaseViewModel(context)
-    val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
+    val purchaseController = PurchaseController.getData(context, lifecycleOwner)
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
@@ -78,20 +85,26 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     var visibilityBackHandler by remember { mutableStateOf(false) }
-    var isCheck by remember {mutableStateOf(false)}
+    var isCheck by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = idCardCurrent) {
-        categoryViewModel.getAll()
-        registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
+        creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner){
+            registerTextFieldViewModel.onChangeCreditCard(it)
+
+        }
+        categoryController.getAllDB().observe(lifecycleOwner){
+            registerTextFieldViewModel.onChangeCategoryCollection(it)
+        }
     }
 
-    LaunchedEffect(key1 = purchaseEdit){
-        if(purchaseEdit != null){
+    LaunchedEffect(key1 = purchaseEdit) {
+        if (purchaseEdit != null) {
             countProduct = 1
 
-            val price = if(purchaseEdit.typeProduct == TypeProduct.KILO) MaskUtils.maskKiloGram(MaskUtils.replaceAll(purchaseEdit.price.toString())) else MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.price))
+            val price = if (purchaseEdit.typeProduct == TypeProduct.KILO) MaskUtils.maskKiloGram(
+                MaskUtils.replaceAll(purchaseEdit.price.toString())
+            ) else MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.price))
 
-            registerTextFieldViewModel.onChangeIdCard(purchaseEdit.purchaseCardId)
             registerTextFieldViewModel.onChangeCategory(purchaseEdit.categoryOwnerId)
             registerTextFieldViewModel.onChangeLocale(purchaseEdit.locale)
             registerTextFieldViewModel.onChangeDateCurrent(purchaseEdit.date)
@@ -99,8 +112,14 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
             registerTextFieldViewModel.onChangeProduct(purchaseEdit.name)
             registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.quantiOrKilo)
             registerTextFieldViewModel.onChangeTypeProduct(purchaseEdit.typeProduct)
-            if(purchaseEdit.discount > 0){
-                registerTextFieldViewModel.onChangeDiscountCurrent(MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.discount)))
+            if (purchaseEdit.discount > 0) {
+                registerTextFieldViewModel.onChangeDiscountCurrent(
+                    MaskUtils.maskQuantity(
+                        MaskUtils.convertValueDoubleToString(
+                            purchaseEdit.discount
+                        )
+                    )
+                )
                 isCheck = true
             }
         }
@@ -114,44 +133,36 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
         reset.value = it
     }
 
-//    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-//        registerTextFieldViewModel.onChangeCategoryCollection(it)
-//    }
+    fun updatePurchase(callback: Callback) {
 
-   suspend fun updatePurchase(){
+            val purchase = Purchase(
+                registerTextFieldViewModel.product.value!!,
+                registerTextFieldViewModel.locale.value!!,
+                registerTextFieldViewModel.creditCard.value!!.myShoppingId,
+                registerTextFieldViewModel.quantOrKilo.value!!,
+                registerTextFieldViewModel.typeProduct.value!!,
+                registerTextFieldViewModel.dateCurrent.value!!,
+                MaskUtils.convertValueStringToDouble(
+                    MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
+                ),
+                registerTextFieldViewModel.category.value!!,
+                registerTextFieldViewModel.email
+            )
 
-       withContext(coroutineScope.coroutineContext) {
-           val purchase = Purchase(
-               registerTextFieldViewModel.product.value!!,
-               registerTextFieldViewModel.locale.value!!,
-               registerTextFieldViewModel.idCard.value!!,
-               registerTextFieldViewModel.quantOrKilo.value!!,
-               registerTextFieldViewModel.typeProduct.value!!,
-               registerTextFieldViewModel.dateCurrent.value!!,
-               MaskUtils.convertValueStringToDouble(
-                   MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
-               ),
-               registerTextFieldViewModel.category.value!!,
-               registerTextFieldViewModel.email
-           )
+            purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
 
-           purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
+//        purchaseController.updatePurchase(purchase, callback)
+    }
 
-           purchaseViewModel.updatePurchase(purchase)
+    fun savePurchases(callback: Callback) {
 
-       }
-   }
+        val purchases = mutableListOf<PurchaseDTO>()
 
-    suspend fun savePurchases() {
+        purchaseInfoCollection.forEach { purchaseInfo -> purchases.addAll(purchaseInfo.purchaseCollection.map { PurchaseDTO(it.purchase, it.category,
+            registerTextFieldViewModel.creditCard.value!!
+        ) }) }
 
-        val purchaseSaveCoroutine = coroutineScope.async {
-            purchaseInfoCollection.map { purchaseInfo ->
-                purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection.map { it.purchase }
-                    .toList())
-            }
-        }
-
-        purchaseSaveCoroutine.await()
+        purchaseController.savePurchases(purchases, callback)
     }
 
     BackHandler {
@@ -168,13 +179,13 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     Box {
 
         BottomSheetScaffold(
-            sheetBackgroundColor = if(!isEditable!!){
+            sheetBackgroundColor = if (!isEditable!!) {
                 background_card
-            }else {
+            } else {
                 text_primary
             },
             sheetContent = {
-                if(!isEditable!!){
+                if (!isEditable!!) {
                     Column(
                         Modifier
                             .fillMaxWidth()
@@ -238,7 +249,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                                             indexInfo
                                         )
 
-                                        if(purchaseEdit.purchase.discount > 0){
+                                        if (purchaseEdit.purchase.discount > 0) {
                                             isCheck = true
                                         }
                                     } else {
@@ -259,15 +270,21 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     title = {},
                     actions = {
                         IconButton(onClick = {
-                            if (countProduct > 0 ) {
-                                coroutineScope.launch {
-                                    if(isEditable){
-                                        updatePurchase()
-                                    }else{
-                                        savePurchases()
+                            if (countProduct > 0) {
+                                val callback = object : Callback {
+                                    override fun onSuccess() {
+                                        navController!!.popBackStack()
                                     }
 
-                                    navController!!.popBackStack()
+                                    override fun onFailed(messageError: String) {
+                                        super.onFailed(messageError)
+                                    }
+                                }
+
+                                if (isEditable) {
+                                    updatePurchase(callback)
+                                } else {
+                                    savePurchases(callback)
                                 }
                             }
                         }) {
@@ -315,16 +332,21 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                                 registerTextFieldViewModel.onChangeProduct(newValue)
                             }
                         })
-                    Column(modifier = Modifier
-                        .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally){
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Checkbox(
                                 colors = CheckboxDefaults.colors(checkedColor = primary_dark),
                                 checked = isCheck,
                                 onCheckedChange = {
                                     isCheck = !isCheck
 
-                                    if(!isCheck){
+                                    if (!isCheck) {
                                         registerTextFieldViewModel.onChangeDiscountCurrent("")
                                     }
                                 }
@@ -333,7 +355,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                             Text(text = "Desconto", fontFamily = LatoBlack)
                         }
 
-                        if(isCheck){
+                        if (isCheck) {
                             NumberInputComponent(maxChar = 13,
                                 keyboardType = KeyboardType.Number,
                                 value = registerTextFieldViewModel.discount.observeAsState().value,
@@ -402,7 +424,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                         registerTextFieldViewModel.idCardError.observeAsState().value
                     )
 
-                    if(!isEditable){
+                    if (!isEditable) {
                         Button(
                             colors = ButtonDefaults.buttonColors(backgroundColor = primary),
                             modifier = Modifier
@@ -475,8 +497,10 @@ fun CategoryProduct(
                 tint = message_error
             )
         }
-        LazyRow(state = scrollState,
-            modifier = Modifier.padding(start = 8.dp)) {
+        LazyRow(
+            state = scrollState,
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
             categoryCollections.forEachIndexed { index, categoryScope ->
                 if (categoryScope.myShoppingId == categoryChoice) {
                     scope.launch { scrollState.animateScrollToItem(index) }
@@ -742,7 +766,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     var price: MutableLiveData<String> = MutableLiveData("")
     var quantOrKilo: MutableLiveData<String> = MutableLiveData("")
     var locale: MutableLiveData<String> = MutableLiveData("")
-    var idCard: MutableLiveData<Long?> = MutableLiveData(-1)
+    var creditCard: MutableLiveData<CreditCard> = MutableLiveData(CreditCard())
     var dateCurrent: MutableLiveData<String> = MutableLiveData("")
     var category: MutableLiveData<Long> = MutableLiveData(null)
     var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -776,7 +800,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         typeProduct.value = purchase.typeProduct
         locale.value = purchase.locale
         dateCurrent.value = purchase.date
-        idCard.value = purchase.purchaseCardId
+        creditCard.value!!.myShoppingId = purchase.purchaseCardId
         quantOrKilo.value = purchase.quantiOrKilo
 
         index.value = newIndex
@@ -794,7 +818,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         localeError.value = locale.value!!.isBlank()
 
-        idCardError.value = idCard.value == -1L
+        idCardError.value = creditCard.value!!.myShoppingId == -1L
 
         typeCategoryError.value = category.value == null
 
@@ -809,7 +833,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         if (locale.value!!.isBlank()) return false
 
-        if (idCard.value == -1L) return false
+        if (creditCard.value!!.myShoppingId == -1L) return false
 
         if (category.value == null) return false
 
@@ -840,7 +864,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }
     }
 
-    fun onChangeDiscountCurrent(discount: String){
+    fun onChangeDiscountCurrent(discount: String) {
         this.discount.value = discount
     }
 
@@ -895,7 +919,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         val purchase = Purchase(
             product.value!!,
             locale.value!!,
-            idCard.value!!,
+            creditCard.value!!.myShoppingId,
             quantOrKilo.value!!,
             typeProduct.value!!,
             dateCurrent.value!!,
@@ -905,9 +929,9 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             category.value!!,
             email,
             MaskUtils.convertValueStringToDouble(
-                if(discount.value!!.isNotBlank()) {
+                if (discount.value!!.isNotBlank()) {
                     discount.value!!
-                }else{
+                } else {
                     "0.0"
                 }
             )
@@ -979,9 +1003,9 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         localeError.value = newLocale.isBlank()
     }
 
-    fun onChangeIdCard(newIdCard: Long?) {
-        idCard.value = newIdCard
-        idCardError.value = newIdCard == -1L
+    fun onChangeCreditCard(newCreditCard: CreditCard?) {
+        creditCard.value = newCreditCard
+        idCardError.value = newCreditCard!!.myShoppingId == -1L
     }
 
     fun onChangeIsBlock(newIsBlock: Boolean) {

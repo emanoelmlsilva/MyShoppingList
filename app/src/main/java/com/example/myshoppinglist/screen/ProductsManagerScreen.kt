@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
@@ -49,13 +50,15 @@ import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.PositionDialog
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.model.PurchaseInfo
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
@@ -63,6 +66,7 @@ import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MaskUtils.convertValueDoubleToString
 import kotlinx.coroutines.*
 import java.util.*
+import kotlin.collections.HashMap
 
 val TAG = "ProductsManagerScreen"
 
@@ -73,38 +77,31 @@ fun ProductsManagerScreen(navController: NavController?) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val productManagerFieldViewModel: ProductManagerFieldViewModel =
-        ProductManagerFieldViewModel(context)
-    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
+        ProductManagerFieldViewModel(context, lifecycleOwner)
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00") }
     var visibleAnimation by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        creditCardViewModel.getAll()
-        productManagerFieldViewModel.mountObejctSearchDatabase(ObjectFilter())
-    }
+        productManagerFieldViewModel.creditCardController.findAllDB().observe(lifecycleOwner) {
 
-//    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) { creditCardCollection ->
-//        productManagerFieldViewModel.onChangeCardCreditCollection(creditCardCollection.map { creditCard ->
-//            CreditCardDTODB().fromCreditCardDTO(
-//                creditCard
-//            )
-//        })
-//    }
-
-    productManagerFieldViewModel.purchaseViewModel.searchPurchaseAndCategory.observe(lifecycleOwner) {
-        quantityPurchases =
-            if (it.size > 100) it.size.toString() else if (it.size < 10) "00${it.size}" else "0${it.size}"
-
-        productManagerFieldViewModel.onChangePurchaseInfoCollection(mountItemPurchase(it))
-    }
-
-    productManagerFieldViewModel.purchaseViewModel.searchSumPriceResult.observe(lifecycleOwner) {
-        valueSum = it
+            productManagerFieldViewModel.onChangeCardCreditCollection(
+                it.map { creditCard -> CreditCardDTODB().fromCreditCardDTODB(creditCard) }
+            )
+        }
+        productManagerFieldViewModel.getSearchPurchase(ObjectFilter())
     }
 
     productManagerFieldViewModel.visibleAnimation.observe(lifecycleOwner) {
         visibleAnimation = it
+    }
+
+    productManagerFieldViewModel.valueSum.observe(lifecycleOwner) {
+        valueSum = it
+    }
+
+    productManagerFieldViewModel.quantityPurchases.observe(lifecycleOwner) {
+        quantityPurchases = it
     }
 
     Surface(
@@ -194,8 +191,7 @@ fun SearchProduct(
             }
         }
 
-        productManagerFieldViewModel.mountObejctSearchDatabase(filter)
-
+        productManagerFieldViewModel.getSearchPurchase(filter)
     }
 
     productManagerFieldViewModel.product.observe(lifecycleOwner) {
@@ -264,7 +260,7 @@ fun SearchProduct(
 
                             filter = value
 
-                            productManagerFieldViewModel.mountObejctSearchDatabase(filter)
+                            productManagerFieldViewModel.getSearchPurchase(filter)
                         }
                     })
                 Column(
@@ -304,7 +300,7 @@ fun SearchProduct(
                                         if (product.value.isNotBlank()) {
                                             filter.textCollection.add(product.value.trim())
 
-                                            productManagerFieldViewModel.mountObejctSearchDatabase(
+                                            productManagerFieldViewModel.getSearchPurchase(
                                                 filter
                                             )
                                             listProductText.add(product.value.trim())
@@ -443,7 +439,7 @@ fun BoxPurchaseItems(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 20.dp),
-        callback = object : VisibleCallback() {
+        callback = object : VisibleCallback {
             override fun onChangeVisible(visible: Boolean) {
                 productManagerFieldViewModel.onChangeVisibleAnimation(visible)
             }
@@ -542,7 +538,7 @@ fun BoxPurchaseItems(
                                         horizontalArrangement = Arrangement.End,
                                         verticalAlignment = Alignment.Bottom,
                                         modifier = Modifier
-                                                .fillMaxWidth(.75f)
+                                            .fillMaxWidth(.75f)
                                     ) {
                                         Text(
                                             fontFamily = LatoRegular,
@@ -697,24 +693,27 @@ fun AlertDialogFilter(
     var idCardCredit by remember { mutableStateOf(0L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
     var creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
-    val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
 
     LaunchedEffect(Unit) {
         keyboardController.hide()
-        categoryViewModel.getAll()
     }
 
-//    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-//        categoryCollections.removeAll(categoryCollections)
-//        categoryCollections.addAll(it)
-//    }
+    productManagerFieldViewModel.categoryController.getAllDB().observe(lifecycleOwner) {
+        categoryCollections.removeAll(categoryCollections)
+        categoryCollections.addAll(it)
+    }
 
-    productManagerFieldViewModel.cardCreditCollection.observe(lifecycleOwner) {
-        if (it.isNotEmpty()) {
-            creditCardDTOCollection.removeAll(creditCardDTOCollection)
-            creditCardDTOCollection.addAll(it)
+    productManagerFieldViewModel.creditCardController.findAllDB()
+        .observe(lifecycleOwner) {
+            if (it.isNotEmpty()) {
+                creditCardDTOCollection.removeAll(creditCardDTOCollection)
+                creditCardDTOCollection.addAll(it.map { creditCard ->
+                    CreditCardDTODB().fromCreditCardDTODB(
+                        creditCard
+                    )
+                })
+            }
         }
-    }
 
     LaunchedEffect(key1 = filter.cardFilter.id) {
         idCardCredit = filter.cardFilter.id
@@ -1120,7 +1119,7 @@ fun ChoiceData(
     callback: Callback
 ) {
     val context = LocalContext.current
-    val purchaseViewModel = PurchaseViewModel(context)
+    val purchaseViewModel = PurchaseViewModelDB(context)
     var expanded by remember { mutableStateOf(false) }
     var splitDataCurrent = if (dataCurrent.isNotBlank()) dataCurrent.split("-") else listOf()
     var yearCurrent by remember { mutableStateOf(if (splitDataCurrent.isNotEmpty()) splitDataCurrent[0] else "") }
@@ -1150,21 +1149,21 @@ fun ChoiceData(
         purchaseViewModel.getMonthDistinctByIdCard(idCard)
     }
 
-    purchaseViewModel.searchResultMonths.observe(lifecycleOwner) { it ->
-        dataCollection.removeAll(dataCollection)
-        dataCollection.addAll(it)
-
-        dateMonthAndYear.entries.removeAll(dateMonthAndYear.entries)
-
-        dateMonthAndYear.putAll(splitMonthOfYead())
-        yearCurrent = ""
-        monthCurrent = ""
-
-        if (it.isNotEmpty()) {
-            yearCurrent = dateMonthAndYear.keys.toList()[0]
-            monthCurrent = if (splitDataCurrent.isNotEmpty()) splitDataCurrent[1] else ""
-        }
-    }
+//    purchaseViewModel.searchResultMonths.observe(lifecycleOwner) { it ->
+//        dataCollection.removeAll(dataCollection)
+//        dataCollection.addAll(it)
+//
+//        dateMonthAndYear.entries.removeAll(dateMonthAndYear.entries)
+//
+//        dateMonthAndYear.putAll(splitMonthOfYead())
+//        yearCurrent = ""
+//        monthCurrent = ""
+//
+//        if (it.isNotEmpty()) {
+//            yearCurrent = dateMonthAndYear.keys.toList()[0]
+//            monthCurrent = if (splitDataCurrent.isNotEmpty()) splitDataCurrent[1] else ""
+//        }
+//    }
 
     Column {
         Spacer(Modifier.size(24.dp))
@@ -1247,14 +1246,19 @@ fun ChoiceData(
     }
 }
 
-class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
-    val purchaseViewModel = PurchaseViewModel(context)
+class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) :
+    BaseFieldViewModel() {
     val product: MutableLiveData<String> = MutableLiveData("")
     var cardCreditCollection: MutableLiveData<List<CreditCardDTODB>> =
         MutableLiveData(mutableListOf())
     var visibleAnimation: MutableLiveData<Boolean> = MutableLiveData(true)
     var purchaseInfoCollection: MutableLiveData<List<PurchaseInfo>> =
         MutableLiveData(mutableListOf())
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+    val purchaseController = PurchaseController.getData(context, lifecycleOwner)
+    val valueSum: MutableLiveData<Double> = MutableLiveData(0.0)
+    val quantityPurchases: MutableLiveData<String> = MutableLiveData("00")
 
     fun onChangePurchaseInfoCollection(newPurchaseInfoCollection: List<PurchaseInfo>) {
         purchaseInfoCollection.value = newPurchaseInfoCollection
@@ -1276,20 +1280,20 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         TODO("Not yet implemented")
     }
 
-    fun mountObejctSearchDatabase(objectFilter: ObjectFilter) {
+    private fun mountObjectSearchDatabase(objectFilter: ObjectFilter): Result {
 
         var nameFields: String = ""
-        var collectionSeach: MutableList<Any> = mutableListOf()
+        var collectionSearch: MutableList<Any> = mutableListOf()
 
         if (objectFilter.textCollection.isNotEmpty()) {
 
-            if (collectionSeach.isNotEmpty()) {
+            if (collectionSearch.isNotEmpty()) {
                 nameFields += " AND "
             }
 
             objectFilter.textCollection.forEachIndexed { index, product ->
                 nameFields += "name LIKE '%' || ? || '%'"
-                collectionSeach.add(product.trim())
+                collectionSearch.add(product.trim())
 
                 if (objectFilter.textCollection.size > 1 && index < objectFilter.textCollection.size - 1) {
                     nameFields += " OR "
@@ -1298,46 +1302,46 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         }
 
         if (objectFilter.priceMin != null && objectFilter.priceMin!! >= 0) {
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
             nameFields += "price >= ?"
-            collectionSeach.add(objectFilter.priceMin!!)
+            collectionSearch.add(objectFilter.priceMin!!)
         }
 
         if (objectFilter.priceMax != null && objectFilter.priceMax!! >= 0) {
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
             nameFields += "price <= ?"
-            collectionSeach.add(objectFilter.priceMax!!)
+            collectionSearch.add(objectFilter.priceMax!!)
         }
 
         if (objectFilter.idCard > 0) {
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
             nameFields += "purchaseCardId =?"
-            collectionSeach.add(objectFilter.idCard)
+            collectionSearch.add(objectFilter.idCard)
         }
 
         if (objectFilter.month.isNotBlank()) {
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
             nameFields += "date LIKE '%' || ? || '%'"
-            collectionSeach.add(objectFilter.month)
+            collectionSearch.add(objectFilter.month)
         }
 
         if (objectFilter.categoryCollection.size > 0) {
 
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
 
             objectFilter.categoryCollection.forEachIndexed { index, category ->
                 nameFields += "categoryOwnerId = ?"
-                collectionSeach.add(category.myShoppingId)
+                collectionSearch.add(category.myShoppingId)
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     nameFields += " OR "
@@ -1346,21 +1350,43 @@ class ProductManagerFieldViewModel(context: Context) : BaseFieldViewModel() {
         }
 
         if (objectFilter.cardFilter.nickName.isNotBlank()) {
-            if (collectionSeach.size > 0) {
+            if (collectionSearch.size > 0) {
                 nameFields += " AND "
             }
 
             nameFields += "purchaseCardId = ?"
-            collectionSeach.add(objectFilter.cardFilter.id)
+            collectionSearch.add(objectFilter.cardFilter.id)
         }
 
-//        purchaseViewModel.getPurchasesOfSearch(
-//            collectionSeach,
-//            nameFields,
-//            if (objectFilter.textCollection.size > 0) "GROUP BY purchases.idPruchase" else ""
-//        )
-//
-//        purchaseViewModel.getPurchasesSumOfSearch(collectionSeach, nameFields)
+        return Result(nameFields, collectionSearch)
     }
+
+    fun getSearchPurchase(objectFilter: ObjectFilter): List<PurchaseAndCategory> {
+
+        val result = mountObjectSearchDatabase(objectFilter)
+
+        val searchPurchases = purchaseController.getPurchasesOfSearchDB(
+            result.collectionSearch,
+            result.nameFields,
+            if (objectFilter.textCollection.size > 0) "GROUP BY purchases.myShoppingId" else ""
+        )
+
+        onChangePurchaseInfoCollection(mountItemPurchase(searchPurchases))
+
+        quantityPurchases.value =
+            if (searchPurchases.size > 100) searchPurchases.size.toString() else if (searchPurchases.size < 10) "00${searchPurchases.size}" else "0${searchPurchases.size}"
+
+
+        getSumOfSearchPurchase(result)
+
+        return searchPurchases
+    }
+
+    private fun getSumOfSearchPurchase(result: Result) {
+        valueSum.value =
+            purchaseController.getPurchasesSumOfSearchDB(result.collectionSearch, result.nameFields)
+    }
+
+    data class Result(val nameFields: String, val collectionSearch: MutableList<Any>)
 
 }
