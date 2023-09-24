@@ -19,9 +19,7 @@ import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.ui.theme.LatoBlack
-import com.example.myshoppinglist.ui.theme.LatoRegular
-import com.example.myshoppinglist.ui.theme.text_primary_light
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
@@ -178,6 +176,21 @@ fun BoxPurchaseHistoryComponent(
                     )
                 }
             }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.8f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Não foi realizada nenhuma compras nos últimos 7 dias.",
+                fontFamily = LatoBlack,
+                color = text_title_secondary,
+                fontSize = 12.sp
+            )
         }
     }
 
