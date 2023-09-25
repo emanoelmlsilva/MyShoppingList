@@ -93,19 +93,6 @@ class ItemListController {
         callback: Callback
     ) {
 
-
-//        if (!isRecover) {
-//            itemListService.save(itemListDTO).enqueue(object : Callback<ItemListDTO> {
-//                override fun onResponse(call: Call<ItemListDTO>, response: Response<ItemListDTO>) {
-//                    itemListViewModel.insertItemList(itemListDTO.toItemList(), callback)
-//                }
-//
-//                override fun onFailure(call: Call<ItemListDTO>, t: Throwable) {
-//                    Log.d(LOG, "error ${t.message}")
-//                    callback.onCancel()
-//                }
-//            })
-//        } else {CallbackObject<List<CreditCardDTO>>
         itemListViewModel.findAndSaveAllItemList(
             idCard,
             object : CallbackObject<List<ItemListDTO>> {
@@ -113,11 +100,6 @@ class ItemListController {
 
                     Log.d(TAG, "saveItemListAll - onSuccess ${itemListCollection.size}")
 
-//                    itemListCollection.toObservable().subscribeBy(
-//                        onNext = { },
-//                        onError = { callback.onCancel() },
-//                        onComplete = {  }
-//                    )
                 }
 
                 override fun onFailed(messageError: String) {
@@ -126,24 +108,4 @@ class ItemListController {
                 }
             })
     }
-
-//    fun saveItemList(
-//        itemListDTO: ItemListDTO,
-//        callback: com.example.myshoppinglist.callback.Callback
-//    ) {
-//        saveItemList(itemListDTO, false, callback)
-//    }
-//
-//
-//    fun saveItemList(itemListDTO: ItemListDTO, isRecover: Boolean) {
-//        saveItemList(itemListDTO, isRecover, object : com.example.myshoppinglist.callback.Callback {
-//            override fun onSuccess() {
-//                super.onSuccess()
-//            }
-//
-//            override fun onCancel() {
-//                super.onCancel()
-//            }
-//        })
-//    }
 }

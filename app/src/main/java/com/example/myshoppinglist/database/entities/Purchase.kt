@@ -48,6 +48,9 @@ class Purchase {
     @ColumnInfo(name = "discount")
     var discount: Double = 0.0
 
+    @ColumnInfo(name = "isSynchronized")
+    var isSynchronized: Boolean = false
+
     constructor(name: String) {
         this.name = name
     }
@@ -155,6 +158,37 @@ class Purchase {
         discount
     ) {
         this.myShoppingId = myShoppingId
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        myShoppingId: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double,
+        isSynchronized: Boolean
+    ) : this(
+        idMyShoppingApi,
+        myShoppingId,
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId,
+        discount
+    ) {
+        this.isSynchronized = isSynchronized
     }
 
     override fun toString(): String {

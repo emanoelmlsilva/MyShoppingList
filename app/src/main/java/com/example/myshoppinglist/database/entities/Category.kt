@@ -3,12 +3,10 @@ package com.example.myshoppinglist.database.entities
 import androidx.compose.ui.graphics.toArgb
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.ui.theme.card_red_dark
 import com.google.gson.annotations.SerializedName
 import com.squareup.moshi.JsonClass
-import org.jetbrains.annotations.NotNull
 
 @JsonClass(generateAdapter = true)
 @Entity(tableName = "category")
@@ -34,6 +32,8 @@ class Category{
     @ColumnInfo(name = "categoryUserId")
     var categoryUserId: String = ""
 
+    @ColumnInfo(name = "isSynchronized")
+    var isSynchronized: Boolean = false
 
     constructor(): super(){
     }
@@ -58,6 +58,10 @@ class Category{
 
     constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int):this(emailUser, idMyShoppingApi, category, idImage, color){
         this.myShoppingId = id
+    }
+
+    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int, isSynchronized: Boolean):this(emailUser, idMyShoppingApi, id, category, idImage, color){
+        this.isSynchronized = isSynchronized
     }
 
     override fun toString(): String {
