@@ -15,6 +15,8 @@ class ItemListDTO() {
     var categoryOwnerIdItem: Long = 0
     @SerializedName("creditCardOwnerIdItem")
     var creditCardOwnerIdItem: Long = 0
+    @SerializedName("isSynchronized")
+    var isSynchronized: Boolean = false
 
     fun toItemListDTO(itemList: ItemList) {
         this.idMyShoppingApi = itemList.idMyShoppingApi
@@ -23,6 +25,7 @@ class ItemListDTO() {
         this.isRemoved = itemList.isRemoved
         this.categoryOwnerIdItem = itemList.categoryOwnerIdItem
         this.creditCardOwnerIdItem = itemList.creditCardOwnerIdItem
+        this.isSynchronized = itemList.isSynchronized
     }
 
     fun toItemList(): ItemList{
@@ -33,6 +36,7 @@ class ItemListDTO() {
         itemList.isRemoved = this.isRemoved
         itemList.categoryOwnerIdItem = this.categoryOwnerIdItem
         itemList.creditCardOwnerIdItem = this.creditCardOwnerIdItem
+        itemList.isSynchronized = this.isSynchronized
         return itemList
     }
 

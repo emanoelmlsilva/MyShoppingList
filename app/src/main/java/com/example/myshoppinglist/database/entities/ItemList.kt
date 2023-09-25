@@ -32,6 +32,9 @@ class ItemList {
     @ColumnInfo(name = "isRemoved")
     var isRemoved: Boolean = false
 
+    @ColumnInfo(name = "isSynchronized")
+    var isSynchronized: Boolean = false
+
     constructor(): super(){
     }
 
@@ -56,6 +59,19 @@ class ItemList {
     ):this(myShoppingId, item, isRemoved, categoryOwnerIdItem, creditCardOwnerIdItem) {
         this.idMyShoppingApi = idMyShoppingApi
     }
+
+    constructor(
+        myShoppingId: Long,
+        idMyShoppingApi: Long,
+        item: String,
+        categoryOwnerIdItem: Long,
+        creditCardOwnerIdItem: Long,
+        isRemoved: Boolean,
+        isSynchronized: Boolean
+    ):this(idMyShoppingApi,myShoppingId, item, isRemoved, categoryOwnerIdItem, creditCardOwnerIdItem) {
+        this.isSynchronized = isSynchronized
+    }
+
 
     override fun toString(): String {
         return "ItemList(myShoppingId=$myShoppingId, item='$item', categoryOwnerIdItem=$categoryOwnerIdItem, creditCardOwnerIdItem=$creditCardOwnerIdItem, isRemoved=$isRemoved)"

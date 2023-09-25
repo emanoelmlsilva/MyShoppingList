@@ -12,6 +12,8 @@ import com.example.myshoppinglist.database.entities.relations.ItemListAndCategor
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.repository.ItemListRepository
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class ItemListViewModel(
     private val itemListRepository: ItemListRepository,
@@ -20,11 +22,11 @@ class ItemListViewModel(
 
     private val TAG = "ItemListViewModel"
 
-    fun deleteItemListDB(itemList: ItemList, callback: Callback){
+    fun deleteItemListDB(itemList: ItemList, callback: Callback) {
         itemListViewModelDB.deleteItemList(itemList, callback)
     }
 
-    fun getAllWithCategoryDB(idCard: Long): LiveData<List<ItemListAndCategory>>{
+    fun getAllWithCategoryDB(idCard: Long): LiveData<List<ItemListAndCategory>> {
         return itemListViewModelDB.getAllWithCategory(idCard)
     }
 
@@ -41,7 +43,17 @@ class ItemListViewModel(
             val result = try {
                 itemListRepository.save(itemList)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -53,6 +65,26 @@ class ItemListViewModel(
 
                     itemListViewModelDB.insertItemList(
                         itemListResponse.toItemList(),
+                        object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError =
+                                    (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                is ResultData.NotConnectionService -> {
+                    val itemListData = result.data.toItemList()
+
+                    itemListViewModelDB.insertItemList(
+                        itemListData,
                         object : Callback {
                             override fun onSuccess() {
                                 callback.onSuccess()
@@ -80,12 +112,22 @@ class ItemListViewModel(
         }
     }
 
-    fun update(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>){
+    fun update(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
         viewModelScope.launch {
             val result = try {
                 itemListRepository.update(itemList)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -98,6 +140,26 @@ class ItemListViewModel(
 
                     itemListViewModelDB.updateItemList(
                         itemListResponse.toItemList(),
+                        object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError =
+                                    (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                is ResultData.NotConnectionService -> {
+                    val itemListData = result.data.toItemList()
+
+                    itemListViewModelDB.updateItemList(
+                        itemListData,
                         object : Callback {
                             override fun onSuccess() {
                                 callback.onSuccess()
