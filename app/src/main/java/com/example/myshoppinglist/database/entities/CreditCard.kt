@@ -1,4 +1,5 @@
 package com.example.myshoppinglist.database.entities
+
 import androidx.compose.ui.graphics.toArgb
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -54,6 +55,9 @@ class CreditCard {
     @ColumnInfo(name = "position", defaultValue = 0.toString())
     var position: Int = 0
 
+    @ColumnInfo(name = "isSynchronized")
+    var isSynchronized: Boolean = false
+
     constructor()
 
     constructor(
@@ -87,17 +91,18 @@ class CreditCard {
         cardUserId: String,
         flag: Int,
         position: Int
+    ) : this(
+        holderName,
+        cardName,
+        value,
+        colorCard,
+        typeCard,
+        cardUserId,
+        flag,
+        position
     ) {
         this.myShoppingId = myShoppingId
         this.idMyShoppingApi = idMyShoppingApi
-        this.holderName = holderName
-        this.cardName = cardName
-        this.value = value
-        this.colorCard = colorCard
-        this.typeCard = typeCard
-        this.cardUserId = cardUserId
-        this.flag = flag
-        this.position = position
     }
 
     constructor(
@@ -110,16 +115,42 @@ class CreditCard {
         cardUserId: String,
         flag: Int,
         position: Int
-    ) {
+    ) : this(
+        holderName,
+        cardName,
+        value,
+        colorCard,
+        typeCard,
+        cardUserId,
+        flag,
+        position
+    )  {
         this.idMyShoppingApi = idMyShoppingApi
-        this.holderName = holderName
-        this.cardName = cardName
-        this.value = value
-        this.colorCard = colorCard
-        this.typeCard = typeCard
-        this.cardUserId = cardUserId
-        this.flag = flag
-        this.position = position
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        holderName: String,
+        cardName: String,
+        value: Float,
+        colorCard: Int,
+        typeCard: TypeCard,
+        cardUserId: String,
+        flag: Int,
+        position: Int,
+        isSynchronized: Boolean
+    ) : this(
+        idMyShoppingApi,
+        holderName,
+        cardName,
+        value,
+        colorCard,
+        typeCard,
+        cardUserId,
+        flag,
+        position
+    ) {
+        this.isSynchronized = isSynchronized
     }
 
     override fun toString(): String {

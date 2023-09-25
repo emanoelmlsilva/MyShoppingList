@@ -50,10 +50,6 @@ class CategoryController {
         }
     }
 
-//    fun getCategoryService() : CategoryService{
-//        return categoryService
-//    }
-
     fun getAllDB(): LiveData<List<Category>> {
         return categoryViewModel.getAllDB()
     }
@@ -72,39 +68,8 @@ class CategoryController {
 
         categoryViewModel.save(categoryDTO, callback)
 
-
-//        if(!isRecover){
-//            categoryService.save(userWithCategory).enqueue(object : Callback<UserWithCategory> {
-//                override fun onResponse(
-//                    call: Call<UserWithCategory>,
-//                    response: Response<UserWithCategory>
-//                ) {
-//                    categoryViewModel.insertCategory(userWithCategory.toCategoryId(), callback)
-//                }
-//
-//                override fun onFailure(call: Call<UserWithCategory>, t: Throwable) {
-//                    Log.d(LOG, "error ${t.message}")
-//                    callback.onCancel()
-//                }
-//            })
-//        }else{
-//            categoryViewModel.insertCategory(userWithCategory.toCategoryId(), callback)
-//        }
     }
 
-    //
-//    fun saveCategory(userWithCategory: UserWithCategory, isRecover: Boolean = false){
-//        saveCategory(userWithCategory, isRecover, object : com.example.myshoppinglist.callback.Callback{
-//            override fun onCancel() {
-//                super.onCancel()
-//            }
-//
-//            override fun onSuccess() {
-//                super.onSuccess()
-//            }
-//        })
-//    }
-//
     fun updateCategory(categoryDTO: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
 
         UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
