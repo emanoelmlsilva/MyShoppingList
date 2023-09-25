@@ -13,6 +13,8 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class PurchaseViewModel(
     private val purchaseRepository: PurchaseRepository,
@@ -73,7 +75,17 @@ class PurchaseViewModel(
             val result = try {
                 purchaseRepository.save(purchase)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(purchase)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(purchase)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -84,6 +96,25 @@ class PurchaseViewModel(
                     purchaseResponse.category = purchase.category
 
                     purchaseViewModelDB.insertPurchase(purchaseResponse.toPurchase(),
+                        object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError =
+                                    (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                is ResultData.NotConnectionService -> {
+                    val purchaseData = result.data.toPurchase()
+
+                    purchaseViewModelDB.insertPurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
                                 callback.onSuccess()
@@ -115,7 +146,17 @@ class PurchaseViewModel(
             val result = try {
                 purchaseRepository.update(purchase)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(purchase)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(purchase)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -127,6 +168,24 @@ class PurchaseViewModel(
                     purchaseResponse.myShoppingId = purchase.myShoppingId
 
                     purchaseViewModelDB.updatePurchase(purchaseResponse.toPurchase(),
+                        object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError = (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                is ResultData.NotConnectionService -> {
+                    val purchaseData = result.data.toPurchase()
+
+                    purchaseViewModelDB.updatePurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
                                 callback.onSuccess()
@@ -201,11 +260,36 @@ class PurchaseViewModel(
                 val result = try {
                     purchaseRepository.delete(idPurchaseApi)
                 } catch (e: Exception) {
-                    ResultData.Error(e)
+                    when (e) {
+                        is ConnectException -> {
+                            ResultData.NotConnectionService(idPurchaseApi)
+                        }
+                        is SocketTimeoutException -> {
+                            ResultData.NotConnectionService(idPurchaseApi)
+                        }
+                        else -> {
+                            ResultData.Error(e)
+                        }
+                    }
                 }
 
                 when (result) {
                     is ResultData.Success -> {
+                        purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError = (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                    }
+                    is ResultData.NotConnectionService ->  {
 
                         purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
                             override fun onSuccess() {
