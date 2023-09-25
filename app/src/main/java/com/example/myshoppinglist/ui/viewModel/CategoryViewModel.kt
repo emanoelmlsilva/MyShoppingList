@@ -12,6 +12,8 @@ import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.repository.CategoryRepository
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class CategoryViewModel(
     private val categoryRepository: CategoryRepository,
@@ -70,7 +72,17 @@ class CategoryViewModel(
             val result = try {
                 categoryRepository.save(categoryDTO)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(categoryDTO)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(categoryDTO)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -80,6 +92,15 @@ class CategoryViewModel(
                     Log.d(TAG, "categoryResponse $categoryResponse")
 
                     categoryViewModelDB.insertCategory(categoryResponse.toCategory())
+
+                    callback.onSuccess()
+                }
+                is ResultData.NotConnectionService -> {
+                    val categoryData = result.data.toCategory()
+
+                    Log.d(TAG, "categoryData $categoryData")
+
+                    categoryViewModelDB.insertCategory(categoryData)
 
                     callback.onSuccess()
                 }
@@ -99,7 +120,17 @@ class CategoryViewModel(
             val result = try {
                 categoryRepository.update(categoryDTO)
             } catch (e: Exception) {
-                ResultData.Error(e)
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(categoryDTO)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(categoryDTO)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
             }
 
             when (result) {
@@ -109,6 +140,15 @@ class CategoryViewModel(
                     Log.d(TAG, "categoryResponse $categoryResponse")
 
                     categoryViewModelDB.updateCategory(categoryDTO.toCategory())
+
+                    callback.onSuccess()
+                }
+                is ResultData.NotConnectionService -> {
+                    val categoryData = result.data.toCategory()
+
+                    Log.d(TAG, "categoryData $categoryData")
+
+                    categoryViewModelDB.updateCategory(categoryData)
 
                     callback.onSuccess()
                 }
