@@ -8,4 +8,6 @@ interface CallbackObject<T> {
 
     fun onFailed(messageError: String){}
 
+    fun onFailedException(exception: Exception){}
+
 }

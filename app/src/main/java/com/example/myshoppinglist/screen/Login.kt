@@ -2,12 +2,11 @@
 
 package com.example.myshoppinglist.screen
 
-import androidx.compose.animation.core.tween
+import ResultData
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -22,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,10 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.components.rememberImeState
+import com.example.myshoppinglist.components.WarningNoConnection
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
@@ -45,6 +46,8 @@ import com.example.myshoppinglist.services.controller.LoadingDataController
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,6 +64,9 @@ fun Login(navController: NavController) {
     var visibleLoading by remember { mutableStateOf(false) }
     val loginViewModel =
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
+    var errorConnection by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var exceptionError by remember { mutableStateOf(Exception()) }
 
     LaunchedEffect(Unit) {
         UserLoggedShared.getInstance(context)
@@ -75,7 +81,11 @@ fun Login(navController: NavController) {
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
+                WarningNoConnection(errorConnection, exceptionError, object : Callback{
+                    override fun onClick() {
+                        errorConnection = false
+                    }
+                })
                 Column(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -139,6 +149,8 @@ fun Login(navController: NavController) {
                                 isCountChar = true,
                                 isMandatory = true,
                                 error = emailError,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { keyboardController?.hide() }),
                                 customOnClick = object : CustomTextFieldOnClick {
                                     override fun onChangeValue(newValue: String) {
                                         email = newValue
@@ -155,6 +167,8 @@ fun Login(navController: NavController) {
                                 isCountChar = true,
                                 isMandatory = true,
                                 error = passwordError,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { keyboardController?.hide() }),
                                 customOnClick = object : CustomTextFieldOnClick {
                                     override fun onChangeValue(newValue: String) {
                                         password = newValue
@@ -194,6 +208,8 @@ fun Login(navController: NavController) {
                                     return@Button
                                 }
 
+                                keyboardController?.hide()
+
                                 visibleLoading = true
 
 
@@ -215,7 +231,7 @@ fun Login(navController: NavController) {
                                                 .loadingData(
                                                     user,
                                                     object :
-                                                        com.example.myshoppinglist.callback.Callback {
+                                                        Callback {
                                                         override fun onSuccess() {
                                                             navController.navigate(Screen.Home.name) {
                                                                 popUpTo(Screen.Home.name) {
@@ -232,10 +248,26 @@ fun Login(navController: NavController) {
                                                     })
                                         }
 
-                                        override fun onFailed(messageError: String) {
+                                        override fun onFailedException(exception: Exception) {
                                             visibleLoading = false
-                                            errorLogin = true
+
+                                            exceptionError = exception
+
+                                            when (exception) {
+                                                is ConnectException -> {
+                                                    errorConnection = true
+                                                    ResultData.NotConnectionService(UserDTO())
+                                                }
+                                                is SocketTimeoutException -> {
+                                                    errorConnection = true
+                                                    ResultData.NotConnectionService(UserDTO())
+                                                }
+                                                else -> {
+                                                    errorLogin = true
+                                                }
+                                            }
                                         }
+
                                     })
 
                             }) {

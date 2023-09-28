@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,8 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.components.WarningNoConnection
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
@@ -40,6 +45,8 @@ import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.LoginViewModel
 import kotlinx.coroutines.*
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -66,6 +73,9 @@ fun Register(navController: NavController) {
 
     val loginViewModel =
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
+    var errorConnection by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var exceptionError by remember { mutableStateOf(Exception()) }
 
     TopAppBarScreen(
         enableScroll = true,
@@ -77,6 +87,11 @@ fun Register(navController: NavController) {
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                WarningNoConnection(errorConnection, exceptionError, object : Callback {
+                    override fun onClick() {
+                        errorConnection = false
+                    }
+                })
 
                 Column(
                     verticalArrangement = Arrangement.Top,
@@ -128,6 +143,8 @@ fun Register(navController: NavController) {
                                 isCountChar = true,
                                 isMandatory = true,
                                 error = emailError,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { keyboardController?.hide() }),
                                 customOnClick = object : CustomTextFieldOnClick {
                                     override fun onChangeValue(newValue: String) {
                                         email = newValue
@@ -147,6 +164,8 @@ fun Register(navController: NavController) {
                                 isCountChar = true,
                                 isMandatory = true,
                                 error = passwordError,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { keyboardController?.hide() }),
                                 customOnClick = object : CustomTextFieldOnClick {
                                     override fun onChangeValue(newValue: String) {
                                         password = newValue
@@ -172,6 +191,8 @@ fun Register(navController: NavController) {
                                 maxChar = 45,
                                 isCountChar = true,
                                 isMandatory = true,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { keyboardController?.hide() }),
                                 error = passwordConfirmError,
                                 customOnClick = object : CustomTextFieldOnClick {
                                     override fun onChangeValue(newValue: String) {
@@ -212,11 +233,13 @@ fun Register(navController: NavController) {
 
                                     loading = true
 
+                                    keyboardController?.hide()
+
                                     val user = UserDTO(email, password)
 
                                     loginViewModel.singUp(
                                         user,
-                                        object : com.example.myshoppinglist.callback.Callback {
+                                        object : CallbackObject<UserDTO> {
                                             override fun onSuccess() {
                                                 Log.d(LOG, "Sucesso ao fazer signUp")
 
@@ -228,13 +251,23 @@ fun Register(navController: NavController) {
                                                 }
                                             }
 
-                                            override fun onFailed(messageError: String) {
+                                            override fun onFailedException(exception: Exception) {
+
+                                                exceptionError = exception
+
+                                                when (exception) {
+                                                    is ConnectException -> {
+                                                        errorConnection = true
+                                                        ResultData.NotConnectionService(UserDTO())
+                                                    }
+                                                    is SocketTimeoutException -> {
+                                                        errorConnection = true
+                                                        ResultData.NotConnectionService(UserDTO())
+                                                    }
+
+                                                }
+
                                                 loading = false
-                                                Toast.makeText(
-                                                    context,
-                                                    messageError,
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
                                             }
                                         })
 

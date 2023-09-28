@@ -47,7 +47,7 @@ class LoginViewModel(private val loginRepository: LoginRepository, private val u
             val result = try {
                 loginRepository.login(email, password)
             } catch (e: Exception) {
-                ResultData.Error(Exception(e.message))
+                ResultData.Error(e)
             }
 
             when (result) {
@@ -64,20 +64,20 @@ class LoginViewModel(private val loginRepository: LoginRepository, private val u
                     val messageError = (result as ResultData.Error).exception.message
 
                     Log.d(LOG, "error $messageError")
-                    callback.onFailed(messageError.toString())
+                    callback.onFailedException(result.exception)
                 }
             }
         }
 
     }
 
-    fun singUp(user: UserDTO, callback: Callback) {
+    fun singUp(user: UserDTO, callback: CallbackObject<UserDTO>) {
         viewModelScope.launch {
 
             val result = try {
                 loginRepository.signUp(user)
             } catch (e: Exception) {
-                ResultData.Error(Exception(e.message))
+                ResultData.Error(e)
             }
 
             when (result) {
@@ -93,7 +93,7 @@ class LoginViewModel(private val loginRepository: LoginRepository, private val u
                     val messageError = (result as ResultData.Error).exception.message
 
                     Log.d(LOG, "error $messageError")
-                    callback.onFailed(messageError.toString())
+                    callback.onFailedException(result.exception)
                 }
             }
         }
