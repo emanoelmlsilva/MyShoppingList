@@ -3,7 +3,6 @@ package com.example.myshoppinglist.screen
 import DialogRegisterItemList
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -22,15 +21,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.ItemListController
+import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
+import com.example.myshoppinglist.utils.MeasureTimeService
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -46,6 +48,9 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
     var creditCardDTO by remember { mutableStateOf(CreditCardDTODB()) }
     val itemListController = ItemListController.getData(context, lifecycleOwner)
     val creditCardController = CreditCardController.getData(context, lifecycleOwner)
+
+    var visibleWaiting by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     fun selectedCheckAll() {
         itemCheckCollection.removeAll(itemCheckCollection)
@@ -73,6 +78,47 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
             }
     }
 
+    val callback = object : CallbackObject<ItemListDTO> {
+        override fun onSuccess(itemListDTO: ItemListDTO) {
+
+            if (visibleWaiting) {
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        getItemListAll()
+                        enabledDialog = false
+                        visibleWaiting = newValue
+                        messageError = MeasureTimeService.messageWaitService
+                    }
+                })
+            } else {
+                getItemListAll()
+                enabledDialog = false
+                messageError = MeasureTimeService.messageWaitService
+            }
+
+        }
+
+        override fun onCancel() {
+            enabledDialog = false
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
+    }
+
     LaunchedEffect(key1 = idCard) {
         getItemListAll()
 
@@ -97,10 +143,10 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                             if (itemCheckCollection.isNotEmpty()) {
                                 val convertList = itemListCollection.map { itemListDTO ->
 
-                                        itemListDTO.creditCardDTO =
-                                            creditCardDTO.fromCreditCardDTO()
+                                    itemListDTO.creditCardDTO =
+                                        creditCardDTO.fromCreditCardDTO()
 
-                                        itemListDTO
+                                    itemListDTO
 
                                 }.filter {
                                     itemCheckCollection.indexOf(
@@ -146,6 +192,8 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
+                WaitingProcessComponent(visibleWaiting, messageError, callback)
+
                 DialogRegisterItemList(
                     context,
                     lifecycleOwner,
@@ -155,14 +203,17 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         override fun onInsert(itemList: ItemListDTO) {
                             itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
-                            itemListController.saveItemList(itemList, object : Callback {
-                                override fun onSuccess() {
-                                    getItemListAll()
-                                    enabledDialog = false
+                            itemListController.saveItemList(itemList, object : CallbackObject<ItemListDTO> {
+                                override fun onSuccess(itemListDTO: ItemListDTO) {
+                                   callback.onSuccess(itemListDTO)
                                 }
 
                                 override fun onCancel() {
                                     super.onCancel()
+                                }
+
+                                override fun onChangeValue(newValue: String) {
+                                    callback.onChangeValue(newValue)
                                 }
                             })
                         }
@@ -170,20 +221,15 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         override fun onUpdate(itemList: ItemListDTO) {
                             itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
-                            itemListController.updateItemList(itemList, object : Callback {
-                                override fun onSuccess() {
-                                    getItemListAll()
-                                    enabledDialog = false
-                                }
-
-                                override fun onCancel() {
-                                    enabledDialog = false
-                                }
-                            })
+                            itemListController.updateItemList(itemList, callback)
                         }
 
                         override fun onClick() {
                             enabledDialog = false
+                        }
+
+                        override fun onChangeValue(newValue: Boolean) {
+                            callback.onChangeValue(newValue)
                         }
                     })
                 BaseAnimationComponent(
@@ -261,8 +307,8 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                                 itemListDTO = itemList,
                                 isCheck = isCheck,
                                 isMarket = false,
+                                hasOptionEdit = true,
                                 isRemoved = itemList.isRemoved,
-                                sizeCheckCollection = itemCheckCollection.isNotEmpty(),
                                 idItem = itemList.myShoppingId,
                                 category = itemList.categoryDTO.toCategory(),
                                 product = itemList.item,

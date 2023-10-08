@@ -1,8 +1,10 @@
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,7 +15,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
@@ -34,19 +35,19 @@ fun DialogRecoveryItemList(
     var visibleAnimation by remember { mutableStateOf(true) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val itemListViewModel = ItemListViewModelDB(context, lifecycleOwner)
-    val itemListCollection = remember { mutableStateListOf<ItemListAndCategory>() }
+    val itemListCollection = remember { mutableStateListOf<ItemListDTO>() }
     var showDialog by remember { mutableStateOf(enabledDialog) }
     val scope = rememberCoroutineScope()
 
     fun selectedCheckAll() {
         itemCheckCollection.removeAll(itemCheckCollection)
         itemListCollection.forEach {
-            itemCheckCollection.add(it.itemList.myShoppingId)
+            itemCheckCollection.add(it.myShoppingId)
         }
 
     }
 
-    fun cancel(){
+    fun cancel() {
         itemCheckCollection.removeAll(itemCheckCollection)
         showDialog = false
         callback.onChangeValue(false)
@@ -59,18 +60,23 @@ fun DialogRecoveryItemList(
 
     LaunchedEffect(key1 = idCard, key2 = showDialog) {
         if (showDialog) {
-            itemListViewModel.getAllDB(idCard).observe(lifecycleOwner){
-                if (it.isNotEmpty()) {
+            itemListViewModel.getAllDB(idCard).observe(lifecycleOwner) { itemListAndCategory ->
+                if (itemListAndCategory.isNotEmpty()) {
                     itemListCollection.removeAll(itemListCollection)
-                    itemListCollection.addAll(it)
-                    val auxItemListCollection = it
-                    auxItemListCollection.forEach { auxItem ->
-
-                        if (listItemChosen.find { findItem -> findItem.myShoppingId == auxItem.itemList.myShoppingId } != null) {
-                            itemListCollection.remove(auxItem)
+                    itemListCollection.addAll(itemListAndCategory.map {
+                        ItemListDTO(
+                            it.itemList,
+                            it.category
+                        )
+                    })
+                    val auxItemListCollection = ArrayList(itemListCollection)
+                    itemListCollection.forEach { auxItem ->
+                        if (listItemChosen.find { findItem -> findItem.myShoppingId == auxItem.myShoppingId } != null) {
+                            auxItemListCollection.remove(auxItem)
                         }
                     }
-
+                    itemListCollection.removeAll(itemListCollection)
+                    itemListCollection.addAll(auxItemListCollection)
                 }
             }
         }
@@ -88,7 +94,6 @@ fun DialogRecoveryItemList(
                 .padding(top = 28.dp), verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-
                 BaseAnimationComponent(
                     visibleAnimation = visibleAnimation,
                     contentBase = {
@@ -154,35 +159,37 @@ fun DialogRecoveryItemList(
                         visibleAnimation = visible
                     }
                 }, content = {
-//                    itemsIndexed(itemListCollection) { index, itemListAndCategory ->
-//                        val itemListCurrent = itemListAndCategory.itemList
-//                        val isCheck = itemCheckCollection.indexOf(itemListCurrent.id) != -1
-//                        SlidingItemListComponent(
-//                            context = context,
-//                            itemListAndCategory = itemListAndCategory,
-//                            isCheck = isCheck,
-//                            isMarket = false,
-//                            isRemoved = itemListCurrent.isRemoved,
-//                            sizeCheckCollection = itemCheckCollection.isNotEmpty(),
-//                            idItem = itemListCurrent.id,
-//                            category = itemListAndCategory.category,
-//                            product = itemListAndCategory.itemList.item,
-//                            backgroundColor = if (index % 2 == 0) background_card_gray_light else background_card_light,
-//                            callback = object : CallbackItemList {
-//                                override fun onChangeValue(idCard: Long) {
-//                                    val isChecked = itemCheckCollection.indexOf(idCard) != -1
-//                                    checkAll = if (isChecked) {
-//                                        itemCheckCollection.remove(idCard)
-//                                        false
-//                                    } else {
-//                                        itemCheckCollection.add(idCard)
-//                                        itemCheckCollection.size == itemListCollection.size
-//
-//                                    }
-//                                }
-//                            }
-//                        )
-//                    }
+                    itemsIndexed(itemListCollection) { index, itemListService ->
+                        val isCheck = itemCheckCollection.indexOf(itemListService.id) != -1
+                        SlidingItemListComponent(
+                            context = context,
+                            itemListDTO = itemListService,
+                            isCheck = isCheck,
+                            hasOptionEdit = false,
+                            isMarket = false,
+                            isRemoved = itemListService.isRemoved,
+                            idItem = if (itemListService.id == 0L) itemListService.myShoppingId else itemListService.id,
+                            category = itemListService.categoryDTO.toCategory(),
+                            product = itemListService.item,
+                            callback = object : CallbackItemList {
+                                override fun onUpdate(itemList: ItemListDTO) {
+                                    TODO("Not yet implemented")
+                                }
+
+                                override fun onChangeValue(idItem: Long) {
+                                    val isChecked = itemCheckCollection.indexOf(idItem) != -1
+                                    checkAll = if (isChecked) {
+                                        itemCheckCollection.remove(idItem)
+                                        false
+                                    } else {
+                                        itemCheckCollection.add(idItem)
+                                        itemCheckCollection.size == itemListCollection.size
+
+                                    }
+                                }
+                            }
+                        )
+                    }
                 })
 
             }
@@ -191,9 +198,23 @@ fun DialogRecoveryItemList(
                 modifierButton = Modifier.padding(start = 16.dp, end = 16.dp),
                 btnTextAccept = "ADICIONAR",
                 onClickAccept = {
-                    if(itemCheckCollection.isNotEmpty()){
+                    if (itemCheckCollection.isNotEmpty()) {
                         scope.launch {
-                            callback.onUpdateListAndCategory(itemListCollection.filter { itemChoice -> itemCheckCollection.find { itemCheck -> itemChoice.itemList.myShoppingId == itemCheck } != null })
+
+                            val listUpdate = itemListCollection.filter { itemChoice ->
+                                itemCheckCollection.find { itemCheck ->
+
+                                    val idItem =
+                                        if (itemChoice.id == 0L) itemChoice.myShoppingId else itemChoice.id
+                                    return@find idItem == itemCheck
+
+                                } != null
+                            }
+                            Log.d(
+                                "TESTANDO",
+                                "LISTA ${listUpdate}"
+                            )
+                            callback.onUpdate(listUpdate)
                         }.invokeOnCompletion {
                             cancel()
                         }

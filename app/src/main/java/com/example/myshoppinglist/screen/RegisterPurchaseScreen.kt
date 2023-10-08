@@ -39,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
@@ -55,11 +56,13 @@ import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
 
 @ExperimentalAnimationApi
@@ -86,6 +89,9 @@ fun RegisterPurchaseScreen(
     val coroutineScope = rememberCoroutineScope()
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
+
+    var visibleWaiting by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     LaunchedEffect(key1 = idCardCurrent) {
         creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner){
@@ -163,6 +169,43 @@ fun RegisterPurchaseScreen(
         ) }) }
 
         purchaseController.savePurchases(purchases, callback)
+    }
+
+    val callback = object : CallbackObject<ItemListDTO> {
+        override fun onSuccess() {
+
+            if (visibleWaiting) {
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        navController!!.popBackStack()
+                        visibleWaiting = newValue
+                        messageError = MeasureTimeService.messageWaitService
+                    }
+                })
+            } else {
+                navController!!.popBackStack()
+            }
+
+        }
+
+        override fun onCancel() {
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
     }
 
     BackHandler {
@@ -271,15 +314,7 @@ fun RegisterPurchaseScreen(
                     actions = {
                         IconButton(onClick = {
                             if (countProduct > 0) {
-                                val callback = object : Callback {
-                                    override fun onSuccess() {
-                                        navController!!.popBackStack()
-                                    }
-
-                                    override fun onFailed(messageError: String) {
-                                        super.onFailed(messageError)
-                                    }
-                                }
+                                MeasureTimeService.startMeasureTime(callback)
 
                                 if (isEditable) {
                                     updatePurchase(callback)
@@ -319,6 +354,8 @@ fun RegisterPurchaseScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
+                    WaitingProcessComponent(visibleWaiting, messageError, callback)
+
                     TextInputComponent(
                         label = "Produto",
                         value = registerTextFieldViewModel.product.observeAsState().value!!,

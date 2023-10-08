@@ -9,6 +9,8 @@ import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
+import com.example.myshoppinglist.utils.MeasureTimeService
+import com.example.myshoppinglist.utils.MeasureTimeService.startMeasureTime
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -111,6 +113,7 @@ class CreditCardViewModel(
                     callback.onSuccess()
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
                     val creditCardData = result.data.toCreditCard()
 
                     Log.d(TAG, "creditCardData $creditCardData")

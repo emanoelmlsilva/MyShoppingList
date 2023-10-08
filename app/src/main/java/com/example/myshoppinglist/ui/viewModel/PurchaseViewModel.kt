@@ -12,6 +12,7 @@ import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategor
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
+import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -112,6 +113,8 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.insertPurchase(purchaseData,

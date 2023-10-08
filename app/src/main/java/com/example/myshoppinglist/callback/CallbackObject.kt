@@ -1,12 +1,12 @@
 package com.example.myshoppinglist.callback
 
-interface CallbackObject<T> {
+interface CallbackObject<T> : Callback{
 
     fun onSuccess(objects: T){}
 
-    fun onSuccess(){}
+    override fun onSuccess(){}
 
-    fun onFailed(messageError: String){}
+    override fun onFailed(messageError: String){}
 
     fun onFailedException(exception: Exception){}
 

@@ -53,7 +53,7 @@ fun WarningNoConnection(visibility: Boolean, exception: Exception, callback: Cal
     LaunchedEffect(key1 = visibility) {
         if (visibility) {
             scope.launch(context = Dispatchers.Main) {
-                delay(1500L)
+                delay(2000L)
                 callback.onClick()
             }
         }

@@ -107,6 +107,10 @@ class PurchaseController {
                         override fun onFailed(messageError: String) {
                             callback.onFailed(messageError)
                         }
+
+                        override fun onChangeValue(newValue: String) {
+                            callback.onChangeValue(newValue)
+                        }
                     })
                 }
         }

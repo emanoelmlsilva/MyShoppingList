@@ -11,6 +11,7 @@ import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.repository.CategoryRepository
+import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -96,6 +97,8 @@ class CategoryViewModel(
                     callback.onSuccess()
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val categoryData = result.data.toCategory()
 
                     Log.d(TAG, "categoryData $categoryData")
