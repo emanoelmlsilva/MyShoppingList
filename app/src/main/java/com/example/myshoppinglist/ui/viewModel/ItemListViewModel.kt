@@ -161,6 +161,8 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val itemListData = result.data.toItemList()
 
                     itemListViewModelDB.updateItemList(

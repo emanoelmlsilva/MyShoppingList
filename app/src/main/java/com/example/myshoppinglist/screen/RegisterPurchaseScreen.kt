@@ -157,7 +157,12 @@ fun RegisterPurchaseScreen(
 
             purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
 
-//        purchaseController.updatePurchase(purchase, callback)
+            val category = registerTextFieldViewModel.categoryCollection.value!!.find {
+                registerTextFieldViewModel.category.value == it.myShoppingId
+            }
+        purchaseController.updatePurchase(PurchaseDTO(purchase, category!!,
+            registerTextFieldViewModel.creditCard.value!!
+        ), callback)
     }
 
     fun savePurchases(callback: Callback) {
@@ -228,7 +233,7 @@ fun RegisterPurchaseScreen(
                 text_primary
             },
             sheetContent = {
-                if (!isEditable!!) {
+                if (!isEditable) {
                     Column(
                         Modifier
                             .fillMaxWidth()
@@ -344,7 +349,7 @@ fun RegisterPurchaseScreen(
                     elevation = 0.dp
                 )
             },
-            sheetPeekHeight = 78.dp,
+            sheetPeekHeight = if (!isEditable) 78.dp else 0.dp,
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier

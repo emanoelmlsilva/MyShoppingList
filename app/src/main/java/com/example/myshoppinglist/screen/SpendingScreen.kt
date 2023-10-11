@@ -45,12 +45,10 @@ import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.ConversionUtils
-import com.example.myshoppinglist.utils.FormatUtils
-import com.example.myshoppinglist.utils.MaskUtils
+import com.example.myshoppinglist.utils.*
 import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi
@@ -77,12 +75,55 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     var visibilityBackHandler by remember { mutableStateOf(false) }
     val categoryCollection = remember { mutableListOf<Category>() }
 
+    var visibleWaiting by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+
     fun reset() {
         idPurchaseEdit = 0L
         monthCurrent = ""
         price = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
+        messageError = MeasureTimeService.messageWaitService
+    }
+
+    val callback = object : CallbackObject<ItemListDTO> {
+        override fun onSuccess() {
+
+            if (visibleWaiting) {
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        visibilityBackHandler = false
+                        visibleWaiting = false
+                        reset()
+                        reload = true
+                    }
+                })
+            } else {
+                reset()
+                reload = true
+            }
+
+        }
+
+        override fun onCancel() {
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
     }
 
     fun getInforPurchaseByMonth(month: String) {
@@ -117,16 +158,21 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
         idPurchaseEdit = 0L
 
-        creditCardController.findAllDB().observe(lifecycleOwner) {
-            creditCardCollection.removeAll(it)
-            creditCardCollection.addAll(it)
+        if (reload) {
+            creditCardController.findAllDB().observe(lifecycleOwner) {
+                creditCardCollection.removeAll(creditCardCollection)
+                creditCardCollection.addAll(it)
+            }
         }
 
-        creditCardController.findCreditCardByIdDB(idCard).observe(lifecycleOwner) {
-            currentCreditCard = it
+        if (idCard != 0L || reload) {
+            creditCardController.findCreditCardByIdDB(idCard).observe(lifecycleOwner) {
+                currentCreditCard = it
 
+            }
         }
 
+        reload = false
     }
 
     spendingTextFieldViewModel.monthCurrent.observeForever {
@@ -146,25 +192,19 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+
+                WaitingProcessComponent(visibleWaiting, messageError, callback)
+
                 DialogBackCustom(
                     visibilityBackHandler,
                     {
-                        visibilityBackHandler = false
+                        MeasureTimeService.startMeasureTime(callback)
 
                         purchaseController.deletePurchase(
                             purchaseCurrent.idPurchaseApi,
                             purchaseCurrent.myShoppingId,
-                            object : Callback {
-                                override fun onSuccess() {
-                                    reset()
-
-                                    reload = true
-                                }
-
-                                override fun onFailed(messageError: String) {
-                                    super.onFailed(messageError)
-                                }
-                            })
+                            callback
+                        )
 
 
                     },
@@ -186,9 +226,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                         CallbackCreditCard {
                         override fun onChangeValueCreditCard(creditCard: CreditCard) {
                             currentCreditCard = creditCard
-
-//                            monthIdCard(currentCreditCard!!.myShoppingId)
-
                             reset()
 
                         }
@@ -282,6 +319,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     ) {
                                         visibilityDialog = false
                                         if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
+                                            MeasureTimeService.startMeasureTime(callback)
+
                                             val creditCard =
                                                 creditCardCollection.find { it.myShoppingId == idCardCurrent }
 
@@ -297,17 +336,8 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
                                             purchaseController.updatePurchase(
                                                 purchaseDTO,
-                                                object : Callback {
-                                                    override fun onSuccess() {
-                                                        reset()
-                                                        reload = true
-                                                    }
-
-                                                    override fun onFailed(messageError: String) {
-                                                        super.onFailed(messageError)
-                                                    }
-                                                })
-
+                                                callback
+                                            )
 
                                         }
 
@@ -345,10 +375,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                             items(purchaseInfo.purchaseCollection) { purchase ->
                                 BoxPurchaseSpending(purchase, idPurchaseEdit, object : Callback {
                                     override fun onClick() {
-                                        Log.d(
-                                            "TESTANDO",
-                                            "idPurchaseEdit ${idPurchaseEdit}, purchase.purchase.myShoppingId ${purchase.purchase.idPurchaseApi}, TESTE ${idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId}"
-                                        )
                                         idPurchaseEdit =
                                             if (idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId) {
                                                 purchase.purchase.myShoppingId
@@ -442,14 +468,17 @@ fun BoxSpendingFromMonth(
 
             val convertMonthNumberCurrent = FormatUtils().getMonth(monthCurrent)
 
-            callbackCreditCard.onChangeDataMonth(convertMonthNumberCurrent)
+            if(convertMonthNumberCurrent.isNotBlank()){
+
+                callbackCreditCard.onChangeDataMonth(convertMonthNumberCurrent)
+            }
 
         }
 
     }
 
     LaunchedEffect(key1 = currentCreditCard) {
-        if (currentCreditCard != null) monthIdCard(currentCreditCard!!.myShoppingId)
+        if (currentCreditCard != null) monthIdCard(currentCreditCard.myShoppingId)
     }
 
     spendingField.monthCurrent.observeForever {
@@ -564,7 +593,13 @@ fun BoxPurchaseSpending(
                     .asImageBitmap(),
                 size = 46.dp,
                 colorIcon = Color(category.color),
-                enabledBackground = true
+                enabledBackground = true,
+                enableClick = true,
+                callback = object : Callback {
+                    override fun onClick() {
+                        callback.onClick()
+                    }
+                }
             )
             Row(
                 modifier = Modifier
@@ -705,7 +740,7 @@ fun Options(
                 IconButton(modifier = Modifier
                     .padding(end = 4.dp),
                     onClick = {
-                        callback.onEditable(0L)
+                        callback.onEditable(idCard)
                     })
                 {
                     Icon(

@@ -147,6 +147,8 @@ class CategoryViewModel(
                     callback.onSuccess()
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val categoryData = result.data.toCategory()
 
                     Log.d(TAG, "categoryData $categoryData")

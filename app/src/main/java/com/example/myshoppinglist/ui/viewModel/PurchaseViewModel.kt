@@ -186,6 +186,8 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.updatePurchase(purchaseData,
@@ -259,79 +261,63 @@ class PurchaseViewModel(
 
     fun deletePurchase(idPurchaseApi: Long, idPurchase: Long, callback: CallbackObject<Any>) {
         viewModelScope.launch {
-            if (idPurchaseApi.compareTo(0) != 0) {
-                val result = try {
-                    purchaseRepository.delete(idPurchaseApi)
-                } catch (e: Exception) {
-                    when (e) {
-                        is ConnectException -> {
-                            ResultData.NotConnectionService(idPurchaseApi)
-                        }
-                        is SocketTimeoutException -> {
-                            ResultData.NotConnectionService(idPurchaseApi)
-                        }
-                        else -> {
-                            ResultData.Error(e)
-                        }
+            val result = try {
+                purchaseRepository.delete(idPurchaseApi)
+            } catch (e: Exception) {
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(idPurchaseApi)
                     }
-                }
-
-                when (result) {
-                    is ResultData.Success -> {
-                        purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
-                            override fun onSuccess() {
-                                callback.onSuccess()
-                            }
-
-                            override fun onFailed(messageError: String) {
-                                val messageError = (result as ResultData.Error).exception.message
-
-                                Log.d(TAG, "error $messageError")
-
-                                callback.onFailed(messageError.toString())
-                            }
-                        })
-                    }
-                    is ResultData.NotConnectionService ->  {
-
-                        purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
-                            override fun onSuccess() {
-                                callback.onSuccess()
-                            }
-
-                            override fun onFailed(messageError: String) {
-                                val messageError = (result as ResultData.Error).exception.message
-
-                                Log.d(TAG, "error $messageError")
-
-                                callback.onFailed(messageError.toString())
-                            }
-                        })
-
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(idPurchaseApi)
                     }
                     else -> {
-                        val messageError =
-                            (result as ResultData.Error).exception.message
-
-                        Log.d(TAG, "error $messageError")
-
-                        callback.onFailed(messageError.toString())
+                        ResultData.Error(e)
                     }
                 }
-            } else {
-                purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
-                    override fun onSuccess() {
-                        callback.onSuccess()
-                    }
+            }
 
-                    override fun onFailed(messageError: String) {
+            when (result) {
+                is ResultData.Success -> {
+                    purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
+                        override fun onSuccess() {
+                            callback.onSuccess()
+                        }
 
-                        Log.d(TAG, "error $messageError")
+                        override fun onFailed(messageError: String) {
+                            val messageError = (result as ResultData.Error).exception.message
 
-                        callback.onFailed(messageError)
-                    }
-                })
-                callback.onSuccess()
+                            Log.d(TAG, "error $messageError")
+
+                            callback.onFailed(messageError.toString())
+                        }
+                    })
+                }
+                is ResultData.NotConnectionService -> {
+                                                                                                                                                                      callback.onChangeValue(MeasureTimeService.messageNoService)
+
+                    purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
+                        override fun onSuccess() {
+                            callback.onSuccess()
+                        }
+
+                        override fun onFailed(messageError: String) {
+
+                            Log.d(TAG, "error $messageError")
+
+                            callback.onFailed(messageError)
+                        }
+                    })
+
+                }
+                else -> {
+                    val messageError =
+                        (result as ResultData.Error).exception.message
+
+                    Log.d(TAG, "error $messageError")
+
+                    callback.onFailed(messageError.toString())
+                }
             }
         }
     }

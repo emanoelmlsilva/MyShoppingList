@@ -79,6 +79,11 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
     }
 
     val callback = object : CallbackObject<ItemListDTO> {
+
+        override fun onSuccess() {
+            this.onSuccess(ItemListDTO())
+        }
+
         override fun onSuccess(itemListDTO: ItemListDTO) {
 
             if (visibleWaiting) {
@@ -221,7 +226,19 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         override fun onUpdate(itemList: ItemListDTO) {
                             itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
-                            itemListController.updateItemList(itemList, callback)
+                            itemListController.updateItemList(itemList, object : CallbackObject<ItemListDTO> {
+                                override fun onSuccess() {
+                                    callback.onSuccess()
+                                }
+
+                                override fun onCancel() {
+                                    super.onCancel()
+                                }
+
+                                override fun onChangeValue(newValue: String) {
+                                    callback.onChangeValue(newValue)
+                                }
+                            })
                         }
 
                         override fun onClick() {

@@ -99,21 +99,30 @@ fun MakingMarketScreen(
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     val callback = object : CallbackObject<ItemListDTO> {
+        override fun onSuccess() {
+            this.onSuccess(ItemListDTO())
+        }
+
         override fun onSuccess(itemListDTO: ItemListDTO) {
             if (visibleWaiting) {
                 MeasureTimeService.resetMeasureTime(object : Callback {
                     override fun onChangeValue(newValue: Boolean) {
                         messageError = MeasureTimeService.messageWaitService
-                        val marketItem =
-                            MarketItem(
-                                0F,
-                                0F,
-                                "0",
-                                TypeProduct.QUANTITY,
-                                false,
-                                itemListDTO
-                            )
-                        marketItemCollection.add(marketItem)
+                        if(itemListDTO.myShoppingId != 0L){
+                            val marketItem =
+                                MarketItem(
+                                    0F,
+                                    0F,
+                                    "0",
+                                    TypeProduct.QUANTITY,
+                                    false,
+                                    itemListDTO
+                                )
+                            marketItemCollection.add(marketItem)
+                        }else{
+                            visibility = false
+                            navController.popBackStack()
+                        }
                         enabledDialog = false
                         visibleWaiting = false
                         super.onSuccess()
@@ -123,6 +132,10 @@ fun MakingMarketScreen(
                 enabledDialog = false
                 visibleWaiting = false
                 messageError = MeasureTimeService.messageWaitService
+                if(itemListDTO.myShoppingId != 0L){
+                    navController.popBackStack()
+                    visibility = false
+                }
                 super.onSuccess()
             }
         }
@@ -136,7 +149,7 @@ fun MakingMarketScreen(
         }
 
         override fun onClick() {
-            visibleWaiting = false
+            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: Boolean) {
@@ -324,11 +337,8 @@ fun MakingMarketScreen(
                     idCard,
                     marketItemCollection,
                     itemCheckCollection,
-                    object : Callback {
-                        override fun onChangeValue(newValue: Boolean) {
-                            visibility = newValue
-                        }
-                    })
+                    callback
+                )
 
                 DialogRegisterItemList(
                     context,
@@ -341,7 +351,7 @@ fun MakingMarketScreen(
                         }
 
                         override fun onInsert(itemListDTO: ItemListDTO) {
-                            if(itemListDTO.creditCardDTO.idCard == 0L){
+                            if (itemListDTO.creditCardDTO.idCard == 0L) {
                                 itemListDTO.creditCardDTO.idCard = idCard
                             }
                             itemListController.saveItemList(itemListDTO, callback)
@@ -480,13 +490,8 @@ fun DialogSaveProduct(
 ) {
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
-    val cardCreditCollection = remember {
-        mutableStateListOf<CreditCard>()
-    }
     var visibilityDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val purchaseViewModel = PurchaseViewModelDB(context)
-    val itemListViewModelDB = ItemListViewModelDB(context, lifecycleOwner)
     val email = UserLoggedShared.getEmailUserCurrent()
     val purchaseController = PurchaseController.getData(context, lifecycleOwner)
 
@@ -497,15 +502,6 @@ fun DialogSaveProduct(
     LaunchedEffect(key1 = visibility) {
         visibilityDialog = visibility
     }
-
-    LaunchedEffect(key1 = idCard) {
-//        registerTextFieldViewModel.onChangeCreditCard(idCard)
-    }
-
-//    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner) {
-//        cardCreditCollection.removeAll(cardCreditCollection)
-//        cardCreditCollection.addAll(it)
-//    }
 
     fun checkFields(): Boolean {
         if (registerTextFieldViewModel.locale.value!!.isNotBlank()) {
@@ -545,55 +541,8 @@ fun DialogSaveProduct(
                     )
                 }
 
-//        val purchases = mutableListOf<PurchaseDTO>()
-//
-//        purchaseInfoCollection.forEach { purchaseInfo -> purchases.addAll(purchaseInfo.purchaseCollection.map { PurchaseDTO(it.purchase, it.category,
-//            registerTextFieldViewModel.creditCard.value!!
-//        ) }) }
-
         purchaseController.savePurchases(purchases, callback)
     }
-
-//    suspend fun savePurchases() {
-//
-//        val purchaserSaveCoroutine = coroutineScope.async {
-//            val purchaseCollection =
-//                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListDTO.myShoppingId) != -1 }
-//                    .map {
-//                        val itemList = it.itemListDTO
-//                        val category = it.itemListDTO
-//
-//                        val purchase = Purchase(
-//                            itemList.item,
-//                            registerTextFieldViewModel.locale.value!!,
-//                            itemList.creditCardDTO.id,
-//                            it.amount,
-//                            it.type,
-//                            registerTextFieldViewModel.dateCurrent.value!!,
-//                            MaskUtils.convertValueStringToDouble(
-//                                it.price.toString()
-//                            ),
-//                            category.myShoppingId,
-//                            email,
-//                            MaskUtils.convertValueStringToDouble(it.discount.toString())
-//                        )
-//                        purchase
-//                    }
-//
-////            purchaseViewModel.insertPurchase(purchaseCollection)
-//
-//            val itemRemovedCollection =
-//                marketItemCollection.filter { itemCheckCollection.indexOf(it.itemListDTO.myShoppingId) != -1 && it.itemListDTO.isRemoved }
-//                    .map { it.itemListDTO }
-//
-//            itemRemovedCollection.forEach { itemListViewModelDB.deleteItemList(it.toItemList()) }
-//        }
-//
-//        purchaserSaveCoroutine.await()
-//
-//        visibilityDialog = false
-//        navController.popBackStack()
-//    }
 
     DialogCustom(visibilityDialog) {
         Column(
@@ -726,16 +675,17 @@ fun DialogSaveProduct(
                         if (checkFields()) {
                             coroutineScope.launch {
 
-                                val callback = object : Callback {
-                                    override fun onSuccess() {
-                                        visibilityDialog = false
-                                        navController!!.popBackStack()
-                                    }
-
-                                    override fun onFailed(messageError: String) {
-                                        super.onFailed(messageError)
-                                    }
-                                }
+                                MeasureTimeService.startMeasureTime(callback)
+//                                val callback = object : Callback {
+//                                    override fun onSuccess() {
+//                                        visibilityDialog = false
+//                                        navController!!.popBackStack()
+//                                    }
+//
+//                                    override fun onFailed(messageError: String) {
+//                                        super.onFailed(messageError)
+//                                    }
+//                                }
                                 savePurchases(callback)
                             }
                         }

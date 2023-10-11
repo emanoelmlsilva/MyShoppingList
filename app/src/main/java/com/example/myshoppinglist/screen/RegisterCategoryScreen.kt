@@ -134,16 +134,8 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         }
     }
 
-    fun updateCategory(category: CategoryDTO, callback: Callback) {
-        categoryController.updateCategory(category, object : CallbackObject<CategoryDTO> {
-            override fun onSuccess() {
-                callback.onSuccess()
-            }
-
-            override fun onFailed(messageError: String) {
-                callback.onFailed(messageError)
-            }
-        })
+    fun updateCategory(category: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
+        categoryController.updateCategory(category, callback)
     }
 
     fun saveCategory(category: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
