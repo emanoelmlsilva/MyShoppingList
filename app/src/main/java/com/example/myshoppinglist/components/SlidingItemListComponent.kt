@@ -1,24 +1,18 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.services.dtos.ItemListDTO
-import com.example.myshoppinglist.ui.theme.*
 
 @Composable
 fun SlidingItemListComponent(
@@ -26,7 +20,7 @@ fun SlidingItemListComponent(
     itemListDTO: ItemListDTO,
     isCheck: Boolean,
     isMarket: Boolean,
-    sizeCheckCollection: Boolean = true,
+    hasOptionEdit: Boolean,
     isRemoved: Boolean = false,
     idItem: Long,
     category: Category,
@@ -53,6 +47,7 @@ fun SlidingItemListComponent(
             itemListDTO,
             isMarket,
             isCheck,
+            hasOptionEdit,
             isRemoved,
             idItem,
             category,

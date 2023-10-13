@@ -1,6 +1,9 @@
 package com.example.myshoppinglist.utils
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -11,7 +14,7 @@ class FormatUtils {
     private val dayOfWeek = 3
     private val localeBr = Locale("pt", "BR")
 
-    fun getDateFormatted(date: Date): String{
+    fun getDateFormatted(date: Date): String {
         val calendar = Calendar.getInstance()
         calendar.time = date
 
@@ -22,27 +25,32 @@ class FormatUtils {
         return getDateFormatted(dayOfMonth, month, year, true)
     }
 
-    fun getDateFormatted(currentDayOfMonth: Int? = null, currentMonth: Int? = null, currentYear: Int? = null, formatPtBR: Boolean? = false): String{
+    fun getDateFormatted(
+        currentDayOfMonth: Int? = null,
+        currentMonth: Int? = null,
+        currentYear: Int? = null,
+        formatPtBR: Boolean? = false
+    ): String {
         val calendar = Calendar.getInstance()
         calendar.time = Date()
 
-        val year = currentYear?:calendar.get(Calendar.YEAR)
-        val month = currentMonth?:calendar.get(Calendar.MONTH)
-        val dayOfMonth = currentDayOfMonth?:calendar.get(Calendar.DAY_OF_MONTH)
+        val year = currentYear ?: calendar.get(Calendar.YEAR)
+        val month = currentMonth ?: calendar.get(Calendar.MONTH)
+        val dayOfMonth = currentDayOfMonth ?: calendar.get(Calendar.DAY_OF_MONTH)
 
-        return if(formatPtBR!!) {
+        return if (formatPtBR!!) {
             "${if (dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}/${if (month < 10) "0${month + 1}" else (month + 1)}/$year"
-        }else{
-            "$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if(dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}"
+        } else {
+            "$year-${if ((month + 1) < 10) "0${month + 1}" else (month + 1)}-${if (dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth}"
         }
     }
 
-    fun getDateString(date: Date? = Date()): String{
+    fun getDateString(date: Date? = Date()): String {
         val dateFormat1 = SimpleDateFormat(patternReverseDate);
         return dateFormat1.format(date)
     }
 
-    fun getMonthAndYear(): String{
+    fun getMonthAndYear(): String {
         val formatter = SimpleDateFormat("yyyy-MM", localeBr)
         return formatter.format(Date())
     }
@@ -51,29 +59,34 @@ class FormatUtils {
         return NumberFormat.getCurrencyInstance(localeBr).format(value)
     }
 
-    fun getDate(valueDate: String): String{
+    fun getDate(valueDate: String): String {
         val yearCurrent = Date().year
         val date = SimpleDateFormat(patternReverseDate, localeBr).parse(valueDate)
-        val pattern = if(date.year == yearCurrent) "dd MMM" else "dd MMM yyyy"
+        val pattern = if (date.year == yearCurrent) "dd MMM" else "dd MMM yyyy"
         return SimpleDateFormat(pattern, localeBr).format(date)
     }
 
-    fun getMonth(valueMonth: String): String{
-        val yearCurrent = Date().year
-        val formatter = SimpleDateFormat(patternReverseDate, localeBr)
-        val date = formatter.parse(valueMonth)
-        val pattern = if(date.year == yearCurrent) "MMMM" else "MMMM yyyy"
-        val simpleDateFormat = SimpleDateFormat(pattern, localeBr)
-        return simpleDateFormat.format(date)
+    fun getMonth(valueMonth: String): String {
+        try {
+            val yearCurrent = Date().year
+            val formatter = SimpleDateFormat(patternReverseDate, localeBr)
+            val date = formatter.parse(valueMonth)
+            val pattern = if (date.year == yearCurrent) "MMMM" else "MMMM yyyy"
+            val simpleDateFormat = SimpleDateFormat(pattern, localeBr)
+            return simpleDateFormat.format(date)
+        } catch (parseException: ParseException) {
+            return ""
+        }
+
     }
 
-    fun getMonthAndYearNumber(month: String): String{
+    fun getMonthAndYearNumber(month: String): String {
         val splitMonthOfYear = month.split(" ")
         val yearCureent = SimpleDateFormat("yyyy").format(Date());
         val formatter = SimpleDateFormat("MMMM", localeBr)
         val date = formatter.parse(month)
-        val month = if(date.month < 9) "0${(date.month + 1)}" else (date.month + 1)
-        val year = if(splitMonthOfYear.size > 1) splitMonthOfYear.get(1) else yearCureent
+        val month = if (date.month < 9) "0${(date.month + 1)}" else (date.month + 1)
+        val year = if (splitMonthOfYear.size > 1) splitMonthOfYear.get(1) else yearCureent
         val formatred = "${year}-${month}"
         return formatred
     }
@@ -87,11 +100,11 @@ class FormatUtils {
         val yearCurrent = dateCurrent.year
         val monthCurrent = dateCurrent.month
 
-        if(enabled && (dayCurrent - date.date) < dayOfWeek && yearCurrent == date.year && monthCurrent == date.month){
-            if(date.month == dateCurrent.month && date.year == dateCurrent.year){
-                if(date.date == dayCurrent){
+        if (enabled && (dayCurrent - date.date) < dayOfWeek && yearCurrent == date.year && monthCurrent == date.month) {
+            if (date.month == dateCurrent.month && date.year == dateCurrent.year) {
+                if (date.date == dayCurrent) {
                     return "Hoje"
-                }else if(date.date == (dayCurrent - 1)){
+                } else if (date.date == (dayCurrent - 1)) {
                     return "Ontem"
                 }
             }
@@ -102,7 +115,7 @@ class FormatUtils {
         return getDate(dateFull)
     }
 
-    fun getNameMonth(month: String): String{
+    fun getNameMonth(month: String): String {
         val dateCurrent = Date("1990/$month/01")
         val formatter = SimpleDateFormat("MMMM", localeBr)
         val nameMonth = formatter.format(dateCurrent)
@@ -115,10 +128,11 @@ class FormatUtils {
         return format.format(cal.time)
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     fun getYearCurrent(): String {
         val cal = Calendar.getInstance()
         val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
-        return format.format(cal.time.year)
+        return cal.weekYear.toString()
     }
 
     fun getNumberMonth(month: String): Int? {

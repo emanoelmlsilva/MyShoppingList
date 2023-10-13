@@ -27,13 +27,18 @@ import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.IconCategory
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.MeasureTimeService
 import com.godaddy.android.colorpicker.HsvColor
 import com.godaddy.android.colorpicker.harmony.ColorHarmonyMode
 import com.godaddy.android.colorpicker.harmony.HarmonyColorPicker
@@ -65,6 +70,49 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     var idMyShoppingApi by remember { mutableStateOf(0L) }
 
+    fun goBackNavigation() {
+        scope.launch(context = Dispatchers.Main) {
+            registerCategoryFieldViewModel.reset()
+            navController.popBackStack()
+        }
+    }
+
+    var visibleWaiting by remember{mutableStateOf(false)}
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+
+    val callback = object : CallbackObject<CategoryDTO> {
+        override fun onSuccess() {
+
+            if(visibleWaiting){
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        goBackNavigation()
+                        visibleWaiting = newValue
+                    }
+                })
+            }else{
+                goBackNavigation()
+            }
+
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
+    }
+
     LaunchedEffect(Unit) {
         iconsCategories.addAll(
             AssetsUtils.readIconCollections(
@@ -86,36 +134,13 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         }
     }
 
-    fun updateCategory(category: CategoryDTO, callback: Callback) {
-        categoryController.updateCategory(category, object : CallbackObject<CategoryDTO> {
-            override fun onSuccess() {
-                callback.onSuccess()
-            }
-
-            override fun onFailed(messageError: String) {
-                callback.onFailed(messageError)
-            }
-        })
+    fun updateCategory(category: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
+        categoryController.updateCategory(category, callback)
     }
 
-    fun saveCategory(category: CategoryDTO, callback: Callback) {
+    fun saveCategory(category: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
         categoryController.saveCategory(
-            category, object : CallbackObject<CategoryDTO> {
-                override fun onSuccess() {
-                    callback.onSuccess()
-                }
-
-                override fun onFailed(messageError: String) {
-                    callback.onFailed(messageError)
-                }
-            })
-    }
-
-    fun goBackNavigation() {
-        scope.launch(context = Dispatchers.Main) {
-            registerCategoryFieldViewModel.reset()
-            navController.popBackStack()
-        }
+            category, callback)
     }
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
@@ -129,30 +154,18 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         )
 
         if (newCategory.category.isNotBlank() && newCategory.idImage.isNotBlank()) {
+            MeasureTimeService.startMeasureTime(callback)
+
             if (idCategory != null && idCategory > 0) {
                 newCategory.id = idMyShoppingApi
-                updateCategory(newCategory, object : Callback {
-                    override fun onCancel() {
-
-                    }
-
-                    override fun onSuccess() {
-                        goBackNavigation()
-                    }
-                })
+                updateCategory(newCategory, callback)
             } else {
-                saveCategory(newCategory, object : Callback {
-                    override fun onFailed(messageError: String) {
-                        super.onFailed(messageError)
-                    }
-
-                    override fun onSuccess() {
-                        goBackNavigation()
-                    }
-                })
+                saveCategory(newCategory, callback)
             }
         }
     }, hasToolbar = true, hasDoneButton = true, hasBackButton = false, content = {
+
+        WaitingProcessComponent(visibleWaiting, messageError, callback)
 
         Column(
             modifier = Modifier

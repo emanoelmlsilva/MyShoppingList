@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
@@ -51,6 +53,7 @@ import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
 import com.example.myshoppinglist.utils.ConversionUtils
+import com.example.myshoppinglist.utils.MeasureTimeService
 
 @ExperimentalComposeUiApi
 @Composable
@@ -78,6 +81,55 @@ fun CreateCardScreen(
         CreditCardRepository(CreditCardService.getCreditCardService()),
         creditCardViewModelDB
     )
+    val typeCard = if (hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
+
+    var visibleWaiting by remember{mutableStateOf(false)}
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+
+    val callback = object : CallbackObject<CreditCardDTO> {
+        override fun onSuccess() {
+
+            if(visibleWaiting){
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        if (typeCard == TypeCard.MONEY) {
+                            navController?.navigate(Screen.Home.name) {
+                                popUpTo(Screen.Home.name) { inclusive = false }
+                            }
+                        } else {
+                            navController?.popBackStack()
+                        }
+                        visibleWaiting = newValue
+                    }
+                })
+            }else{
+                if (typeCard == TypeCard.MONEY) {
+                    navController?.navigate(Screen.Home.name) {
+                        popUpTo(Screen.Home.name) { inclusive = false }
+                    }
+                } else {
+                    navController?.popBackStack()
+                }
+            }
+
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
+    }
 
     LaunchedEffect(Unit) {
         val email = UserLoggedShared.getEmailUserCurrent()
@@ -116,11 +168,10 @@ fun CreateCardScreen(
         }
     }
 
-    val typeCard = if (hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
-
     fun saveCreditCard() {
         if (userDTO != null) {
             if (createCardCreditViewModel.checkFields()) {
+                MeasureTimeService.startMeasureTime(callback)
                 val lastPosition = createCardCreditViewModel.lastPosition.value
                 val valueCreditCard = createCardCreditViewModel.value.value
                 val typeCardRecover = createCardCreditViewModel.typeCard.value
@@ -142,21 +193,7 @@ fun CreateCardScreen(
 
 
                 if (!isUpdate) {
-                    creditCardViewModel.save(creditCardDTO, object : CallbackObject<CreditCardDTO> {
-                        override fun onSuccess() {
-                            if (typeCard == TypeCard.MONEY) {
-                                navController?.navigate(Screen.Home.name) {
-                                    popUpTo(Screen.Home.name) { inclusive = false }
-                                }
-                            } else {
-                                navController?.popBackStack()
-                            }
-                        }
-
-                        override fun onFailed(messageError: String) {
-
-                        }
-                    })
+                    creditCardViewModel.save(creditCardDTO, callback)
                 } else {
                     creditCardDTO.idCard = idCreditCard!!
 
@@ -187,6 +224,9 @@ fun CreateCardScreen(
         onClickIconDone = { saveCreditCard() },
         hasToolbar = hasToolbar,
         content = {
+
+            WaitingProcessComponent(visibleWaiting, messageError, callback)
+
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp, end = 16.dp, top = 16.dp)

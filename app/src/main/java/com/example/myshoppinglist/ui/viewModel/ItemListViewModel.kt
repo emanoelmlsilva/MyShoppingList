@@ -11,6 +11,7 @@ import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.repository.ItemListRepository
+import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -67,7 +68,7 @@ class ItemListViewModel(
                         itemListResponse.toItemList(),
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess()
+                                callback.onSuccess(itemListResponse)
                             }
 
                             override fun onFailed(messageError: String) {
@@ -81,13 +82,17 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val itemListData = result.data.toItemList()
+                    itemListData.creditCardOwnerIdItem = itemList.creditCardDTO.idCard
+                    itemListData.categoryOwnerIdItem = itemList.categoryDTO.myShoppingId
 
                     itemListViewModelDB.insertItemList(
                         itemListData,
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess()
+                                callback.onSuccess(result.data)
                             }
 
                             override fun onFailed(messageError: String) {
@@ -156,6 +161,8 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+
                     val itemListData = result.data.toItemList()
 
                     itemListViewModelDB.updateItemList(

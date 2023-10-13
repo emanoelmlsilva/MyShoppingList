@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -44,6 +43,7 @@ fun BoxItemListComponent(
     itemListDTO: ItemListDTO,
     isMarket: Boolean,
     isCheck: Boolean,
+    hasOptionEdit: Boolean,
     isRemoved: Boolean = false,
     idItem: Long,
     category: Category,
@@ -201,7 +201,7 @@ fun BoxItemListComponent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(modifier = Modifier
-                    .size(if (isCheck && !isMarket) 30.dp else 50.dp),
+                    .size(if (isCheck && !isMarket && hasOptionEdit) 30.dp else 50.dp),
                     colors = CheckboxDefaults.colors(checkedColor = primary_dark),
                     checked = isCheck,
                     onCheckedChange = {
@@ -212,7 +212,7 @@ fun BoxItemListComponent(
                     }
                 )
 
-                if (isCheck && !isMarket) {
+                if (isCheck && !isMarket && hasOptionEdit) {
                     IconButton(
                         modifier = Modifier.size(32.dp),
                         onClick = { showOptions = !showOptions }) {

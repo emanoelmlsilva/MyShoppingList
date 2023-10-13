@@ -105,7 +105,13 @@ class PurchaseController {
                         }
 
                         override fun onFailed(messageError: String) {
+                            Log.d(TAG, "saveItemList - onFailed")
                             callback.onFailed(messageError)
+                        }
+
+                        override fun onChangeValue(newValue: String) {
+                            Log.d(TAG, "saveItemList - onChangeValue")
+                            callback.onChangeValue(newValue)
                         }
                     })
                 }
@@ -121,12 +127,18 @@ class PurchaseController {
 
             purchaseViewModel.update(purchaseDTO, object : CallbackObject<PurchaseDTO> {
                 override fun onSuccess() {
-                    Log.d(TAG, "saveItemList - onSuccess")
+                    Log.d(TAG, "updatePurchase - onSuccess")
                     callback.onSuccess()
                 }
 
                 override fun onFailed(messageError: String) {
+                    Log.d(TAG, "updatePurchase - onFailed")
                     callback.onFailed(messageError)
+                }
+
+                override fun onChangeValue(newValue: String) {
+                    Log.d(TAG, "updatePurchase - onFailed")
+                    callback.onChangeValue(newValue)
                 }
             })
         }
@@ -157,6 +169,11 @@ class PurchaseController {
             override fun onFailed(messageError: String) {
                 Log.d(TAG, "delete Purchase By Id - onFailed ")
                 callback.onFailed(messageError)
+            }
+
+            override fun onChangeValue(newValue: String) {
+                Log.d(TAG, "delete Purchase By Id - onChangeValue")
+                callback.onChangeValue(newValue)
             }
         })
     }

@@ -53,38 +53,21 @@ class ItemListController {
         itemListViewModel.insertItemListDB(itemList, callback)
     }
 
-    fun saveItemList(itemList: ItemListDTO, callback: Callback) {
+    fun saveItemList(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
         UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(lifecycleOwner) {
             itemList.categoryDTO.userDTO = it
             itemList.creditCardDTO.userDTO = it
 
-            itemListViewModel.save(itemList, object : CallbackObject<ItemListDTO> {
-                override fun onSuccess() {
-                    Log.d(TAG, "saveItemList - onSuccess")
-                    callback.onSuccess()
-                }
-
-                override fun onFailed(messageError: String) {
-                    callback.onFailed(messageError)
-                }
-            })
+            itemListViewModel.save(itemList, callback)
         }
     }
 
-    fun updateItemList(itemList: ItemListDTO, callback: Callback){
+    fun updateItemList(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>){
         UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(lifecycleOwner){
             itemList.categoryDTO.userDTO = it
             itemList.creditCardDTO.userDTO = it
 
-            itemListViewModel.update(itemList, object : CallbackObject<ItemListDTO> {
-                override fun onSuccess() {
-                    Log.d(TAG, "updateItemList - onSuccess")
-                    callback.onSuccess()                }
-
-                override fun onFailed(messageError: String) {
-                    callback.onFailed(messageError)
-                }
-            })
+            itemListViewModel.update(itemList, callback)
         }
     }
 
