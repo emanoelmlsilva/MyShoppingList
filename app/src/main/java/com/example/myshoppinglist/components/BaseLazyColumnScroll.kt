@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,9 +43,9 @@ fun BaseLazyColumnScroll(
 
                 if (listState.isScrollInProgress) {
                     val positionScroll = available.y
-                    if (positionScroll <= 0) {
+                    if (positionScroll <= 0L && consumed.getDistanceSquared().toInt() > 50) {
                         callback?.onChangeVisible(false)
-                    } else if (positionScroll >= 30) {
+                    } else if (positionScroll >= 2L) {
                         callback?.onChangeVisible(true)
                     }
                 }

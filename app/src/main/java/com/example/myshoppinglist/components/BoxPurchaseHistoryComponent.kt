@@ -27,25 +27,24 @@ import com.example.myshoppinglist.utils.MaskUtils
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(
-    visibleAnimation: Boolean,
-    purchaseColleciton: List<PurchaseAndCategory>,
+    purchaseCollection: List<PurchaseAndCategory>,
     callback: VisibleCallback
 ) {
     val context = LocalContext.current
 
-    if (purchaseColleciton.isNotEmpty()) {
+    if (purchaseCollection.isNotEmpty()) {
         BaseLazyColumnScroll(
             modifier = Modifier.padding(bottom = 0.dp, start = 24.dp, end = 24.dp),
-            callback = callback
+            callback = callback,
         ) {
-            itemsIndexed(purchaseColleciton) { index, purchaseAndCategory ->
+            itemsIndexed(purchaseCollection) { index, purchaseAndCategory ->
                 val purchase = purchaseAndCategory.purchase ?: Purchase()
                 val category = purchaseAndCategory.category ?: Category()
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = if (index == (purchaseColleciton.size - 1)) 56.dp else 0.dp)
+                        .padding(bottom = if (index == (purchaseCollection.size - 1)) 56.dp else 0.dp)
                 ) {
                     Row(
                         modifier = Modifier
