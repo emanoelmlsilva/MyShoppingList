@@ -8,27 +8,54 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
+import com.example.myshoppinglist.screen.TAG
 import com.example.myshoppinglist.services.repository.LoginRepository
+import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
-class LoginViewModel(private val loginRepository: LoginRepository, private val userViewModel: UserViewModelDB) : ViewModel() {
+class LoginViewModel(
+    private val loginRepository: LoginRepository,
+    private val userViewModel: UserViewModelDB
+) : ViewModel() {
 
     private val LOG = "LoginViewModel"
 
-    fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>){
+    fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>) {
         viewModelScope.launch {
 
-            val resultUpdate = try{
+            val resultUpdate = try {
                 loginRepository.updateUser(userDTO)
-            }catch (exception: Exception){
-                ResultData.Error(Exception(exception.message))
+            } catch (exception: Exception) {
+                when (exception) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(userDTO)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(userDTO)
+                    }
+                    else -> {
+                        ResultData.Error(exception)
+                    }
+                }
             }
 
-            when(resultUpdate){
+            when (resultUpdate) {
                 is ResultData.Success -> {
                     userViewModel.updateUser(userDTO.fromUser())
 
                     callback.onSuccess(userDTO)
+                }
+                is ResultData.NotConnectionService -> {
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
+                    val userData = resultUpdate.data
+
+                    Log.d(TAG, "updateUser $userData")
+
+                    userViewModel.updateUser(userData.fromUser())
+
+                    callback.onSuccess(userData)
                 }
                 else -> {
                     val messageError = (resultUpdate as ResultData.Error).exception.message

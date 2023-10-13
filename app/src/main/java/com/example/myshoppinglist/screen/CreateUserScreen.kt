@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -40,20 +39,22 @@ import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.components.rememberImeState
+import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import com.example.myshoppinglist.utils.MeasureTimeService
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 
@@ -72,7 +73,6 @@ fun CreateUserScreen(
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val categoryViewModel: CategoryViewModelDB = CategoryViewModelDB(context, lifecycleOwner)
     var user by remember { mutableStateOf(UserDTO()) }
     val categoryCollections = listOf(
         CategoryDTO(
@@ -104,6 +104,56 @@ fun CreateUserScreen(
     val loginViewModel =
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
+    var visibleWaiting by remember{mutableStateOf(false)}
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+
+    fun save(){
+        UserInstanceImpl.reset()
+        UserInstanceImpl.getInstance(context)
+
+        if (isUpdate!!) {
+            navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+            {
+                popUpTo(Screen.Home.name) { inclusive = false }
+            }
+        } else {
+            navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+            {
+                popUpTo(Screen.Home.name) { inclusive = false }
+            }
+        }
+    }
+
+    val callback = object : CallbackObject<UserDTO> {
+        override fun onSuccess(userDTO: UserDTO) {
+
+            if(visibleWaiting){
+                MeasureTimeService.resetMeasureTime(object : Callback {
+                    override fun onChangeValue(newValue: Boolean) {
+                        save()
+                    }
+                })
+            }else{
+                save()
+            }
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
+    }
 
     LaunchedEffect(Unit) {
         val email = UserLoggedShared.getEmailUserCurrent()
@@ -135,33 +185,15 @@ fun CreateUserScreen(
                     })
                 }, onError = { throwable -> {} }, onComplete = {})
 
+            }else{
+                MeasureTimeService.startMeasureTime(callback)
             }
+
             user.name = name.trim()
             user.nickName = nickName.trim()
             user.idAvatar = idAvatar
 
-            loginViewModel.updateUser(user, object : CallbackObject<UserDTO> {
-                override fun onSuccess(userDTO: UserDTO) {
-                    UserInstanceImpl.reset()
-                    UserInstanceImpl.getInstance(context)
-
-                    if (isUpdate) {
-                        navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
-                        {
-                            popUpTo(Screen.Home.name) { inclusive = false }
-                        }
-                    } else {
-                        navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
-                        {
-                            popUpTo(Screen.Home.name) { inclusive = false }
-                        }
-                    }
-                }
-
-                override fun onFailed(messageError: String) {
-
-                }
-            })
+            loginViewModel.updateUser(user, callback)
         }
     }
 
@@ -180,6 +212,9 @@ fun CreateUserScreen(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                WaitingProcessComponent(visibleWaiting, messageError, callback)
+
                 Column(modifier = Modifier) {
                     if (!hasToolbar!!) {
                         HeaderText()
