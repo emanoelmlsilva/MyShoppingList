@@ -294,7 +294,7 @@ class PurchaseViewModel(
                     })
                 }
                 is ResultData.NotConnectionService -> {
-                                                                                                                                                                      callback.onChangeValue(MeasureTimeService.messageNoService)
+                    callback.onChangeValue(MeasureTimeService.messageNoService)
 
                     purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
                         override fun onSuccess() {

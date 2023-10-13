@@ -1,5 +1,7 @@
 package com.example.myshoppinglist.utils
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -126,10 +128,11 @@ class FormatUtils {
         return format.format(cal.time)
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     fun getYearCurrent(): String {
         val cal = Calendar.getInstance()
         val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
-        return format.format(cal.time.year)
+        return cal.weekYear.toString()
     }
 
     fun getNumberMonth(month: String): Int? {
