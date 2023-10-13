@@ -210,10 +210,6 @@ fun DialogRecoveryItemList(
 
                                 } != null
                             }
-                            Log.d(
-                                "TESTANDO",
-                                "LISTA ${listUpdate}"
-                            )
                             callback.onUpdate(listUpdate)
                         }.invokeOnCompletion {
                             cancel()
