@@ -93,12 +93,14 @@ fun RegisterPurchaseScreen(
     var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
+    val categoryCollections = remember { mutableStateListOf<Category>() }
+
     LaunchedEffect(key1 = idCardCurrent) {
-        creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner){
+        creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner) {
             registerTextFieldViewModel.onChangeCreditCard(it)
 
         }
-        categoryController.getAllDB().observe(lifecycleOwner){
+        categoryController.getAllDB().observe(lifecycleOwner) {
             registerTextFieldViewModel.onChangeCategoryCollection(it)
         }
     }
@@ -139,39 +141,52 @@ fun RegisterPurchaseScreen(
         reset.value = it
     }
 
+    registerTextFieldViewModel.categoryCollection.observe(lifecycleOwner) {
+        categoryCollections.removeAll(categoryCollections)
+        categoryCollections.addAll(it)
+    }
+
     fun updatePurchase(callback: Callback) {
 
-            val purchase = Purchase(
-                registerTextFieldViewModel.product.value!!,
-                registerTextFieldViewModel.locale.value!!,
-                registerTextFieldViewModel.creditCard.value!!.myShoppingId,
-                registerTextFieldViewModel.quantOrKilo.value!!,
-                registerTextFieldViewModel.typeProduct.value!!,
-                registerTextFieldViewModel.dateCurrent.value!!,
-                MaskUtils.convertValueStringToDouble(
-                    MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
-                ),
-                registerTextFieldViewModel.category.value!!,
-                registerTextFieldViewModel.email
-            )
+        val purchase = Purchase(
+            registerTextFieldViewModel.product.value!!,
+            registerTextFieldViewModel.locale.value!!,
+            registerTextFieldViewModel.creditCard.value!!.myShoppingId,
+            registerTextFieldViewModel.quantOrKilo.value!!,
+            registerTextFieldViewModel.typeProduct.value!!,
+            registerTextFieldViewModel.dateCurrent.value!!,
+            MaskUtils.convertValueStringToDouble(
+                MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
+            ),
+            registerTextFieldViewModel.category.value!!,
+            registerTextFieldViewModel.email
+        )
 
-            purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
+        purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
 
-            val category = registerTextFieldViewModel.categoryCollection.value!!.find {
-                registerTextFieldViewModel.category.value == it.myShoppingId
-            }
-        purchaseController.updatePurchase(PurchaseDTO(purchase, category!!,
-            registerTextFieldViewModel.creditCard.value!!
-        ), callback)
+        val category = registerTextFieldViewModel.categoryCollection.value!!.find {
+            registerTextFieldViewModel.category.value == it.myShoppingId
+        }
+        purchaseController.updatePurchase(
+            PurchaseDTO(
+                purchase, category!!,
+                registerTextFieldViewModel.creditCard.value!!
+            ), callback
+        )
     }
 
     fun savePurchases(callback: Callback) {
 
         val purchases = mutableListOf<PurchaseDTO>()
 
-        purchaseInfoCollection.forEach { purchaseInfo -> purchases.addAll(purchaseInfo.purchaseCollection.map { PurchaseDTO(it.purchase, it.category,
-            registerTextFieldViewModel.creditCard.value!!
-        ) }) }
+        purchaseInfoCollection.forEach { purchaseInfo ->
+            purchases.addAll(purchaseInfo.purchaseCollection.map {
+                PurchaseDTO(
+                    it.purchase, it.category,
+                    registerTextFieldViewModel.creditCard.value!!
+                )
+            })
+        }
 
         purchaseController.savePurchases(purchases, callback)
     }
@@ -456,14 +471,20 @@ fun RegisterPurchaseScreen(
                     }
 
                     CategoryProduct(
-                        registerTextFieldViewModel,
-                        registerTextFieldViewModel.typeCategoryError.observeAsState().value
+                        if (isEditable && purchaseEdit != null) purchaseEdit.categoryOwnerId else 0,
+                        categoryCollections,
+                        registerTextFieldViewModel.typeCategoryError.observeAsState().value,
+                        object : CallbackObject<Category>{
+                            override fun onSuccess(category: Category) {
+                                registerTextFieldViewModel.onChangeCategory(category.myShoppingId!!)
+                                registerTextFieldViewModel.onChangeCategoryCurrent(category)
+                            }
+                        }
                     )
 
                     PurchaseAndPaymentComponent(
                         lifecycleOwner,
                         registerTextFieldViewModel,
-                        registerTextFieldViewModel.idCardError.observeAsState().value
                     )
 
                     if (!isEditable) {
@@ -499,31 +520,18 @@ fun RegisterPurchaseScreen(
 
 @Composable
 fun CategoryProduct(
-    registerTextFieldViewModel: RegisterTextFieldViewModel,
-    error: Boolean? = false
+    idUpdate: Long = 0L,
+    categoryCollections: List<Category>,
+    error: Boolean? = false,
+    callbackObject: CallbackObject<Category>
 ) {
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-
-    val categoryCollections = remember { mutableStateListOf<Category>() }
-
-    val categoryChoice = registerTextFieldViewModel.category.observeAsState().value
-
     val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
 
     val scrollState = rememberLazyListState()
 
-
-    fun onClick(category: Category) {
-        registerTextFieldViewModel.onChangeCategory(category.myShoppingId!!)
-        registerTextFieldViewModel.onChangeCategoryCurrent(category)
-    }
-
-    registerTextFieldViewModel.categoryCollection.observe(lifecycleOwner) {
-        categoryCollections.removeAll(categoryCollections)
-        categoryCollections.addAll(it)
-    }
+    var idCategoryChoice by remember{ mutableStateOf(idUpdate) }
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -544,7 +552,7 @@ fun CategoryProduct(
             modifier = Modifier.padding(start = 8.dp)
         ) {
             categoryCollections.forEachIndexed { index, categoryScope ->
-                if (categoryScope.myShoppingId == categoryChoice) {
+                if (categoryScope.myShoppingId == idCategoryChoice) {
                     scope.launch { scrollState.animateScrollToItem(index) }
                 }
             }
@@ -554,13 +562,14 @@ fun CategoryProduct(
                     .padding(2.dp)
                     .clip(CircleShape)
                     .clickable {
-                        onClick(category)
+                        idCategoryChoice = category.myShoppingId
+                        callbackObject.onSuccess(category)
                     }
                 ) {
                     Row(
                         modifier = Modifier
                             .height(33.dp)
-                            .background(if (category.myShoppingId == categoryChoice) background_card_light else background_card),
+                            .background(if (category.myShoppingId == idCategoryChoice) background_card_light else background_card),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -576,7 +585,8 @@ fun CategoryProduct(
                             enabledBackground = false,
                             callback = object : Callback {
                                 override fun onClick() {
-                                    onClick(category)
+                                    idCategoryChoice = category.myShoppingId
+                                    callbackObject.onSuccess(category)
                                 }
                             }
                         )
@@ -599,12 +609,9 @@ fun CategoryProduct(
 fun PurchaseAndPaymentComponent(
     lifecycleOwner: LifecycleOwner,
     registerTextFieldViewModel: RegisterTextFieldViewModel,
-    error: Boolean? = false
 ) {
     val context = LocalContext.current
     val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
-//    val cardCreditCollection =
-//        creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
@@ -710,7 +717,7 @@ fun BoxChoiceValue(
     var isMoney by remember { mutableStateOf(true) }
     var value by remember { mutableStateOf("") }
     var convertedValue = 0
-    var focusRequester by remember { mutableStateOf(FocusRequester()) }
+    val focusRequester by remember { mutableStateOf(FocusRequester()) }
 
     registerTextFieldViewModel.resetDate.observe(lifecycleOwner) {
         if (it) {
