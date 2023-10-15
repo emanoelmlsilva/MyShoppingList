@@ -21,6 +21,7 @@ import com.example.myshoppinglist.ui.theme.background_card_light
 @Composable
 fun ChoiceCardComponent(
     cardCurrent: Long,
+    disability: Boolean = true,
     cardCreditCollection: List<CreditCardDTODB>,
     callbackCard: CallbackCreditCard, modifier: Modifier = Modifier
         .fillMaxHeight(.2f)
@@ -54,13 +55,15 @@ fun ChoiceCardComponent(
                         color = background_card_light,
                         callback = object : Callback {
                             override fun onClick() {
-                                cardCreditChoice = cardCredit
+                                cardCreditChoice = if(cardCreditChoice.myShoppingId == cardCredit.myShoppingId && disability) CreditCardDTODB(myShoppingId = 0L, flag = 0) else cardCredit
+
                                 callbackCard.onChangeValue(cardCreditChoice.myShoppingId)
                                 callbackCard.onChangeFilterCreditCard(
                                     CardCreditFilter(
                                         cardCreditChoice
                                     )
                                 )
+
                             }
                         })
                 }

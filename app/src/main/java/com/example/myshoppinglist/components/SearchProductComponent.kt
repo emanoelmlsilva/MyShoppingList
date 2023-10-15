@@ -126,6 +126,7 @@ fun SearchProductComponent(
                     .fillMaxHeight(.13f),
                 shape = RoundedCornerShape(8.dp)
             ) {
+               if(enableDialog){
                 AlertDialogFilterComponent(
                     keyboardController!!,
                     enableDialog,
@@ -164,7 +165,7 @@ fun SearchProductComponent(
                                 listProductText.add(value.month)
                             }
 
-                            if (value.cardFilter.avatar > 0) {
+                            if (value.idCard != 0L) {
                                 listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
                             }
 
@@ -173,6 +174,7 @@ fun SearchProductComponent(
                             productManagerFieldViewModel.getSearchPurchase(filter)
                         }
                     })
+            }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,7 +231,7 @@ fun SearchProductComponent(
 
                             IconButton(
                                 onClick = {
-                                    keyboardController.hide()
+                                    keyboardController!!.hide()
                                     CoroutineScope(Dispatchers.IO).launch {
                                         withContext(Dispatchers.Main) {
                                             enableDialog = true

@@ -56,10 +56,39 @@ fun AlertDialogFilterComponent(
     var month by remember { mutableStateOf("") }
     var idCardCredit by remember { mutableStateOf(0L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
-    var creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
+    val creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
 
     LaunchedEffect(Unit) {
         keyboardController.hide()
+
+        if(filter.cardFilter.id != 0L){
+            idCardCredit = filter.cardFilter.id
+            currentCardCreditFilter = filter.cardFilter
+        }
+
+        if(filter.priceMin != null || filter.priceMax != null){
+            keyboardController.hide()
+            priceMin = if (filter.priceMin == null) priceMinDefault else filter.priceMin!!
+            priceMax = if (filter.priceMax == null) priceMaxDefault else filter.priceMax!!
+        }
+
+        if(filter.month.isNotBlank()){
+            month = filter.month
+
+        }
+    }
+
+    LaunchedEffect(key1 = categoryCollections.size){
+        if(categoryCollections.isNotEmpty()){
+            categoryChoices.removeAll(categoryChoices)
+            filter.categoryCollection.forEach {
+                val hasCollection = categoryCollections.find { category -> category.myShoppingId == it.myShoppingId }
+
+                if (hasCollection != null) {
+                    categoryChoices.add(it)
+                }
+            }
+        }
     }
 
     productManagerFieldViewModel.categoryController.getAllDB().observe(lifecycleOwner) {
@@ -71,37 +100,27 @@ fun AlertDialogFilterComponent(
         .observe(lifecycleOwner) {
             if (it.isNotEmpty()) {
                 creditCardDTOCollection.removeAll(creditCardDTOCollection)
-                creditCardDTOCollection.addAll(it.map { creditCard ->
+                val creditCardDBCollection = it.map { creditCard ->
                     CreditCardDTODB().fromCreditCardDTODB(
                         creditCard
                     )
-                })
+                }
+                creditCardDTOCollection.addAll(creditCardDBCollection)
             }
         }
 
-    LaunchedEffect(key1 = filter.cardFilter.id) {
-        idCardCredit = filter.cardFilter.id
-        currentCardCreditFilter = filter.cardFilter
-    }
+    fun removeCategory(category: Category){
+        val hasNotExist =
+            categoryChoices.find { categoryChoice ->
+                categoryChoice.myShoppingId == category.myShoppingId
+            } == null
+        if (hasNotExist) {
+            categoryChoices.add(category)
+        } else {
+            val categoryRemoved = categoryChoices.find { categoryAtRemove -> category.myShoppingId == categoryAtRemove.myShoppingId }
 
-    LaunchedEffect(key1 = filter.priceMin, key2 = filter.priceMax) {
-        keyboardController.hide()
-        priceMin = if (filter.priceMin == null) priceMinDefault else filter.priceMin!!
-        priceMax = if (filter.priceMax == null) priceMaxDefault else filter.priceMax!!
-    }
-
-    LaunchedEffect(key1 = filter.categoryCollection) {
-        categoryChoices.forEach {
-            val hasCollection = filter.categoryCollection.find { category -> category == it }
-
-            if (hasCollection == null) {
-                categoryChoices.remove(it)
-            }
+            categoryChoices.remove(categoryRemoved)
         }
-    }
-
-    LaunchedEffect(key1 = filter.month) {
-        month = filter.month
     }
 
     DialogCustom(
@@ -112,7 +131,7 @@ fun AlertDialogFilterComponent(
             topStart = 0.dp,
             topEnd = 0.dp,
             bottomEnd = 16.dp,
-            bottomStart = 16.dp
+            bottomStart = 16.dp,
         )
     ) {
         Column(
@@ -185,22 +204,14 @@ fun AlertDialogFilterComponent(
                             items(categoryCollections) { category ->
                                 val isChoiceCurrent =
                                     categoryChoices.find { categoryChoice ->
-                                        categoryChoice == category
+                                        categoryChoice.myShoppingId == category.myShoppingId
                                     } != null
                                 Card(backgroundColor = (if (isChoiceCurrent) background_card_light else background_card),
                                     modifier = Modifier
                                         .padding(2.dp)
                                         .clip(CircleShape)
                                         .clickable {
-                                            val isChoiceOld =
-                                                categoryChoices.find { categoryChoice ->
-                                                    categoryChoice == category
-                                                } != null
-                                            if (isChoiceOld) {
-                                                categoryChoices.remove(category)
-                                            } else {
-                                                categoryChoices.add(category)
-                                            }
+                                            removeCategory(category)
                                         }
                                 ) {
                                     Row(
@@ -225,15 +236,7 @@ fun AlertDialogFilterComponent(
                                             enabledBackground = true,
                                             callback = object : Callback {
                                                 override fun onClick() {
-                                                    val isChoiceOld =
-                                                        categoryChoices.find { categoryChoice ->
-                                                            categoryChoice == category
-                                                        } != null
-                                                    if (isChoiceOld) {
-                                                        categoryChoices.remove(category)
-                                                    } else {
-                                                        categoryChoices.add(category)
-                                                    }
+                                                    removeCategory(category)
                                                 }
                                             }
                                         )
@@ -276,9 +279,9 @@ fun AlertDialogFilterComponent(
                     })
 
                 ChoiceCardComponent(
-                    filter.cardFilter.id,
-                    creditCardDTOCollection,
-                    object : CallbackCreditCard {
+                    cardCurrent = filter.cardFilter.id,
+                    cardCreditCollection = creditCardDTOCollection,
+                    callbackCard = object : CallbackCreditCard {
                         override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
                             idCardCredit = cardCreditFilter.id
                             currentCardCreditFilter = cardCreditFilter
