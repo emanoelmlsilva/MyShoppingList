@@ -12,10 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
+import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.background_card_light
 import com.example.myshoppinglist.ui.theme.text_primary
@@ -29,16 +30,18 @@ fun ChoiceDataComponent(
     dataCurrent: String,
     callback: Callback
 ) {
-    val context = LocalContext.current
-    val purchaseViewModel = PurchaseViewModelDB(context)
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val purchaseController = PurchaseController()
     var expanded by remember { mutableStateOf(false) }
-    var splitDataCurrent = if (dataCurrent.isNotBlank()) dataCurrent.split("-") else listOf()
+    val splitDataCurrent = if (dataCurrent.isNotBlank()) dataCurrent.split("-") else listOf()
     var yearCurrent by remember { mutableStateOf(if (splitDataCurrent.isNotEmpty()) splitDataCurrent[0] else "") }
     var monthCurrent by remember { mutableStateOf(if (splitDataCurrent.isNotEmpty()) splitDataCurrent[1] else "") }
     val dateMonthAndYear = remember { mutableStateMapOf<String, MutableList<String>>() }
 
     LaunchedEffect(key1 = idCard) {
-        purchaseViewModel.getMonthDistinctByIdCard(idCard)
+        purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner){
+//            dateMonthAndYear
+        }
     }
 
     Column {

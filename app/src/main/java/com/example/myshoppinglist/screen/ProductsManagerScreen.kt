@@ -1,22 +1,18 @@
 package com.example.myshoppinglist.screen
 
 import android.content.Context
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.contentColorFor
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
@@ -32,7 +28,9 @@ import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.text_secondary
+import com.example.myshoppinglist.ui.theme.text_title_secondary
 import com.example.myshoppinglist.utils.MaskUtils.convertValueDoubleToString
 
 val TAG = "ProductsManagerScreen"
@@ -48,6 +46,7 @@ fun ProductsManagerScreen(navController: NavController?) {
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00") }
     var visibleAnimation by remember { mutableStateOf(true) }
+    var purchaseInfoCollection = remember { mutableListOf<PurchaseInfo>() }
 
     LaunchedEffect(Unit) {
         productManagerFieldViewModel.creditCardController.findAllDB().observe(lifecycleOwner) {
@@ -71,6 +70,10 @@ fun ProductsManagerScreen(navController: NavController?) {
         quantityPurchases = it
     }
 
+    productManagerFieldViewModel.purchaseInfoCollection.observe(lifecycleOwner){
+        purchaseInfoCollection = it as MutableList<PurchaseInfo>
+    }
+
     Surface(
         color = MaterialTheme.colors.background,
         contentColor = contentColorFor(text_secondary),
@@ -80,19 +83,41 @@ fun ProductsManagerScreen(navController: NavController?) {
     ) {
 
         Column(modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)) {
-            SearchProductComponent(context, visibleAnimation, lifecycleOwner, productManagerFieldViewModel)
+            SearchProductComponent(
+                context,
+                visibleAnimation,
+                lifecycleOwner,
+                productManagerFieldViewModel
+            )
 
             BoxShowPriceProduct(
                 convertValueDoubleToString(valueSum),
                 quantityPurchases
             )
 
-            BoxPurchaseItemsComponent(
-                context,
-                lifecycleOwner,
-                productManagerFieldViewModel.purchaseInfoCollection.observeAsState(initial = listOf()).value,
-                productManagerFieldViewModel
-            )
+            if (purchaseInfoCollection.isNotEmpty()) {
+                BoxPurchaseItemsComponent(
+                    context,
+                    lifecycleOwner,
+                    purchaseInfoCollection,
+                    productManagerFieldViewModel
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(.8f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Não foi realizada nenhuma compra.",
+                        fontFamily = LatoBlack,
+                        color = text_title_secondary,
+                        fontSize = 12.sp
+                    )
+                }
+            }
 
         }
     }

@@ -103,6 +103,7 @@ fun DialogTransferPurchaseComponent(
 
                 ChoiceCardComponent(
                     idCardCurrent,
+                    disability = false,
                     creditCardDTOCollection,
                     object : CallbackCreditCard {
                         override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
