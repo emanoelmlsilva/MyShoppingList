@@ -109,7 +109,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     }
 
     fun getInforPurchaseByMonth(month: String) {
-        val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(month)
+        val monthAndYearNumber = FormatDateUtils().getMonthAndYearNumber(month)
         val idCard = currentCreditCard!!.myShoppingId
 
         purchaseController.getPurchaseByMonthDB(idCard, "$monthAndYearNumber-")
@@ -344,7 +344,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                         purchaseInfoCollection.map { purchaseInfo ->
                             item {
                                 Text(
-                                    text = FormatUtils().getNameDay(purchaseInfo.title)
+                                    text = FormatDateUtils().getNameDay(purchaseInfo.title)
                                         .capitalize(),
                                     modifier = Modifier.padding(start = 8.dp, top = 24.dp),
                                     color = text_title_secondary

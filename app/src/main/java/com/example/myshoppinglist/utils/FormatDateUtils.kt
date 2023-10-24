@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class FormatUtils {
+class FormatDateUtils {
     private val patternReverseDate = "yyyy-MM-dd"
     private val patternNameDate = "EEEE"
     private val dayOfWeek = 3

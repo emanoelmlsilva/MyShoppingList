@@ -6,7 +6,7 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import java.util.*
 
 @Dao
@@ -52,7 +52,7 @@ interface PurchaseDAO {
     fun sumPriceById(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
     @Query("SELECT COALESCE(SUM(CASE :typeProduct WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) FROM credit_cards LEFT JOIN purchases ON credit_cards.myShoppingId = purchases.purchaseCardId AND cardUserId = :emailUser AND purchases.date LIKE '%' || :date || '%'")
-    fun sumPriceAllCard(emailUser: String, date : String = FormatUtils().getMonthAndYear(), typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
+    fun sumPriceAllCard(emailUser: String, date : String = FormatDateUtils().getMonthAndYear(), typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
     @Query("SELECT SUM(COALESCE(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END , 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId AND date LIKE '%' || :date || '%'")
     fun sumPriceByMonth(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double

@@ -11,7 +11,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.repositories.PurchaseRepository
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
 import java.util.*
@@ -43,7 +43,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
 
         val query: SimpleSQLiteQuery = if (arguments.size == 0 || condition.isBlank()) {
             val monthAndYearNumber =
-                FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
+                FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
 
             SimpleSQLiteQuery(
                 "SELECT * FROM purchases, category WHERE category.myShoppingIdCategory = categoryOwnerId AND date LIKE '%' || ? || '%' AND purchaseUserId = ?",
@@ -74,7 +74,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         arguments.add(0, "QUANTITY")
 
         val monthAndYearNumber =
-            FormatUtils().getMonthAndYearNumber(FormatUtils().getNameMonth((Date().month + 1).toString()))
+            FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
 
         if (arguments.size == 0 || condition.isBlank()) {
             arguments.add(monthAndYearNumber)

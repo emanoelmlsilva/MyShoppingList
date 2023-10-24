@@ -21,7 +21,7 @@ import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategor
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
@@ -89,7 +89,7 @@ fun BoxPurchaseHistoryComponent(
                             horizontalAlignment = Alignment.End
                         ) {
                             Text(
-                                text = FormatUtils().getNameDay(purchase.date).uppercase(),
+                                text = FormatDateUtils().getNameDay(purchase.date).uppercase(),
                                 fontFamily = LatoRegular,
                                 fontSize = 12.sp,
                                 color = text_primary_light

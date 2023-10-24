@@ -1,5 +1,7 @@
 package com.example.myshoppinglist.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +37,7 @@ import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
+@RequiresApi(Build.VERSION_CODES.N)
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
@@ -58,6 +61,12 @@ fun AlertDialogFilterComponent(
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
     val creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
 
+    val callbackChoiceData = object : Callback {
+        override fun onChangeValue(newMonth: String) {
+            month = newMonth
+        }
+    }
+
     LaunchedEffect(Unit) {
         keyboardController.hide()
 
@@ -74,7 +83,6 @@ fun AlertDialogFilterComponent(
 
         if(filter.month.isNotBlank()){
             month = filter.month
-
         }
     }
 
@@ -288,11 +296,7 @@ fun AlertDialogFilterComponent(
                         }
                     })
 
-                ChoiceDataComponent(idCardCredit, filter.month, object : Callback {
-                    override fun onChangeValue(newMonth: String) {
-                        month = newMonth
-                    }
-                })
+                ChoiceDataComponent(idCardCredit, filter.month, callbackChoiceData)
             }
             ButtonsFooterContent(
                 modifier = Modifier

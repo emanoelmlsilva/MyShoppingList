@@ -3,7 +3,7 @@ package com.example.myshoppinglist.database.repositories
 import androidx.lifecycle.LiveData
 import com.example.myshoppinglist.database.daos.CreditCardDAO
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,7 +39,7 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
     }
 
     fun getAllWithSum(emailUser: String): LiveData<List<CreditCard>>{
-        val dateMonth = FormatUtils().getMonthAndYear()
+        val dateMonth = FormatDateUtils().getMonthAndYear()
 
         return cardCreditCardDAO.getAllWithSum(emailUser, dateMonth)
     }
