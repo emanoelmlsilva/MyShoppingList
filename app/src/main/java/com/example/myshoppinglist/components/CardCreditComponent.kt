@@ -31,7 +31,7 @@ import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 
 @Composable
 fun CardCreditComponent(
@@ -133,7 +133,7 @@ fun CustomCardCredit(
 
                     }
                     Text(
-                        FormatUtils().getFormatValue(cardCreditDTO.value), modifier = Modifier
+                        FormatDateUtils().getFormatValue(cardCreditDTO.value), modifier = Modifier
                             .fillMaxWidth().fillMaxHeight(.5f)
                             .padding(bottom = 16.dp), color = text_secondary, fontSize = 40.sp, fontFamily = LatoBold
                     )
