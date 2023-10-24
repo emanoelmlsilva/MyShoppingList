@@ -60,7 +60,7 @@ import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
@@ -939,7 +939,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         if (!isBlock.value!!) {
             locale.value = ""
-            dateCurrent.value = FormatUtils().getDateFormatted(formatPtBR = false)
+            dateCurrent.value = FormatDateUtils().getDateFormatted(formatPtBR = false)
         }
 
         Handler().postDelayed({

@@ -1,6 +1,8 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -35,12 +37,15 @@ import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.background_card_gray_light
 import com.example.myshoppinglist.ui.theme.background_card_light
 import com.example.myshoppinglist.ui.theme.text_primary
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.N)
 @OptIn(ExperimentalAnimationApi::class)
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
@@ -85,7 +90,7 @@ fun SearchProductComponent(
                 filter.textCollection.removeAt(indexProduct)
             }
 
-        } else if (productItem == filter.month) {
+        } else if (productItem.startsWith("%month%")) {
             filter.month = ""
         } else if (productItem == "$formarValueMin á $formarValueMax") {
             filter.priceMin = null
@@ -126,55 +131,63 @@ fun SearchProductComponent(
                     .fillMaxHeight(.13f),
                 shape = RoundedCornerShape(8.dp)
             ) {
-               if(enableDialog){
-                AlertDialogFilterComponent(
-                    keyboardController!!,
-                    enableDialog,
-                    filter,
-                    productManagerFieldViewModel,
-                    lifecycleOwner,
-                    object : CallbackFilter {
-                        override fun onClick() {
-                            enableDialog = false
-                        }
-
-                        override fun onChangeObjectFilter(value: ObjectFilter) {
-
-                            value.textCollection = filter.textCollection
-
-                            listProductText.removeAll(listProductText)
-
-                            filter.textCollection.forEach {
-                                listProductText.add(it)
+                if (enableDialog) {
+                    AlertDialogFilterComponent(
+                        keyboardController!!,
+                        enableDialog,
+                        filter,
+                        productManagerFieldViewModel,
+                        lifecycleOwner,
+                        object : CallbackFilter {
+                            override fun onClick() {
+                                enableDialog = false
                             }
 
-                            value.categoryCollection.forEach { category ->
-                                listProductText.add("%category%, ${category.myShoppingId}, ${category.category}, ${category.idImage}, ${category.color}")
+                            override fun onChangeObjectFilter(value: ObjectFilter) {
+
+                                value.textCollection = filter.textCollection
+
+                                listProductText.removeAll(listProductText)
+
+                                filter.textCollection.forEach {
+                                    listProductText.add(it)
+                                }
+
+                                value.categoryCollection.forEach { category ->
+                                    listProductText.add("%category%, ${category.myShoppingId}, ${category.category}, ${category.idImage}, ${category.color}")
+                                }
+
+                                if (value.priceMin != null && value.priceMax != null) {
+                                    val formatValueMin =
+                                        MaskUtils.maskValue(
+                                            MaskUtils.convertValueDoubleToString(
+                                                value.priceMin!!.toDouble()
+                                            )
+                                        )
+                                    val formatValueMax =
+                                        MaskUtils.maskValue(
+                                            MaskUtils.convertValueDoubleToString(
+                                                value.priceMax!!.toDouble()
+                                            )
+                                        )
+
+                                    listProductText.add("$formatValueMin á $formatValueMax")
+                                }
+
+                                if (value.month.isNotBlank()) {
+                                    listProductText.add("%month%, ${value.month}")
+                                }
+
+                                if (value.idCard != 0L) {
+                                    listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
+                                }
+
+                                filter = value
+
+                                productManagerFieldViewModel.getSearchPurchase(filter)
                             }
-
-                            if (value.priceMin != null && value.priceMax != null) {
-                                val formarValueMin =
-                                    MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMin!!.toDouble()))
-                                val formarValueMax =
-                                    MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(value.priceMax!!.toDouble()))
-
-                                listProductText.add("$formarValueMin á $formarValueMax")
-                            }
-
-                            if (value.month.isNotBlank()) {
-                                listProductText.add(value.month)
-                            }
-
-                            if (value.idCard != 0L) {
-                                listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
-                            }
-
-                            filter = value
-
-                            productManagerFieldViewModel.getSearchPurchase(filter)
-                        }
-                    })
-            }
+                        })
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -256,11 +269,11 @@ fun SearchProductComponent(
                             var category: Category? = null
 
                             if (productItem.startsWith("%card%")) {
-                                var splitValueText = productItem.split(",")
+                                val splitValueText = productItem.split(",")
                                 label = splitValueText[3]
                                 icon = splitValueText[2].trim().toInt()
                             } else if (productItem.startsWith("%category%")) {
-                                var splitValuesCategory = productItem.split(",")
+                                val splitValuesCategory = productItem.split(",")
                                 val idSplit = splitValuesCategory[1].trim().toLong()
                                 val categorySplit = splitValuesCategory[2].trim()
                                 val idImageSplit = splitValuesCategory[3].trim()
@@ -268,7 +281,21 @@ fun SearchProductComponent(
 
                                 category = Category(categorySplit, idImageSplit, color)
                                 category.myShoppingId = idSplit
+                            } else if (productItem.startsWith("%month%")) {
+                                val splitValueText = productItem.split(",")
+                                val separatedMonthOfYear = splitValueText[1].split("-")
+                                if (separatedMonthOfYear.size > 1 && separatedMonthOfYear[1].isNotEmpty()) {
+                                    val month = separatedMonthOfYear[1]
+
+                                    label = FormatDateUtils().getNameMonth(month)
+                                        .replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(
+                                                Locale.getDefault()
+                                            ) else it.toString()
+                                        }
+                                }
                             }
+
                             CustomerChip(
                                 context = context,
                                 category = category,

@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.screen.RegisterTextFieldViewModel
 import com.example.myshoppinglist.ui.theme.text_secondary_light
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import java.util.*
 
 
@@ -35,16 +35,16 @@ fun DatePickerCustom(
     val month = calendar.get(Calendar.MONTH)
     val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
-    val formatedDate = FormatUtils().getDateFormatted(formatPtBR = true)
+    val formatedDate = FormatDateUtils().getDateFormatted(formatPtBR = true)
 
     val date = remember { mutableStateOf(formatedDate) }
 
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            date.value = FormatUtils().getDateFormatted(dayOfMonth, month, year, true)
+            date.value = FormatDateUtils().getDateFormatted(dayOfMonth, month, year, true)
             registerTextFieldViewModel.onChangeDateCurrent(
-                FormatUtils().getDateFormatted(
+                FormatDateUtils().getDateFormatted(
                     dayOfMonth,
                     month,
                     year
@@ -60,7 +60,7 @@ fun DatePickerCustom(
 
     LaunchedEffect(Unit) {
         registerTextFieldViewModel.onChangeDateCurrent(
-            FormatUtils().getDateFormatted(
+            FormatDateUtils().getDateFormatted(
                 dayOfMonth,
                 month,
                 year,
@@ -70,7 +70,7 @@ fun DatePickerCustom(
 
     registerTextFieldViewModel.dateCurrent.observeForever {
         if (it.isNotBlank()) {
-            date.value = FormatUtils().getDateFormatted(Date(it.toString().replace("-", "/")))
+            date.value = FormatDateUtils().getDateFormatted(Date(it.toString().replace("-", "/")))
         }
     }
 

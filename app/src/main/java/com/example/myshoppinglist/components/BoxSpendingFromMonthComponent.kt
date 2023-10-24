@@ -20,7 +20,7 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.text_primary_light
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 
@@ -46,21 +46,21 @@ fun BoxSpendingFromMonthComponent(
                 val convertedMonth = months.groupBy {
                     val separaterDate = it.split("-")
                     "${separaterDate[0]}-${separaterDate.get(1)}"
-                }.map { group -> FormatUtils().getMonth("${group.key}-01") }
+                }.map { group -> FormatDateUtils().getMonth("${group.key}-01") }
 
                 monthList.addAll(convertedMonth)
 
-                val monthCurrentDefault = FormatUtils().getMonthCurrent()
+                val monthCurrentDefault = FormatDateUtils().getMonthCurrent()
 
                 val isNotExist =
-                    months.find { FormatUtils().getMonth("${it}-01") == monthCurrentDefault } == null
+                    months.find { FormatDateUtils().getMonth("${it}-01") == monthCurrentDefault } == null
 
-                if (isNotExist && (monthCurrent.isBlank() || FormatUtils().getNumberMonth(
+                if (isNotExist && (monthCurrent.isBlank() || FormatDateUtils().getNumberMonth(
                         monthCurrentDefault
-                    )!!.toInt() > FormatUtils().getNumberMonth(monthCurrent)!!.toInt())
+                    )!!.toInt() > FormatDateUtils().getNumberMonth(monthCurrent)!!.toInt())
                 ) {
-                    monthCurrent = FormatUtils().getNumberMonth(monthCurrentDefault).toString()
-                    val yearCurrent = FormatUtils().getYearCurrent()
+                    monthCurrent = FormatDateUtils().getNumberMonth(monthCurrentDefault).toString()
+                    val yearCurrent = FormatDateUtils().getYearCurrent()
 
                     val formatMonth = if (monthCurrent.toInt() > 9) monthCurrent else "0$monthCurrent"
 
@@ -69,12 +69,12 @@ fun BoxSpendingFromMonthComponent(
                     monthList.add(0, monthCurrentDefault)
 
                 } else if (convertedMonth.isNotEmpty()) {
-                    val monthAndYearNumber = FormatUtils().getMonthAndYearNumber(convertedMonth[0])
+                    val monthAndYearNumber = FormatDateUtils().getMonthAndYearNumber(convertedMonth[0])
 
                     monthCurrent = "$monthAndYearNumber-01"
                 }
 
-                val convertMonthNumberCurrent = FormatUtils().getMonth(monthCurrent)
+                val convertMonthNumberCurrent = FormatDateUtils().getMonth(monthCurrent)
 
                 if (convertMonthNumberCurrent.isNotBlank()) {
                     callbackCreditCard.onChangeDataMonth(convertMonthNumberCurrent)
@@ -82,7 +82,7 @@ fun BoxSpendingFromMonthComponent(
 
             }catch (e: NullPointerException){
 
-                monthCurrent = "${FormatUtils().getMonthAndYearNumber(FormatUtils().getMonthCurrent())}-01"
+                monthCurrent = "${FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getMonthCurrent())}-01"
 
                 e.printStackTrace()
             }
@@ -98,7 +98,7 @@ fun BoxSpendingFromMonthComponent(
     LaunchedEffect(key1 = monthCurrent) {
 
         if (monthCurrent.isNotBlank()) {
-            callbackCreditCard.onChangeValue(FormatUtils().getMonth(monthCurrent))
+            callbackCreditCard.onChangeValue(FormatDateUtils().getMonth(monthCurrent))
         }
 
     }
@@ -115,9 +115,9 @@ fun BoxSpendingFromMonthComponent(
             CustomDropDownMonthComponent(
                 object : CustomTextFieldOnClick {
                     override fun onChangeValue(newValue: String) {
-                        monthCurrent = "${FormatUtils().getMonthAndYearNumber(newValue)}-01"
+                        monthCurrent = "${FormatDateUtils().getMonthAndYearNumber(newValue)}-01"
                     }
-                }, monthList, FormatUtils().getMonth(monthCurrent)
+                }, monthList, FormatDateUtils().getMonth(monthCurrent)
             )
 
         }

@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -28,7 +27,7 @@ import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
@@ -235,7 +234,7 @@ fun BoxPurchaseItemsComponent(
                                 }
 
                                 Text(
-                                    text = FormatUtils().getNameDay(purchase.date, false)
+                                    text = FormatDateUtils().getNameDay(purchase.date, false)
                                         .uppercase(),
                                     fontFamily = LatoBlack,
                                     fontSize = 12.sp,

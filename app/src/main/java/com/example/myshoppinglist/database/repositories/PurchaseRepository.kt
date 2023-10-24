@@ -6,7 +6,7 @@ import com.example.myshoppinglist.database.daos.PurchaseDAO
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,14 +89,14 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     fun getPurchasesAndCategoryWeek(): LiveData<List<PurchaseAndCategory>> {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)
-        val limitWeek = FormatUtils().getDateString(calendar.time)
+        val limitWeek = FormatDateUtils().getDateString(calendar.time)
         return purchaseDAO.getPurchasesAndCategoryWeek(limitWeek, email)
     }
 
     fun getPurchasesWeek(): List<Purchase> {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)
-        val limitWeek = FormatUtils().getDateString(calendar.time)
+        val limitWeek = FormatDateUtils().getDateString(calendar.time)
         return purchaseDAO.getPurchasesWeek(limitWeek, email)
 
     }
