@@ -10,7 +10,6 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.utils.MeasureTimeService
-import com.example.myshoppinglist.utils.MeasureTimeService.startMeasureTime
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -21,6 +20,14 @@ class CreditCardViewModel(
 ) : ViewModel() {
 
     private val TAG = "CreditCardViewModel"
+
+    fun getAutoIncrement(): Int{
+        return creditCardViewModel.getAutoIncrement()
+    }
+
+    fun updateCreditCardDB(cardCreditCard: CreditCard){
+        creditCardViewModel.updateCreditCard(cardCreditCard)
+    }
 
     fun findCreditCardById(idCard: Long): LiveData<CreditCard> {
         return creditCardViewModel.findCreditCardById(idCard)
@@ -105,6 +112,7 @@ class CreditCardViewModel(
             when (result) {
                 is ResultData.Success -> {
                     val creditCard = result.data
+                    creditCard.position = creditCardViewModel.getAutoIncrement()
 
                     Log.d(TAG, "creditCard $creditCard")
 
@@ -115,6 +123,7 @@ class CreditCardViewModel(
                 is ResultData.NotConnectionService -> {
                     callback.onChangeValue(MeasureTimeService.messageNoService)
                     val creditCardData = result.data.toCreditCard()
+                    creditCardData.position = creditCardViewModel.getAutoIncrement()
 
                     Log.d(TAG, "creditCardData $creditCardData")
 
