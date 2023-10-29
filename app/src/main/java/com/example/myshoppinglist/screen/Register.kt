@@ -1,7 +1,7 @@
 package com.example.myshoppinglist.screen
 
+import ResultData
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -41,6 +42,7 @@ import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
+import com.example.myshoppinglist.services.controller.LoadingDataController
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.LoginViewModel
@@ -53,6 +55,7 @@ import java.net.SocketTimeoutException
 fun Register(navController: NavController) {
     val LOG = "REGISTER"
     val context = LocalContext.current
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
@@ -243,12 +246,21 @@ fun Register(navController: NavController) {
                                             override fun onSuccess() {
                                                 Log.d(LOG, "Sucesso ao fazer signUp")
 
-                                                UserLoggedShared.insertUserLogged(email)
-                                                UserInstanceImpl.getInstance(context)
+                                                LoadingDataController.getData(context, lifecycleOwner).loadingDataCategories(email, object : Callback {
+                                                    override fun onSuccess() {
+                                                        UserLoggedShared.insertUserLogged(email)
+                                                        UserInstanceImpl.getInstance(context)
 
-                                                navController.navigate("${Screen.CreateUser.name}?isUpdate=${false}?hasToolbar=${false}") {
-                                                    popUpTo(0) { inclusive = false }
-                                                }
+                                                        navController.navigate("${Screen.CreateUser.name}?isUpdate=${false}?hasToolbar=${false}") {
+                                                            popUpTo(0) { inclusive = false }
+                                                        }
+                                                    }
+
+                                                    override fun onFailed(messageError: String) {
+                                                        Log.d(TAG, "findAndSaveCategories - onFailed ")
+                                                    }
+                                                })
+
                                             }
 
                                             override fun onFailedException(exception: Exception) {
