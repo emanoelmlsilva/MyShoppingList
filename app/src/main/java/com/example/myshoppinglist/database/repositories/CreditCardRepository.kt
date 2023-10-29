@@ -44,4 +44,8 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         return cardCreditCardDAO.getAllWithSum(emailUser, dateMonth)
     }
 
+    fun getAutoIncrement(): Int{
+        return cardCreditCardDAO.getAutoIncrement()
+    }
+
 }

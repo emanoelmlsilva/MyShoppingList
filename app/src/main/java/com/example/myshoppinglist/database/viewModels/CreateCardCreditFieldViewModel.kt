@@ -28,25 +28,24 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     }
 
     fun onTaskReordered(
-        creditCardViewModel: CreditCardViewModelDB,
         creditCardCollectionUpdate: MutableList<CreditCardDTODB>,
         fromPos: ItemPosition,
         toPos: ItemPosition
     ) {
-        val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
-        val positionFrom = creditCardCollection.value!![fromPos.index].position
-        val positionTo = creditCardCollection.value!![toPos.index].position
+        if(creditCardCollection.value!!.size > 0){
+            val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
+            val positionFrom = creditCardCollection.value!![fromPos.index].position
+            val positionTo = creditCardCollection.value!![toPos.index].position
 
-        auxCreditCardCollection[fromPos.index].position = positionTo
-        auxCreditCardCollection[toPos.index].position = positionFrom
+            auxCreditCardCollection[fromPos.index].position = positionTo
+            auxCreditCardCollection[toPos.index].position = positionFrom
 
-        auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
-        auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
+            auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
+            auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
 
-        creditCardViewModel.updateCreditCard(auxCreditCardCollection[fromPos.index].toCreditCard())
-        creditCardViewModel.updateCreditCard(auxCreditCardCollection[toPos.index].toCreditCard())
+            updateCreditCardCollection(auxCreditCardCollection)
+        }
 
-        updateCreditCardCollection(auxCreditCardCollection)
     }
 
     fun onChangeIdCardApi(newIdCardApi: Long){

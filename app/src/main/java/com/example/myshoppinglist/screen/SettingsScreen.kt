@@ -36,11 +36,13 @@ import com.example.myshoppinglist.components.DialogBackCustom
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.kotlin.toObservable
 import org.burnoutcrew.reorderable.*
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -48,7 +50,7 @@ import org.burnoutcrew.reorderable.*
 fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: String) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var visibleAnimation by remember {
         mutableStateOf(true)
@@ -60,9 +62,14 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     )
     val userViewModel: UserViewModelDB = UserViewModelDB(context)
 
+    fun updatePositionCreditCard() {
+        creditCardCollection.toObservable().subscribeBy(onNext = {
+            creditCardController.updateCreditCardDB(it.toCreditCard())
+        }, onError = { throwable -> {} }, onComplete = { })
+    }
 
     LaunchedEffect(key1 = idAvatar) {
-        creditCardViewModel.getAll().observe(lifecycleOwner){
+        creditCardController.findAllDB().observe(lifecycleOwner) {
             creditCardCollection?.addAll(it.map { creditCard ->
                 CreditCardDTODB().fromCreditCardDTODB(
                     creditCard
@@ -74,6 +81,12 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                     creditCard
                 )
             } as MutableList<CreditCardDTODB>)
+        }
+    }
+
+    LaunchedEffect(key1 = state.draggedIndex) {
+        if (state.draggedIndex == null) {
+            updatePositionCreditCard()
         }
     }
 
@@ -165,9 +178,10 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                     ) {
                         BaseLazyColumnScroll(modifier = Modifier
                             .fillMaxWidth(.9f)
+                            .fillMaxHeight(.9f)
                             .reorderable(state, { fromPos, toPos ->
                                 createCardCreditViewModel.onTaskReordered(
-                                    creditCardViewModel, creditCardCollection, fromPos, toPos
+                                    creditCardCollection, fromPos, toPos
                                 )
                             })
                             .detectReorderAfterLongPress(state),
@@ -234,7 +248,7 @@ fun BoxItemCard(creditCardDTO: CreditCardDTODB, state: ReorderableState, callBac
                 modifier = Modifier.fillMaxWidth(.7f)
             )
 
-            Row{
+            Row {
                 IconButton(onClick = {
                     callBack.onClick()
                 }) {

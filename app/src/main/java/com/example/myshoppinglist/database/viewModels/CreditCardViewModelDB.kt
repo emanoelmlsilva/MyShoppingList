@@ -49,4 +49,8 @@ class CreditCardViewModelDB(context: Context, lifecycleOwner: LifecycleOwner): V
     fun getAllWithSum(): LiveData<List<CreditCard>>{
         return repository.getAllWithSum(email)
     }
+
+    fun getAutoIncrement(): Int{
+        return repository.getAutoIncrement()
+    }
 }

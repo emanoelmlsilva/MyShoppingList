@@ -45,4 +45,8 @@ class CreditCardController {
     fun saveAllCreditCard(email: String, callback: CallbackObject<List<CreditCardDTO>>){
         creditCardViewModel.findAndSaveAllCreditCard(email, callback)
     }
+
+    fun updateCreditCardDB(creditCard: CreditCard){
+        creditCardViewModel.updateCreditCardDB(creditCard)
+    }
 }
