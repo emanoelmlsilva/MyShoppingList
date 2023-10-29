@@ -534,7 +534,7 @@ fun CategoryProduct(
     var idCategoryChoice by remember{ mutableStateOf(idUpdate) }
 
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Categorias",
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, end = 4.dp),

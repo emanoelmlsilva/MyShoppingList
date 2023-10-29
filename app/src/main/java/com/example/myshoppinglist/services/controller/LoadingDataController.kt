@@ -71,36 +71,6 @@ class LoadingDataController {
                 callback.onFailed(messageError)
             }
         })
-
-//
-//        creditCardService.findAll(user.email).enqueue(object : Callback<List<CreditCardDTO>> {
-//            override fun onResponse(
-//                call: Call<List<CreditCardDTO>>,
-//                response: Response<List<CreditCardDTO>>
-//            ) {
-//
-//                val creditCardCollection = response.body()
-//
-//                val idsCreditCardCollection = creditCardCollection?.map { it.id }
-//
-//                creditCardCollection?.toObservable()?.subscribeBy(
-//                    onNext = {
-//                        creditCardViewModel.insertCreditCard(it.toCreditCard())
-////                        loadingDataItemList(it.id, callback)
-//
-//                    },
-//                    onError = { callback.onCancel() },
-//                    onComplete = { loadingDataCategories(user, idsCreditCardCollection, callback) }
-//                )
-//            }
-//
-//            override fun onFailure(
-//                call: Call<List<CreditCardDTO>>,
-//                t: Throwable
-//            ) {
-//                callback.onCancel()
-//            }
-//        })
     }
 
     fun loadingDataCreditCard(email: String, callback: CallbackObject<List<CreditCardDTO>>) {
@@ -111,34 +81,11 @@ class LoadingDataController {
         email: String,
         callback: com.example.myshoppinglist.callback.Callback
     ) {
-
         categoryController.findAndSaveCategories(email, callback)
     }
 
     fun loadingDataItemList(id: Long, callback: com.example.myshoppinglist.callback.Callback) {
         itemListController.saveItemListAll(id, callback)
-
-//        itemListController.getItemListService().findAllByCardId(id)
-//            .enqueue(object : Callback<List<ItemListDTO>> {
-//                override fun onResponse(
-//                    call: Call<List<ItemListDTO>>,
-//                    response: Response<List<ItemListDTO>>
-//                ) {
-//                    val itemListCollection = response.body()
-//                    itemListCollection?.toObservable()?.subscribeBy(
-//                        onNext = {
-//                            itemListController.saveItemList(it, !response.body()?.isEmpty()!!)
-//                        },
-//                        onError = {},
-//                        onComplete = {}
-//                    )
-//                }
-//
-//                override fun onFailure(call: Call<List<ItemListDTO>>, t: Throwable) {
-//                    callback.onCancel()
-//
-//                }
-//            })
     }
 
     fun loadingDataPurchase(idCard: Long, callback: Callback) {
