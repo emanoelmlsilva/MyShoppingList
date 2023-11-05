@@ -1,0 +1,319 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "9d272b56ca8b02e871882a7ce24e3074",
+    "entities": [
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`email` TEXT NOT NULL, `password` TEXT NOT NULL, `name` TEXT NOT NULL, `nickName` TEXT NOT NULL, `idAvatar` INTEGER NOT NULL, PRIMARY KEY(`email`))",
+        "fields": [
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "password",
+            "columnName": "password",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nickName",
+            "columnName": "nickName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idAvatar",
+            "columnName": "idAvatar",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "email"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "credit_cards",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `holderName` TEXT NOT NULL, `cardName` TEXT NOT NULL, `value` REAL NOT NULL, `colorCard` INTEGER NOT NULL, `typeCard` TEXT NOT NULL, `cardUserId` TEXT NOT NULL, `flag` INTEGER NOT NULL, `position` INTEGER NOT NULL DEFAULT 0)",
+        "fields": [
+          {
+            "fieldPath": "myShoppingId",
+            "columnName": "myShoppingId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idMyShoppingApi",
+            "columnName": "idMyShoppingApi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "holderName",
+            "columnName": "holderName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cardName",
+            "columnName": "cardName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorCard",
+            "columnName": "colorCard",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typeCard",
+            "columnName": "typeCard",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cardUserId",
+            "columnName": "cardUserId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flag",
+            "columnName": "flag",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "myShoppingId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "purchases",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `name` TEXT NOT NULL, `locale` TEXT NOT NULL, `purchaseCardId` INTEGER NOT NULL, `quantiOrKilo` TEXT NOT NULL, `typeProduct` TEXT NOT NULL, `date` TEXT NOT NULL, `price` REAL NOT NULL, `categoryOwnerId` INTEGER NOT NULL, `purchaseUserId` TEXT NOT NULL, `discount` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "myShoppingId",
+            "columnName": "myShoppingId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idMyShoppingApi",
+            "columnName": "idMyShoppingApi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locale",
+            "columnName": "locale",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "purchaseCardId",
+            "columnName": "purchaseCardId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quantiOrKilo",
+            "columnName": "quantiOrKilo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typeProduct",
+            "columnName": "typeProduct",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryOwnerId",
+            "columnName": "categoryOwnerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "purchaseUserId",
+            "columnName": "purchaseUserId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "discount",
+            "columnName": "discount",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "myShoppingId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "category",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingIdCategory` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `category` TEXT NOT NULL, `idImage` TEXT NOT NULL, `color` INTEGER NOT NULL, `categoryUserId` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "myShoppingId",
+            "columnName": "myShoppingIdCategory",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idMyShoppingApi",
+            "columnName": "idMyShoppingApi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idImage",
+            "columnName": "idImage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryUserId",
+            "columnName": "categoryUserId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "myShoppingIdCategory"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "itemLists",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `item` TEXT NOT NULL, `categoryOwnerIdItem` INTEGER NOT NULL, `creditCardOwnerIdItem` INTEGER NOT NULL, `isRemoved` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "myShoppingId",
+            "columnName": "myShoppingId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idMyShoppingApi",
+            "columnName": "idMyShoppingApi",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "item",
+            "columnName": "item",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryOwnerIdItem",
+            "columnName": "categoryOwnerIdItem",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "creditCardOwnerIdItem",
+            "columnName": "creditCardOwnerIdItem",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRemoved",
+            "columnName": "isRemoved",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "myShoppingId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9d272b56ca8b02e871882a7ce24e3074')"
+    ]
+  }
+}

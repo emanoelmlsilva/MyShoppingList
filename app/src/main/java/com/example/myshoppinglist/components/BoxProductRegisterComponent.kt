@@ -2,6 +2,7 @@ package com.example.myshoppinglist.components
 
 import android.content.Context
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,7 +43,7 @@ fun BoxProductRegisterComponent(
 ) {
     val expandeds = remember { mutableStateListOf<Int>() }
 
-    fun expandableContainer(index: Int){
+    fun expandableContainer(index: Int) {
         val auxExpandeds = expandeds.toMutableList()
         expandeds.removeAll(expandeds)
         expandeds.addAll(changeVisibility(index, auxExpandeds))
@@ -59,7 +60,8 @@ fun BoxProductRegisterComponent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(30.dp)
-                            .clickable { expandableContainer(indexInfo) }, verticalAlignment = Alignment.CenterVertically
+                            .clickable { expandableContainer(indexInfo) },
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(modifier = Modifier
                             .padding(4.dp), onClick = { expandableContainer(indexInfo) }) {
@@ -73,7 +75,11 @@ fun BoxProductRegisterComponent(
                                 tint = text_primary,
                             )
                         }
-                        Text(text = purchaseInfo.title, modifier = Modifier.padding(start = 8.dp), fontFamily = LatoBold)
+                        Text(
+                            text = purchaseInfo.title,
+                            modifier = Modifier.padding(start = 8.dp),
+                            fontFamily = LatoBold
+                        )
                     }
                     Divider(
                         color = secondary_light,
@@ -109,7 +115,7 @@ fun BoxProductRegisterComponent(
                             size = 40.dp,
                             enabledBackground = true
                         )
-                        Column {
+                        Column(horizontalAlignment = Alignment.End) {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
@@ -120,7 +126,10 @@ fun BoxProductRegisterComponent(
                                         .padding(start = 12.dp),
                                     textAlign = TextAlign.Start
                                 )
-                                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
                                     Text(
                                         fontFamily = LatoRegular,
                                         fontSize = 12.sp,
@@ -128,10 +137,61 @@ fun BoxProductRegisterComponent(
                                     )
                                     Text(
                                         fontFamily = LatoBold,
-                                        text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString(purchase.price))}",
+                                        text = "R$ ${
+                                            MaskUtils.maskValue(
+                                                MaskUtils.convertValueDoubleToString(
+                                                    purchase.price
+                                                )
+                                            )
+                                        }",
                                         modifier = Modifier
                                             .padding(start = 12.dp),
                                     )
+                                }
+                            }
+                            if (purchase.discount > 0) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth(.75f)
+                                        .padding(top = 8.dp)
+                                ) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        text = "desconto", modifier = Modifier
+                                            .padding(start = 16.dp),
+                                        textAlign = TextAlign.Start,
+                                        fontSize = 12.sp
+                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.Bottom
+                                    ) {
+                                        Text(
+                                            fontFamily = LatoRegular,
+                                            fontSize = 12.sp,
+                                            text = "R$ -${
+                                                MaskUtils.maskValue(
+                                                    MaskUtils.convertValueDoubleToString(
+                                                        purchase.discount
+                                                    )
+                                                )
+                                            }"
+                                        )
+                                        Text(
+                                            fontFamily = LatoBold,
+                                            text = "R$ ${
+                                                MaskUtils.maskValue(
+                                                    MaskUtils.convertValueDoubleToString(
+                                                        purchase.price - purchase.discount
+                                                    )
+                                                )
+                                            }",
+                                            modifier = Modifier
+                                                .padding(start = 12.dp),
+                                        )
+                                    }
                                 }
                             }
                             Row(

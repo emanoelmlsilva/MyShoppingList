@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -25,7 +26,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -39,49 +39,95 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
+import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModel
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModel
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.model.PurchaseInfo
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.controller.CreditCardController
+import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.services.dtos.ItemListDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.CardUtils.getNameCard
-import com.example.myshoppinglist.utils.FormatUtils
-import com.example.myshoppinglist.utils.MaskUtils
-import kotlinx.coroutines.async
+import com.example.myshoppinglist.utils.*
 import kotlinx.coroutines.launch
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
-fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Long) {
+fun RegisterPurchaseScreen(
+    navController: NavHostController?,
+    idCardCurrent: Long,
+    isEditable: Boolean? = false,
+    purchaseEdit: Purchase? = null
+) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val purchaseViewModel = PurchaseViewModel(context)
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val purchaseController = PurchaseController.getData(context, lifecycleOwner)
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
     val reset = remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState()
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
     val purchaseInfoCollection =
-        registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value//remember { mutableStateListOf<PurchaseInfo>() }
+        registerTextFieldViewModel.purchaseInfoCollection.observeAsState(initial = mutableListOf()).value
     var countProduct by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     var visibilityBackHandler by remember { mutableStateOf(false) }
+    var isCheck by remember { mutableStateOf(false) }
+
+    var visibleWaiting by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+
+    val categoryCollections = remember { mutableStateListOf<Category>() }
 
     LaunchedEffect(key1 = idCardCurrent) {
-        categoryViewModel.getAll()
-        registerTextFieldViewModel.onChangeIdCard(idCardCurrent)
+        creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner) {
+            registerTextFieldViewModel.onChangeCreditCard(it)
+
+        }
+        categoryController.getAllDB().observe(lifecycleOwner) {
+            registerTextFieldViewModel.onChangeCategoryCollection(it)
+        }
+    }
+
+    LaunchedEffect(key1 = purchaseEdit) {
+        if (purchaseEdit != null) {
+            countProduct = 1
+
+            val price = if (purchaseEdit.typeProduct == TypeProduct.KILO) MaskUtils.maskKiloGram(
+                MaskUtils.replaceAll(purchaseEdit.price.toString())
+            ) else MaskUtils.maskQuantity(MaskUtils.convertValueDoubleToString(purchaseEdit.price))
+
+            registerTextFieldViewModel.onChangeCategory(purchaseEdit.categoryOwnerId)
+            registerTextFieldViewModel.onChangeLocale(purchaseEdit.locale)
+            registerTextFieldViewModel.onChangeDateCurrent(purchaseEdit.date)
+            registerTextFieldViewModel.onChangePrice(price)
+            registerTextFieldViewModel.onChangeProduct(purchaseEdit.name)
+            registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.quantiOrKilo)
+            registerTextFieldViewModel.onChangeTypeProduct(purchaseEdit.typeProduct)
+            if (purchaseEdit.discount > 0) {
+                registerTextFieldViewModel.onChangeDiscountCurrent(
+                    MaskUtils.maskQuantity(
+                        MaskUtils.convertValueDoubleToString(
+                            purchaseEdit.discount
+                        )
+                    )
+                )
+                isCheck = true
+            }
+        }
     }
 
     registerTextFieldViewModel.countProduct.observe(lifecycleOwner) {
@@ -92,20 +138,83 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
         reset.value = it
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        registerTextFieldViewModel.onChangeCategoryCollection(it)
+    registerTextFieldViewModel.categoryCollection.observe(lifecycleOwner) {
+        categoryCollections.removeAll(categoryCollections)
+        categoryCollections.addAll(it)
     }
 
-    suspend fun savePurchases() {
+    fun updatePurchase(callback: Callback) {
 
-        val purcharseSaveCoroutine = coroutineScope.async {
-            purchaseInfoCollection.map { purchaseInfo ->
-                purchaseViewModel.insertPurchase(purchaseInfo.purchaseCollection.map { it.purchase }
-                    .toList())
-            }
+        val purchase = Purchase(
+            registerTextFieldViewModel.product.value!!,
+            registerTextFieldViewModel.locale.value!!,
+            registerTextFieldViewModel.creditCard.value!!.myShoppingId,
+            registerTextFieldViewModel.quantOrKilo.value!!,
+            registerTextFieldViewModel.typeProduct.value!!,
+            registerTextFieldViewModel.dateCurrent.value!!,
+            MaskUtils.convertValueStringToDouble(
+                MaskUtils.maskValue(registerTextFieldViewModel.price.value!!)
+            ),
+            registerTextFieldViewModel.category.value!!,
+            registerTextFieldViewModel.email
+        )
+
+        purchase.myShoppingId = purchaseEdit?.myShoppingId ?: 0
+
+        val category = registerTextFieldViewModel.categoryCollection.value!!.find {
+            registerTextFieldViewModel.category.value == it.myShoppingId
+        }
+        purchaseController.updatePurchase(
+            PurchaseDTO(
+                purchase, category!!,
+                registerTextFieldViewModel.creditCard.value!!
+            ), callback
+        )
+    }
+
+    fun savePurchases(callback: Callback) {
+
+        val purchases = mutableListOf<PurchaseDTO>()
+
+        purchaseInfoCollection.forEach { purchaseInfo ->
+            purchases.addAll(purchaseInfo.purchaseCollection.map {
+                PurchaseDTO(
+                    it.purchase, it.category,
+                    registerTextFieldViewModel.creditCard.value!!
+                )
+            })
         }
 
-        purcharseSaveCoroutine.await()
+        purchaseController.savePurchases(purchases, callback)
+    }
+
+    val callback = object : CallbackObject<ItemListDTO> {
+        override fun onSuccess() {
+
+            navController!!.popBackStack()
+            visibleWaiting = false
+            messageError = MeasureTimeService.messageWaitService
+
+        }
+
+        override fun onCancel() {
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
     }
 
     BackHandler {
@@ -122,79 +231,90 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
     Box {
 
         BottomSheetScaffold(
-            sheetBackgroundColor = background_card,
+            sheetBackgroundColor = if (!isEditable!!) {
+                background_card
+            } else {
+                text_primary
+            },
             sheetContent = {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .padding(top = 16.dp, bottom = 70.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Card(
-                        elevation = 2.dp,
-                        shape = RoundedCornerShape(6.dp),
-                        backgroundColor = text_primary,
-                        modifier = Modifier
-                            .fillMaxWidth(.2f)
-                            .height(5.dp)
-                    ) {}
-                    Spacer(Modifier.height(20.dp))
-                    Row {
-                        Text(
-                            text = "Produtos",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
-                        )
-                        Text(
-                            text = "$countProduct".padStart(3, '0'),
-                            color = text_secondary,
-                            modifier = Modifier
-                                .drawBehind {
-                                    drawCircle(
-                                        color = text_primary,
-                                        radius = this.size.minDimension
-                                    )
-                                },
-                            fontSize = 12.sp
-                        )
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    Divider(
-                        color = text_primary,
-                        modifier = Modifier
+                if (!isEditable) {
+                    Column(
+                        Modifier
                             .fillMaxWidth()
-                            .height(1.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    BoxProductRegisterComponent(
-                        context,
-                        purchaseInfoCollection,
-                        object : CallbackPurchase() {
-                            override fun onChangeIndex(
-                                indexInfo: Int,
-                                index: Int,
-                                typeState: TypeState
-                            ) {
-                                if (typeState == TypeState.EDIT) {
-                                    val purchaseEdit =
-                                        purchaseInfoCollection[indexInfo].purchaseCollection[index]
-                                    registerTextFieldViewModel.updateData(
-                                        purchaseEdit.purchase,
-                                        index,
-                                        indexInfo
-                                    )
-                                } else {
-                                    registerTextFieldViewModel.removerPurchase(indexInfo, index)
+                            .fillMaxHeight()
+                            .padding(top = 16.dp, bottom = 70.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Card(
+                            elevation = 2.dp,
+                            shape = RoundedCornerShape(6.dp),
+                            backgroundColor = text_primary,
+                            modifier = Modifier
+                                .fillMaxWidth(.2f)
+                                .height(5.dp)
+                        ) {}
+                        Spacer(Modifier.height(20.dp))
+                        Row {
+                            Text(
+                                text = "Produtos",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
+                            )
+                            Text(
+                                text = "$countProduct".padStart(3, '0'),
+                                color = text_secondary,
+                                modifier = Modifier
+                                    .drawBehind {
+                                        drawCircle(
+                                            color = text_primary,
+                                            radius = this.size.minDimension
+                                        )
+                                    },
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+                        Divider(
+                            color = text_primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                        )
+                        Spacer(Modifier.height(20.dp))
+                        BoxProductRegisterComponent(
+                            context,
+                            purchaseInfoCollection,
+                            object : CallbackPurchase() {
+                                override fun onChangeIndex(
+                                    indexInfo: Int,
+                                    index: Int,
+                                    typeState: TypeState
+                                ) {
+                                    if (typeState == TypeState.EDIT) {
+                                        val purchaseEdit =
+                                            purchaseInfoCollection[indexInfo].purchaseCollection[index]
+                                        registerTextFieldViewModel.updateData(
+                                            purchaseEdit.purchase,
+                                            index,
+                                            indexInfo
+                                        )
+
+                                        if (purchaseEdit.purchase.discount > 0) {
+                                            isCheck = true
+                                        }
+                                    } else {
+                                        registerTextFieldViewModel.removerPurchase(indexInfo, index)
+                                    }
+                                    coroutineScope.launch {
+                                        scaffoldState.bottomSheetState.collapse()
+                                    }
                                 }
-                                coroutineScope.launch {
-                                    scaffoldState.bottomSheetState.collapse()
-                                }
-                            }
-                        })
+                            })
+                    }
                 }
+
             },
             scaffoldState = scaffoldState,
             topBar = {
@@ -203,9 +323,11 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     actions = {
                         IconButton(onClick = {
                             if (countProduct > 0) {
-                                coroutineScope.launch {
-                                    savePurchases()
-                                    navController!!.popBackStack()
+
+                                if (isEditable) {
+                                    updatePurchase(callback)
+                                } else {
+                                    savePurchases(callback)
                                 }
                             }
                         }) {
@@ -230,7 +352,7 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     elevation = 0.dp
                 )
             },
-            sheetPeekHeight = 140.dp,
+            sheetPeekHeight = if (!isEditable) 78.dp else 0.dp,
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
@@ -240,6 +362,8 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
+                    WaitingProcessComponent(visibleWaiting, messageError, callback)
+
                     TextInputComponent(
                         label = "Produto",
                         value = registerTextFieldViewModel.product.observeAsState().value!!,
@@ -253,6 +377,58 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                                 registerTextFieldViewModel.onChangeProduct(newValue)
                             }
                         })
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Checkbox(
+                                colors = CheckboxDefaults.colors(checkedColor = primary_dark),
+                                checked = isCheck,
+                                onCheckedChange = {
+                                    isCheck = !isCheck
+
+                                    if (!isCheck) {
+                                        registerTextFieldViewModel.onChangeDiscountCurrent("")
+                                    }
+                                }
+                            )
+
+                            Text(text = "Desconto", fontFamily = LatoBlack)
+                        }
+
+                        if (isCheck) {
+                            NumberInputComponent(maxChar = 13,
+                                keyboardType = KeyboardType.Number,
+                                value = registerTextFieldViewModel.discount.observeAsState().value,
+                                reset = reset.value,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.45f)
+                                    .padding(end = 16.dp),
+                                label = "Desconto",
+                                error = registerTextFieldViewModel.discountError.observeAsState().value,
+                                customOnClick = object :
+                                    CustomTextFieldOnClick {
+                                    override fun onChangeValue(newValue: String) {
+                                        registerTextFieldViewModel.onChangeDiscountCurrent(newValue)
+                                    }
+                                })
+                        }
+
+                        Spacer(Modifier.height(3.dp))
+
+                        Divider(
+                            color = divider,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                        )
+
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -283,95 +459,70 @@ fun RegisterPurchaseScreen(navController: NavHostController?, idCardCurrent: Lon
                     }
 
                     CategoryProduct(
-                        registerTextFieldViewModel,
-                        registerTextFieldViewModel.typeCategoryError.observeAsState().value
+                        if (isEditable && purchaseEdit != null) purchaseEdit.categoryOwnerId else 0,
+                        categoryCollections,
+                        registerTextFieldViewModel.typeCategoryError.observeAsState().value,
+                        object : CallbackObject<Category>{
+                            override fun onSuccess(category: Category) {
+                                registerTextFieldViewModel.onChangeCategory(category.myShoppingId!!)
+                                registerTextFieldViewModel.onChangeCategoryCurrent(category)
+                            }
+                        }
                     )
 
                     PurchaseAndPaymentComponent(
                         lifecycleOwner,
                         registerTextFieldViewModel,
-                        registerTextFieldViewModel.idCardError.observeAsState().value
                     )
 
-                    Button(
-                        colors = ButtonDefaults.buttonColors(backgroundColor = primary),
-                        modifier = Modifier
-                            .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
-                        onClick = {
-                            if (registerTextFieldViewModel.checkFileds()) {
-                                registerTextFieldViewModel.addPurchase()
-                                registerTextFieldViewModel.onChangeResetDate()
-                            }
-                        }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = text_secondary
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text("ADICIONAR", color = text_secondary)
+                    if (!isEditable) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(backgroundColor = primary),
+                            modifier = Modifier
+                                .padding(start = 16.dp, bottom = 186.dp, end = 16.dp, top = 16.dp),
+                            onClick = {
+                                if (registerTextFieldViewModel.checkFields() && (isCheck && registerTextFieldViewModel.discount.value?.isNotBlank() == true || !isCheck)) {
+                                    registerTextFieldViewModel.addPurchase()
+                                    registerTextFieldViewModel.onChangeResetDate()
+                                    isCheck = false
+                                }
+                            }) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                tint = text_secondary
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text("ADICIONAR", color = text_secondary)
+                        }
                     }
+
                 }
 
             }
         }
 
-//        Row(
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .layout { measurable, constraints ->
-//                    val placeable = measurable.measure(constraints)
-//                    layout(placeable.width, placeable.height) {
-//                        placeable.place(0, placeable.height / 2)
-//                    }
-//                }
-//                .padding(bottom = 52.dp)
-//                .background(text_secondary),
-//        ) {
-//            ButtonsFooterContent(
-//                isClickable = countProduct > 0,
-//                btnTextCancel = "CANCELAR",
-//                btnTextAccept = "SALVAR",
-//                onClickCancel = {
-//                    visibilityBackHandler = true
-//                },
-//                onClickAccept = {
-//                    coroutineScope.launch {
-//                        savePurchases()
-//                        navController!!.popBackStack()
-//                    }
-//                })
-//        }
     }
 
 }
 
 @Composable
 fun CategoryProduct(
-    registerTextFieldViewModel: RegisterTextFieldViewModel,
-    error: Boolean? = false
+    idUpdate: Long = 0L,
+    categoryCollections: List<Category>,
+    error: Boolean? = false,
+    callbackObject: CallbackObject<Category>
 ) {
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-
-    val categoryCollections = remember { mutableStateListOf<Category>() }
-
-    val categoryChoice = registerTextFieldViewModel.category.observeAsState().value
-
     val context = LocalContext.current
 
+    val scope = rememberCoroutineScope()
 
-    fun onClick(category: Category) {
-        registerTextFieldViewModel.onChangeCategory(category.id!!)
-        registerTextFieldViewModel.onChangeCategoryCurrent(category)
-    }
+    val scrollState = rememberLazyListState()
 
-    registerTextFieldViewModel.categoryCollection.observe(lifecycleOwner) {
-        categoryCollections.removeAll(categoryCollections)
-        categoryCollections.addAll(it)
-    }
+    var idCategoryChoice by remember{ mutableStateOf(idUpdate) }
 
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Categorias",
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, end = 4.dp),
@@ -384,19 +535,29 @@ fun CategoryProduct(
                 tint = message_error
             )
         }
-        LazyRow(modifier = Modifier.padding(start = 8.dp)) {
+        LazyRow(
+            state = scrollState,
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            categoryCollections.forEachIndexed { index, categoryScope ->
+                if (categoryScope.myShoppingId == idCategoryChoice) {
+                    scope.launch { scrollState.animateScrollToItem(index) }
+                }
+            }
+
             items(categoryCollections) { category ->
                 Card(modifier = Modifier
                     .padding(2.dp)
                     .clip(CircleShape)
                     .clickable {
-                        onClick(category)
+                        idCategoryChoice = category.myShoppingId
+                        callbackObject.onSuccess(category)
                     }
                 ) {
                     Row(
                         modifier = Modifier
                             .height(33.dp)
-                            .background(if (category.id == categoryChoice) background_card_light else background_card),
+                            .background(if (category.myShoppingId == idCategoryChoice) background_card_light else background_card),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -412,7 +573,8 @@ fun CategoryProduct(
                             enabledBackground = false,
                             callback = object : Callback {
                                 override fun onClick() {
-                                    onClick(category)
+                                    idCategoryChoice = category.myShoppingId
+                                    callbackObject.onSuccess(category)
                                 }
                             }
                         )
@@ -435,12 +597,9 @@ fun CategoryProduct(
 fun PurchaseAndPaymentComponent(
     lifecycleOwner: LifecycleOwner,
     registerTextFieldViewModel: RegisterTextFieldViewModel,
-    error: Boolean? = false
 ) {
     val context = LocalContext.current
-    val creditCardViewModel = CreditCardViewModel(context, lifecycleOwner)
-    val cardCreditCollection =
-        creditCardViewModel.searchCollectionResult.observeAsState(initial = listOf()).value
+    val creditCardViewModel = CreditCardViewModelDB(context, lifecycleOwner)
     val reset by registerTextFieldViewModel.resetDate.observeAsState(initial = false)
     val isBlock = registerTextFieldViewModel.isBlock.observeAsState()
     val colorBackground = if (isBlock.value!!) text_primary.copy(alpha = 0.6f) else primary_dark
@@ -546,7 +705,7 @@ fun BoxChoiceValue(
     var isMoney by remember { mutableStateOf(true) }
     var value by remember { mutableStateOf("") }
     var convertedValue = 0
-    var focusRequester by remember { mutableStateOf(FocusRequester()) }
+    val focusRequester by remember { mutableStateOf(FocusRequester()) }
 
     registerTextFieldViewModel.resetDate.observe(lifecycleOwner) {
         if (it) {
@@ -644,7 +803,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     var price: MutableLiveData<String> = MutableLiveData("")
     var quantOrKilo: MutableLiveData<String> = MutableLiveData("")
     var locale: MutableLiveData<String> = MutableLiveData("")
-    var idCard: MutableLiveData<Long?> = MutableLiveData(-1)
+    var creditCard: MutableLiveData<CreditCard> = MutableLiveData(CreditCard())
     var dateCurrent: MutableLiveData<String> = MutableLiveData("")
     var category: MutableLiveData<Long> = MutableLiveData(null)
     var isBlock: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -654,6 +813,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         MutableLiveData<MutableList<PurchaseInfo>>(mutableListOf())
     private val categoryCurrent: MutableLiveData<Category> = MutableLiveData(Category())
     val countProduct: MutableLiveData<Int> = MutableLiveData(0)
+    val discount: MutableLiveData<String> = MutableLiveData("")
 
     //variavel de error
     val productError: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -662,6 +822,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val idCardError: MutableLiveData<Boolean> = MutableLiveData(false)
     val typeCategoryError: MutableLiveData<Boolean> = MutableLiveData(false)
     val quantOrKiloError: MutableLiveData<Boolean> = MutableLiveData(false)
+    val discountError: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val index: MutableLiveData<Int> = MutableLiveData(-1)
     private val indexInfo: MutableLiveData<Int> = MutableLiveData(-1)
@@ -676,22 +837,25 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         typeProduct.value = purchase.typeProduct
         locale.value = purchase.locale
         dateCurrent.value = purchase.date
-        idCard.value = purchase.purchaseCardId
+        creditCard.value!!.myShoppingId = purchase.purchaseCardId
         quantOrKilo.value = purchase.quantiOrKilo
 
         index.value = newIndex
         indexInfo.value = newIndexInfo
+        discount.value = purchase.discount.toString()
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         productError.value = product.value!!.isBlank()
 
         priceError.value = price.value!!.isBlank()
 
+        discountError.value = discount.value!!.isBlank()
+
         localeError.value = locale.value!!.isBlank()
 
-        idCardError.value = idCard.value == -1L
+        idCardError.value = creditCard.value!!.myShoppingId == -1L
 
         typeCategoryError.value = category.value == null
 
@@ -706,7 +870,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
         if (locale.value!!.isBlank()) return false
 
-        if (idCard.value == -1L) return false
+        if (creditCard.value!!.myShoppingId == -1L) return false
 
         if (category.value == null) return false
 
@@ -737,6 +901,10 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         }
     }
 
+    fun onChangeDiscountCurrent(discount: String) {
+        this.discount.value = discount
+    }
+
     fun onChangeCategoryCurrent(category: Category) {
         this.categoryCurrent.value = category
     }
@@ -755,10 +923,11 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         index.value = -1
         indexInfo.value = -1
         quantOrKilo.value = ""
+        discount.value = ""
 
         if (!isBlock.value!!) {
             locale.value = ""
-            dateCurrent.value = FormatUtils().getDateFormatted(formatPtBR = false)
+            dateCurrent.value = FormatDateUtils().getDateFormatted(formatPtBR = false)
         }
 
         Handler().postDelayed({
@@ -787,7 +956,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         val purchase = Purchase(
             product.value!!,
             locale.value!!,
-            idCard.value!!,
+            creditCard.value!!.myShoppingId,
             quantOrKilo.value!!,
             typeProduct.value!!,
             dateCurrent.value!!,
@@ -795,7 +964,14 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
                 price.value!!
             ),
             category.value!!,
-            email
+            email,
+            MaskUtils.convertValueStringToDouble(
+                if (discount.value!!.isNotBlank()) {
+                    discount.value!!
+                } else {
+                    "0.0"
+                }
+            )
         )
 
         val purcharAndCategory = PurchaseAndCategory(
@@ -864,9 +1040,9 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         localeError.value = newLocale.isBlank()
     }
 
-    fun onChangeIdCard(newIdCard: Long?) {
-        idCard.value = newIdCard
-        idCardError.value = newIdCard == -1L
+    fun onChangeCreditCard(newCreditCard: CreditCard?) {
+        creditCard.value = newCreditCard
+        idCardError.value = newCreditCard!!.myShoppingId == -1L
     }
 
     fun onChangeIsBlock(newIsBlock: Boolean) {

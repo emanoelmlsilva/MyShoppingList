@@ -1,9 +1,8 @@
 package com.example.myshoppinglist.callback
 
-abstract class VisibleCallback : Callback {
+interface VisibleCallback : Callback {
     override fun onClick() {
         TODO("Not yet implemented")
     }
-    abstract fun onChangeVisible(visible: Boolean)
-
+    fun onChangeVisible(visible: Boolean){}
 }

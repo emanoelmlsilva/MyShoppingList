@@ -2,7 +2,7 @@ package com.example.myshoppinglist.database.viewModels
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.card_blue
@@ -15,37 +15,41 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
     var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
-    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTO>> =
+    var creditCardCollection: MutableLiveData<MutableList<CreditCardDTODB>> =
         MutableLiveData(mutableListOf())
     var value: MutableLiveData<Float> = MutableLiveData(0F)
     var typeCard: MutableLiveData<TypeCard> = MutableLiveData(TypeCard.MONEY)
     var idCreditCard: MutableLiveData<Long> = MutableLiveData()
     var lastPosition: MutableLiveData<Int> = MutableLiveData(0)
+    var idCardApi: MutableLiveData<Long> = MutableLiveData(0)
 
-    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTO>) {
+    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTODB>) {
         creditCardCollection.value = newTesteList
     }
 
     fun onTaskReordered(
-        creditCardViewModel: CreditCardViewModel,
-        creditCardCollectionUpdate: MutableList<CreditCardDTO>,
+        creditCardCollectionUpdate: MutableList<CreditCardDTODB>,
         fromPos: ItemPosition,
         toPos: ItemPosition
     ) {
-        val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
-        val positionFrom = creditCardCollection.value!![fromPos.index].position
-        val positionTo = creditCardCollection.value!![toPos.index].position
+        if(creditCardCollection.value!!.size > 0){
+            val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
+            val positionFrom = creditCardCollection.value!![fromPos.index].position
+            val positionTo = creditCardCollection.value!![toPos.index].position
 
-        auxCreditCardCollection[fromPos.index].position = positionTo
-        auxCreditCardCollection[toPos.index].position = positionFrom
+            auxCreditCardCollection[fromPos.index].position = positionTo
+            auxCreditCardCollection[toPos.index].position = positionFrom
 
-        auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
-        auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
+            auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
+            auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
 
-        creditCardViewModel.updateCreditCard(auxCreditCardCollection[fromPos.index].toCreditCard())
-        creditCardViewModel.updateCreditCard(auxCreditCardCollection[toPos.index].toCreditCard())
+            updateCreditCardCollection(auxCreditCardCollection)
+        }
 
-        updateCreditCardCollection(auxCreditCardCollection)
+    }
+
+    fun onChangeIdCardApi(newIdCardApi: Long){
+        idCardApi.value = newIdCardApi
     }
 
     fun onChangeLastPosition(newLastPosition: Int){
@@ -90,7 +94,7 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
         isErrorNameCard.value = newIsError
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true)
             return false

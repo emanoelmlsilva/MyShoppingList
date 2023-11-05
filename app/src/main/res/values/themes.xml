@@ -24,13 +24,14 @@
 
     <style name="Theme.MyShoppingList.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="SplashScreenTheme" parent="Theme.SplashScreen">
+    <style name="SplashScreenTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_screen</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_screen</item>
         <item name="windowSplashScreenBackground">@color/secondary</item>
         <item name="windowSplashScreenAnimationDuration">0</item>
         <item name="postSplashScreenTheme">@style/Theme.MyShoppingList</item>
         <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+        <item name="windowNoTitle">false</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/secondary</item>
     </style>
 </resources>

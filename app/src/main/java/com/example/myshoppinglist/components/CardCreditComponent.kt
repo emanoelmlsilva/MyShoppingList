@@ -1,17 +1,13 @@
 package com.example.myshoppinglist.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,13 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.callback.CallbackColor
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 
 @Composable
 fun CardCreditComponent(
@@ -41,7 +37,7 @@ fun CardCreditComponent(
     isChoiceColor: Boolean,
     flagCardCredit: Int = CardCreditFlag.MONEY.flag,
     typeCard: TypeCard,
-    cardCreditDTO: CreditCardDTO,
+    cardCreditDTO: CreditCardDTODB,
     createCardCreditViewModel: CreateCardCreditFieldViewModel,
     modifier: Modifier?,
     callbackColor: CallbackColor?
@@ -51,7 +47,12 @@ fun CardCreditComponent(
 
     if (isChoiceColor) {
 
-        Row(modifier = Modifier.padding(top = 32.dp)) {
+        Row(
+            modifier = Modifier
+                .padding(top = 32.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
 
             CustomCardCredit(
                 null,
@@ -64,7 +65,7 @@ fun CardCreditComponent(
                 null
             )
 
-            ChoiceColor(createCardCreditViewModel, callbackColor = callbackColor)
+            ColorPicker(callback = callbackColor!!)
         }
     } else {
         colorCurrent = Color(cardCreditDTO.colorCard)
@@ -91,13 +92,13 @@ fun CustomCardCredit(
     typeCard: TypeCard,
     flagCardCredit: Int,
     cardColor: Color,
-    cardCreditDTO: CreditCardDTO,
+    cardCreditDTO: CreditCardDTODB,
     modifier: Modifier?
 ) {
 
     Card(
         backgroundColor = ((if (isDefault) background_card else cardColor)),
-        modifier = (modifier?: Modifier)
+        modifier = (modifier ?: Modifier)
             .fillMaxWidth(.85f)
             .fillMaxHeight(.9f)
             .clickable(isClicable) {
@@ -116,28 +117,58 @@ fun CustomCardCredit(
             }
         } else {
 
-            Box (modifier = Modifier
-                .fillMaxSize()){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize().padding(horizontal = 24.dp), verticalArrangement = Arrangement.SpaceBetween
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row (modifier = Modifier.fillMaxWidth().padding(top = 28.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
-                        Text(if(cardCreditDTO.cardName.isBlank()) "Nome Cartão" else cardCreditDTO.cardName, modifier = Modifier.fillMaxWidth(.9f), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = text_secondary)
-                            Image(
-                                painter = painterResource(id = flagCardCredit),
-                                contentDescription = "tipo de cartao",
-                                modifier = Modifier
-                                    .shadow(21.dp, CircleShape).size(if (typeCard == TypeCard.MONEY) 20.dp else 35.dp)
-                            )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 28.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            if (cardCreditDTO.cardName.isBlank()) "Nome Cartão" else cardCreditDTO.cardName,
+                            modifier = Modifier.fillMaxWidth(.9f),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = text_secondary
+                        )
+                        Image(
+                            painter = painterResource(id = flagCardCredit),
+                            contentDescription = "tipo de cartao",
+                            modifier = Modifier
+                                .shadow(21.dp, CircleShape)
+                                .size(if (typeCard == TypeCard.MONEY) 20.dp else 35.dp)
+                        )
 
                     }
                     Text(
-                        FormatUtils().getFormatValue(cardCreditDTO.value), modifier = Modifier
-                            .fillMaxWidth().fillMaxHeight(.5f)
-                            .padding(bottom = 16.dp), color = text_secondary, fontSize = 40.sp, fontFamily = LatoBold
+                        FormatDateUtils().getFormatValue(cardCreditDTO.value),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(.5f)
+                            .padding(bottom = 16.dp),
+                        color = text_secondary,
+                        fontSize = 40.sp,
+                        fontFamily = LatoBold
                     )
-                    Text(if(cardCreditDTO.holderName.isBlank()) "Titular" else cardCreditDTO.holderName, modifier = Modifier.fillMaxWidth(.8f).padding(top = 8.dp, bottom = 38.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = text_secondary)
+                    Text(
+                        if (cardCreditDTO.holderName.isBlank()) "Titular" else cardCreditDTO.holderName,
+                        modifier = Modifier
+                            .fillMaxWidth(.8f)
+                            .padding(top = 8.dp, bottom = 38.dp),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = text_secondary
+                    )
                 }
 
 
@@ -145,65 +176,6 @@ fun CustomCardCredit(
 
         }
 
-    }
-}
-
-@Composable
-fun ChoiceColor(
-    createCardCreditViewModel: CreateCardCreditFieldViewModel,
-    callbackColor: CallbackColor?
-) {
-    val colorCollection: List<Color> = listOf(
-        card_blue,
-        card_purple,
-        card_pink_dark,
-        card_red_light,
-        card_blue_dark,
-        card_green_dark,
-        card_green,
-        card_pink,
-        card_blue_light,
-        card_ruby,
-        card_red_dark,
-        card_orange
-    )
-
-    val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(card_blue)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp),
-    ) {
-        repeat(colorCollection.size) { index ->
-            val color = colorCollection[index]
-            ItemColor(
-                color,
-                color == colorCurrent
-            ) {
-                if (colorCurrent != color) {
-                    callbackColor?.setColorCurrent(color)
-                    createCardCreditViewModel.onChangeColorCurrent(color)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ItemColor(color: Color, isChoiced: Boolean, onClickListener: () -> Unit) {
-
-    Button(
-        colors = ButtonDefaults.buttonColors(backgroundColor = color),
-        shape = RoundedCornerShape(0.dp),
-        border = if (isChoiced) BorderStroke(1.dp, text_primary) else null,
-        modifier = Modifier
-            .padding(start = 2.dp)
-            .height(18.dp)
-            .width(20.dp)
-            .padding(0.dp),
-        onClick = onClickListener
-    ) {
     }
 }
 
@@ -218,7 +190,7 @@ fun PreviewCardCredit() {
         typeCard = TypeCard.CREDIT,
         flagCardCredit = CardCreditFlag.MONEY.flag,
         cardColor = card_green_dark,
-        cardCreditDTO = CreditCardDTO(
+        cardCreditDTO = CreditCardDTODB(
             colorCard = card_purple.toArgb(),
             value = 123.4F,
             cardName = "Teste",
