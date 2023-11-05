@@ -37,23 +37,16 @@ import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
-import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
-import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.services.controller.ItemListController
 import com.example.myshoppinglist.services.controller.PurchaseController
-import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.ConversionUtils
-import com.example.myshoppinglist.utils.MaskUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
+import com.example.myshoppinglist.utils.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -104,40 +97,25 @@ fun MakingMarketScreen(
         }
 
         override fun onSuccess(itemListDTO: ItemListDTO) {
-            if (visibleWaiting) {
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        messageError = MeasureTimeService.messageWaitService
-                        if(itemListDTO.myShoppingId != 0L){
-                            val marketItem =
-                                MarketItem(
-                                    0F,
-                                    0F,
-                                    "0",
-                                    TypeProduct.QUANTITY,
-                                    false,
-                                    itemListDTO
-                                )
-                            marketItemCollection.add(marketItem)
-                        }else{
-                            visibility = false
-                            navController.popBackStack()
-                        }
-                        enabledDialog = false
-                        visibleWaiting = false
-                        super.onSuccess()
-                    }
-                })
-            } else {
-                enabledDialog = false
-                visibleWaiting = false
-                messageError = MeasureTimeService.messageWaitService
-                if(itemListDTO.myShoppingId != 0L){
-                    navController.popBackStack()
-                    visibility = false
-                }
-                super.onSuccess()
+            messageError = MeasureTimeService.messageWaitService
+            if(itemListDTO.myShoppingId != 0L){
+                val marketItem =
+                    MarketItem(
+                        0F,
+                        0F,
+                        "0",
+                        TypeProduct.QUANTITY,
+                        false,
+                        itemListDTO
+                    )
+                marketItemCollection.add(marketItem)
+            }else{
+                visibility = false
+                navController.popBackStack()
             }
+            enabledDialog = false
+            visibleWaiting = false
+            super.onSuccess()
         }
 
         override fun onCancel() {
@@ -362,6 +340,10 @@ fun MakingMarketScreen(
                         }
 
                         override fun onChangeValue(newValue: Boolean) {
+                            callback.onChangeValue(newValue)
+                        }
+
+                        override fun onChangeValue(newValue: String) {
                             callback.onChangeValue(newValue)
                         }
                     })
@@ -674,18 +656,6 @@ fun DialogSaveProduct(
                     onClickAccept = {
                         if (checkFields()) {
                             coroutineScope.launch {
-
-                                MeasureTimeService.startMeasureTime(callback)
-//                                val callback = object : Callback {
-//                                    override fun onSuccess() {
-//                                        visibilityDialog = false
-//                                        navController!!.popBackStack()
-//                                    }
-//
-//                                    override fun onFailed(messageError: String) {
-//                                        super.onFailed(messageError)
-//                                    }
-//                                }
                                 savePurchases(callback)
                             }
                         }

@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -83,34 +82,20 @@ fun CreateCardScreen(
     )
     val typeCard = if (hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
 
-    var visibleWaiting by remember{mutableStateOf(false)}
+    var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     val callback = object : CallbackObject<CreditCardDTO> {
         override fun onSuccess() {
 
-            if(visibleWaiting){
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        if (typeCard == TypeCard.MONEY) {
-                            navController?.navigate(Screen.Home.name) {
-                                popUpTo(Screen.Home.name) { inclusive = false }
-                            }
-                        } else {
-                            navController?.popBackStack()
-                        }
-                        visibleWaiting = newValue
-                    }
-                })
-            }else{
-                if (typeCard == TypeCard.MONEY) {
-                    navController?.navigate(Screen.Home.name) {
-                        popUpTo(Screen.Home.name) { inclusive = false }
-                    }
-                } else {
-                    navController?.popBackStack()
+            if (typeCard == TypeCard.MONEY) {
+                navController?.navigate(Screen.Home.name) {
+                    popUpTo(Screen.Home.name) { inclusive = false }
                 }
+            } else {
+                navController?.popBackStack()
             }
+            visibleWaiting = false
 
         }
 
@@ -171,7 +156,6 @@ fun CreateCardScreen(
     fun saveCreditCard() {
         if (userDTO != null) {
             if (createCardCreditViewModel.checkFields()) {
-                MeasureTimeService.startMeasureTime(callback)
                 val lastPosition = createCardCreditViewModel.lastPosition.value
                 val valueCreditCard = createCardCreditViewModel.value.value
                 val typeCardRecover = createCardCreditViewModel.typeCard.value
@@ -337,7 +321,7 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 18.dp)
+            .padding(top = 18.dp, bottom = 6.dp)
     ) {
         Text(text = "Bandeiras", fontFamily = LatoBold)
         Column(

@@ -24,16 +24,19 @@ class LoginViewModel(
 
     fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>) {
         viewModelScope.launch {
-
+            MeasureTimeService.init()
             val resultUpdate = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 loginRepository.updateUser(userDTO)
             } catch (exception: Exception) {
                 when (exception) {
                     is ConnectException -> {
-                        ResultData.NotConnectionService(userDTO)
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
+                        ResultData.NotConnectionService(UserDTO())
                     }
                     is SocketTimeoutException -> {
-                        ResultData.NotConnectionService(userDTO)
+                        callback.onChangeValue(MeasureTimeService.messageNoService)
+                        ResultData.NotConnectionService(UserDTO())
                     }
                     else -> {
                         ResultData.Error(exception)
@@ -48,14 +51,18 @@ class LoginViewModel(
                     callback.onSuccess(userDTO)
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
                     val userData = resultUpdate.data
 
                     Log.d(TAG, "updateUser $userData")
 
                     userViewModel.updateUser(userData.fromUser())
 
-                    callback.onSuccess(userData)
+                    MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object :
+                        Callback {
+                        override fun onChangeValue(newValue: Boolean) {
+                            callback.onSuccess(userData)
+                        }
+                    })
                 }
                 else -> {
                     val messageError = (resultUpdate as ResultData.Error).exception.message
@@ -87,7 +94,6 @@ class LoginViewModel(
                     callback.onSuccess(user)
                 }
                 else -> {
-
                     val messageError = (result as ResultData.Error).exception.message
 
                     Log.d(LOG, "error $messageError")

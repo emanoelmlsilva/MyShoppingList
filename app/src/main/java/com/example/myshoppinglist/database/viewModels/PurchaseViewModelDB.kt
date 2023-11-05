@@ -119,6 +119,22 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         })
     }
 
+    fun updatePurchase(purchase: Purchase) {
+        updatePurchase(purchase, object : Callback {
+            override fun onCancel() {
+                super.onCancel()
+            }
+
+            override fun onSuccess() {
+                super.onSuccess()
+            }
+
+            override fun onFailed(messageError: String) {
+                super.onFailed(messageError)
+            }
+        } )
+    }
+
     fun updatePurchase(purchase: Purchase, callback: Callback) {
 
         val action = Action {

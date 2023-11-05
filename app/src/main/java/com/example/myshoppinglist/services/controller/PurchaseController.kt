@@ -113,6 +113,11 @@ class PurchaseController {
                             Log.d(TAG, "saveItemList - onChangeValue")
                             callback.onChangeValue(newValue)
                         }
+
+                        override fun onChangeValue(newValue: Boolean) {
+                            Log.d(TAG, "saveItemList - onChangeValue")
+                            callback.onChangeValue(newValue)
+                        }
                     })
                 }
         }
@@ -138,6 +143,11 @@ class PurchaseController {
 
                 override fun onChangeValue(newValue: String) {
                     Log.d(TAG, "updatePurchase - onFailed")
+                    callback.onChangeValue(newValue)
+                }
+
+                override fun onChangeValue(newValue: Boolean) {
+                    Log.d(TAG, "saveItemList - onChangeValue")
                     callback.onChangeValue(newValue)
                 }
             })
@@ -173,6 +183,11 @@ class PurchaseController {
 
             override fun onChangeValue(newValue: String) {
                 Log.d(TAG, "delete Purchase By Id - onChangeValue")
+                callback.onChangeValue(newValue)
+            }
+
+            override fun onChangeValue(newValue: Boolean) {
+                Log.d(TAG, "saveItemList - onChangeValue")
                 callback.onChangeValue(newValue)
             }
         })

@@ -45,12 +45,10 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
-import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.dtos.CategoryDTO
-import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.ui.viewModel.LoginViewModel
@@ -104,10 +102,10 @@ fun CreateUserScreen(
     val loginViewModel =
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
-    var visibleWaiting by remember{mutableStateOf(false)}
+    var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
-    fun save(){
+    fun save() {
         UserInstanceImpl.reset()
         UserInstanceImpl.getInstance(context)
 
@@ -126,16 +124,7 @@ fun CreateUserScreen(
 
     val callback = object : CallbackObject<UserDTO> {
         override fun onSuccess(userDTO: UserDTO) {
-
-            if(visibleWaiting){
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        save()
-                    }
-                })
-            }else{
-                save()
-            }
+            save()
         }
 
         override fun onFailed(messageError: String) {
@@ -185,8 +174,6 @@ fun CreateUserScreen(
                     })
                 }, onError = { throwable -> {} }, onComplete = {})
 
-            }else{
-                MeasureTimeService.startMeasureTime(callback)
             }
 
             user.name = name.trim()

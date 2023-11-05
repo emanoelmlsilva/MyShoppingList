@@ -41,14 +41,18 @@ class ItemListViewModel(
 
     fun save(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
         viewModelScope.launch {
+            MeasureTimeService.init()
             val result = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 itemListRepository.save(itemList)
             } catch (e: Exception) {
                 when (e) {
                     is ConnectException -> {
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(itemList)
                     }
                     is SocketTimeoutException -> {
+                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(itemList)
                     }
                     else -> {
@@ -82,8 +86,6 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
-
                     val itemListData = result.data.toItemList()
                     itemListData.creditCardOwnerIdItem = itemList.creditCardDTO.idCard
                     itemListData.categoryOwnerIdItem = itemList.categoryDTO.myShoppingId
@@ -92,7 +94,11 @@ class ItemListViewModel(
                         itemListData,
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess(result.data)
+                                MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
+                                    override fun onChangeValue(newValue: Boolean) {
+                                        callback.onSuccess(result.data)
+                                    }
+                                })
                             }
 
                             override fun onFailed(messageError: String) {
@@ -119,14 +125,18 @@ class ItemListViewModel(
 
     fun update(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
         viewModelScope.launch {
+            MeasureTimeService.init()
             val result = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 itemListRepository.update(itemList)
             } catch (e: Exception) {
                 when (e) {
                     is ConnectException -> {
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(itemList)
                     }
                     is SocketTimeoutException -> {
+                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(itemList)
                     }
                     else -> {
@@ -161,17 +171,18 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
-
                     val itemListData = result.data.toItemList()
 
                     itemListViewModelDB.updateItemList(
                         itemListData,
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess()
+                                MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
+                                    override fun onChangeValue(newValue: Boolean) {
+                                        callback.onSuccess()
+                                    }
+                                })
                             }
-
                             override fun onFailed(messageError: String) {
                                 val messageError =
                                     (result as ResultData.Error).exception.message
@@ -238,5 +249,4 @@ class ItemListViewModel(
         }
 
     }
-
 }

@@ -32,7 +32,6 @@ import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -242,7 +241,6 @@ fun DialogRegisterItemList(
                     itemListDTO.categoryDTO = categoryChoice
 
                     if(itemListDTO.item.isNotBlank() && itemListDTO.categoryDTO.category.isNotBlank()){
-                        MeasureTimeService.startMeasureTime(callback)
                         if (itemListUpdate != null) {
                             itemListDTO.myShoppingId = itemListUpdate.myShoppingId
                             itemListDTO.id = itemListUpdate.id

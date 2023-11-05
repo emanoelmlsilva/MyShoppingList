@@ -59,10 +59,7 @@ import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatDateUtils
-import com.example.myshoppinglist.utils.MaskUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
+import com.example.myshoppinglist.utils.*
 import kotlinx.coroutines.launch
 
 @ExperimentalAnimationApi
@@ -194,17 +191,9 @@ fun RegisterPurchaseScreen(
     val callback = object : CallbackObject<ItemListDTO> {
         override fun onSuccess() {
 
-            if (visibleWaiting) {
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        navController!!.popBackStack()
-                        visibleWaiting = newValue
-                        messageError = MeasureTimeService.messageWaitService
-                    }
-                })
-            } else {
-                navController!!.popBackStack()
-            }
+            navController!!.popBackStack()
+            visibleWaiting = false
+            messageError = MeasureTimeService.messageWaitService
 
         }
 
@@ -334,7 +323,6 @@ fun RegisterPurchaseScreen(
                     actions = {
                         IconButton(onClick = {
                             if (countProduct > 0) {
-                                MeasureTimeService.startMeasureTime(callback)
 
                                 if (isEditable) {
                                     updatePurchase(callback)

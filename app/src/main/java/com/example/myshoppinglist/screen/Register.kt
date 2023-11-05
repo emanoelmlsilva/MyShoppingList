@@ -281,6 +281,10 @@ fun Register(navController: NavController) {
 
                                                 loading = false
                                             }
+
+                                            override fun onFailed(messageError: String) {
+                                                this.onFailedException(ConnectException())
+                                            }
                                         })
 
                                 }

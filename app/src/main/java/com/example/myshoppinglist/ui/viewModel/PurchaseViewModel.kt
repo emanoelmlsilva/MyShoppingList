@@ -73,14 +73,18 @@ class PurchaseViewModel(
 
     fun save(purchase: PurchaseDTO, callback: CallbackObject<PurchaseDTO>) {
         viewModelScope.launch {
+            MeasureTimeService.init()
             val result = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 purchaseRepository.save(purchase)
             } catch (e: Exception) {
                 when (e) {
                     is ConnectException -> {
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(purchase)
                     }
                     is SocketTimeoutException -> {
+                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(purchase)
                     }
                     else -> {
@@ -113,14 +117,19 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
 
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.insertPurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess()
+                                MeasureTimeService.resetMeasureTime(
+                                    MeasureTimeService.TIME_DELAY_CONNECTION,
+                                    object : Callback {
+                                        override fun onChangeValue(newValue: Boolean) {
+                                            callback.onSuccess()
+                                        }
+                                    })
                             }
 
                             override fun onFailed(messageError: String) {
@@ -146,11 +155,14 @@ class PurchaseViewModel(
 
     fun update(purchase: PurchaseDTO, callback: CallbackObject<PurchaseDTO>) {
         viewModelScope.launch {
+            MeasureTimeService.init()
             val result = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 purchaseRepository.update(purchase)
             } catch (e: Exception) {
                 when (e) {
                     is ConnectException -> {
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(purchase)
                     }
                     is SocketTimeoutException -> {
@@ -186,14 +198,19 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
 
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.updatePurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess()
+                                MeasureTimeService.resetMeasureTime(
+                                    MeasureTimeService.TIME_DELAY_CONNECTION,
+                                    object : Callback {
+                                        override fun onChangeValue(newValue: Boolean) {
+                                            callback.onSuccess()
+                                        }
+                                    })
                             }
 
                             override fun onFailed(messageError: String) {
@@ -261,14 +278,18 @@ class PurchaseViewModel(
 
     fun deletePurchase(idPurchaseApi: Long, idPurchase: Long, callback: CallbackObject<Any>) {
         viewModelScope.launch {
+            MeasureTimeService.init()
             val result = try {
+                MeasureTimeService.startMeasureTime(callback = callback)
                 purchaseRepository.delete(idPurchaseApi)
             } catch (e: Exception) {
                 when (e) {
                     is ConnectException -> {
+                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(idPurchaseApi)
                     }
                     is SocketTimeoutException -> {
+                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(idPurchaseApi)
                     }
                     else -> {
@@ -294,11 +315,16 @@ class PurchaseViewModel(
                     })
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeValue(MeasureTimeService.messageNoService)
 
                     purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
                         override fun onSuccess() {
-                            callback.onSuccess()
+                            MeasureTimeService.resetMeasureTime(
+                                MeasureTimeService.TIME_DELAY_CONNECTION,
+                                object : Callback {
+                                    override fun onChangeValue(newValue: Boolean) {
+                                        callback.onSuccess()
+                                    }
+                                })
                         }
 
                         override fun onFailed(messageError: String) {

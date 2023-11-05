@@ -28,7 +28,6 @@ import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.ItemListController
-import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
@@ -86,20 +85,10 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
 
         override fun onSuccess(itemListDTO: ItemListDTO) {
 
-            if (visibleWaiting) {
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        getItemListAll()
-                        enabledDialog = false
-                        visibleWaiting = newValue
-                        messageError = MeasureTimeService.messageWaitService
-                    }
-                })
-            } else {
-                getItemListAll()
-                enabledDialog = false
-                messageError = MeasureTimeService.messageWaitService
-            }
+            getItemListAll()
+            enabledDialog = false
+            visibleWaiting = false
+            messageError = MeasureTimeService.messageWaitService
 
         }
 
@@ -208,37 +197,13 @@ fun ListItemPurchaseScreen(navController: NavHostController, idCard: Long) {
                         override fun onInsert(itemList: ItemListDTO) {
                             itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
-                            itemListController.saveItemList(itemList, object : CallbackObject<ItemListDTO> {
-                                override fun onSuccess(itemListDTO: ItemListDTO) {
-                                   callback.onSuccess(itemListDTO)
-                                }
-
-                                override fun onCancel() {
-                                    super.onCancel()
-                                }
-
-                                override fun onChangeValue(newValue: String) {
-                                    callback.onChangeValue(newValue)
-                                }
-                            })
+                            itemListController.saveItemList(itemList, callback)
                         }
 
                         override fun onUpdate(itemList: ItemListDTO) {
                             itemList.creditCardDTO = creditCardDTO.fromCreditCardDTO()
 
-                            itemListController.updateItemList(itemList, object : CallbackObject<ItemListDTO> {
-                                override fun onSuccess() {
-                                    callback.onSuccess()
-                                }
-
-                                override fun onCancel() {
-                                    super.onCancel()
-                                }
-
-                                override fun onChangeValue(newValue: String) {
-                                    callback.onChangeValue(newValue)
-                                }
-                            })
+                            itemListController.updateItemList(itemList,callback)
                         }
 
                         override fun onClick() {
