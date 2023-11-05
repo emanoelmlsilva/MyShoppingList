@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.CreditCard
@@ -38,10 +39,6 @@ fun CreditCollectionScreen(navController: NavController?) {
         creditCardViewModel.getAllWithSum()
     }
 
-//    creditCardViewModel.searchCollectionResult.observe(lifecycleOwner.value) {
-//        creditCardCollectionFieldViewModel.onChangeCreditCardCollectin(generateCardCredit(it))
-//    }
-
     TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, content = {
         Column(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(
@@ -60,7 +57,7 @@ fun CreditCollectionScreen(navController: NavController?) {
                     cardCreditDTO = card,
                     createCardCreditViewModel = createCardCreditViewModel,
                     modifier = Modifier.fillMaxWidth(.95f),
-                    callbackColor = null
+                    callbackColor = object : CallbackColor{}
                 )
             }
         }

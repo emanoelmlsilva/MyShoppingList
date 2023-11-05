@@ -23,8 +23,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
+import com.example.myshoppinglist.components.ColorPicker
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.components.WaitingProcessComponent
@@ -61,7 +63,8 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     val categoryCurrent = registerCategoryFieldViewModel.categoryCurrent.observeAsState().value!!
 
-    val idImageCurrent = registerCategoryFieldViewModel.idImage.observeAsState("fastfood.png").value!!
+    val idImageCurrent =
+        registerCategoryFieldViewModel.idImage.observeAsState("fastfood.png").value!!
 
     val colorCurrent = registerCategoryFieldViewModel.color.observeAsState().value!!
 
@@ -74,7 +77,7 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         }
     }
 
-    var visibleWaiting by remember{mutableStateOf(false)}
+    var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     val callback = object : CallbackObject<CategoryDTO> {
@@ -127,7 +130,8 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     fun saveCategory(category: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
         categoryController.saveCategory(
-            category, callback)
+            category, callback
+        )
     }
 
     TopAppBarScreen(onClickIcon = { goBackNavigation() }, onClickIconDone = {
@@ -187,20 +191,11 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
                     })
             }
 
-            Column(
-                modifier = Modifier
-                    .width(250.dp)
-                    .height(250.dp)
-            ) {
-                Text("Escolha uma cor", fontFamily = LatoBold, fontSize = 18.sp)
-
-                HarmonyColorPicker(
-                    harmonyMode = ColorHarmonyMode.MONOCHROMATIC,
-                    onColorChanged = { color: HsvColor ->
-                        registerCategoryFieldViewModel.onChangeColor(color.toColorInt())
-                    }
-                )
-            }
+            ColorPicker(callback = object : CallbackColor {
+                override fun onChangeValue(value: Color) {
+                    registerCategoryFieldViewModel.onChangeColor(value.toArgb())
+                }
+            }, isVertically = true)
 
             Column(modifier = Modifier.padding(horizontal = 2.dp)) {
                 Text("Escolha um ícone", fontFamily = LatoBold, fontSize = 18.sp)
