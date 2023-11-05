@@ -253,14 +253,14 @@ fun CreateCardScreen(
                         modifier = Modifier
                             .padding(top = 16.dp, bottom = 26.dp),
                         callbackColor = object :
-                            CallbackColor() {
-                            override fun setColorCurrent(color: Color) {
+                            CallbackColor {
+                            override fun onChangeValue(color: Color) {
                                 createCardCreditViewModel.onChangeColorCurrent(color)
                             }
                         }
                     )
                     Column(
-                        modifier = Modifier.padding(top = 32.dp),
+                        modifier = Modifier.padding(top = 8.dp),
                     ) {
                         Column(
                             verticalArrangement = Arrangement.SpaceBetween
@@ -321,7 +321,7 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 18.dp, bottom = 6.dp)
+            .padding(top = 24.dp, bottom = 6.dp)
     ) {
         Text(text = "Bandeiras", fontFamily = LatoBold)
         Column(

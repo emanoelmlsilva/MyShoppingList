@@ -2,10 +2,9 @@ package com.example.myshoppinglist.callback
 
 import androidx.compose.ui.graphics.Color
 
-abstract class CallbackColor: Callback {
+interface CallbackColor: Callback {
     override fun onClick() {
         TODO("Not yet implemented")
     }
-    abstract fun setColorCurrent(color: Color)
-
+     fun onChangeValue(newValue: Color){}
 }
