@@ -29,12 +29,9 @@ import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.enums.Screen
-import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.model.IconCategory
 import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.dtos.CategoryDTO
-import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.AssetsUtils
@@ -82,18 +79,8 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
     val callback = object : CallbackObject<CategoryDTO> {
         override fun onSuccess() {
-
-            if(visibleWaiting){
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        goBackNavigation()
-                        visibleWaiting = newValue
-                    }
-                })
-            }else{
-                goBackNavigation()
-            }
-
+            goBackNavigation()
+            visibleWaiting = false
         }
 
         override fun onFailed(messageError: String) {
@@ -154,8 +141,6 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
         )
 
         if (newCategory.category.isNotBlank() && newCategory.idImage.isNotBlank()) {
-            MeasureTimeService.startMeasureTime(callback)
-
             if (idCategory != null && idCategory > 0) {
                 newCategory.id = idMyShoppingApi
                 updateCategory(newCategory, callback)
@@ -204,8 +189,8 @@ fun RegisterCategoryScreen(navController: NavController, idCategory: Long?) {
 
             Column(
                 modifier = Modifier
-                    .fillMaxHeight(.3f)
-                    .fillMaxWidth(.7f)
+                    .width(250.dp)
+                    .height(250.dp)
             ) {
                 Text("Escolha uma cor", fontFamily = LatoBold, fontSize = 18.sp)
 

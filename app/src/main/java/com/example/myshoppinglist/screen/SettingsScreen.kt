@@ -2,6 +2,7 @@ package com.example.myshoppinglist.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
@@ -116,49 +117,50 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                BaseAnimationComponent(
-                    visibleAnimation = visibleAnimation,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = 65.dp)
+                if (visibleAnimation) {
+                    BaseAnimationComponent(
+                        visibleAnimation = true,
                     ) {
-                        Column(
-                            modifier = Modifier.padding(top = 24.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(start = 65.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = idAvatar),
-                                contentDescription = "",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(135.dp)
-                                    .clip(CircleShape)
-                                    .border(1.5.dp, text_primary, CircleShape)
-                            )
+                            Column(
+                                modifier = Modifier.padding(top = 24.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    painter = painterResource(id = idAvatar),
+                                    contentDescription = "",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(135.dp)
+                                        .clip(CircleShape)
+                                        .border(1.5.dp, text_primary, CircleShape)
+                                )
 
-                            Text(
-                                text = nickName,
-                                Modifier.padding(vertical = 12.dp),
-                                color = text_primary,
-                                fontFamily = LatoBlack
-                            )
-                        }
+                                Text(
+                                    text = nickName,
+                                    Modifier.padding(vertical = 12.dp),
+                                    color = text_primary,
+                                    fontFamily = LatoBlack
+                                )
+                            }
 
-                        IconButton(onClick = {
-                            navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}?hasToolbar=${true}")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = null,
-                                tint = text_primary
-                            )
+                            IconButton(onClick = {
+                                navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}?hasToolbar=${true}")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = text_primary
+                                )
+                            }
                         }
                     }
                 }
-
                 Column() {
                     Divider(
                         color = divider, modifier = Modifier
@@ -173,12 +175,14 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                     )
 
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top
                     ) {
                         BaseLazyColumnScroll(modifier = Modifier
                             .fillMaxWidth(.9f)
-                            .fillMaxHeight(.9f)
                             .reorderable(state, { fromPos, toPos ->
                                 createCardCreditViewModel.onTaskReordered(
                                     creditCardCollection, fromPos, toPos
@@ -193,7 +197,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                             }) {
                             items(creditCardCollection,
                                 key = { creditCard -> creditCard.myShoppingId }) { creditCardDTO ->
-                                BoxItemCard(creditCardDTO, state, object : Callback {
+                                BoxItemCard(creditCardDTO, if(creditCardCollection.size > 1) state else null, object : Callback {
                                     override fun onClick() {
                                         navController.navigate(
                                             "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
@@ -214,14 +218,14 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
 }
 
 @Composable
-fun BoxItemCard(creditCardDTO: CreditCardDTODB, state: ReorderableState, callBack: Callback) {
+fun BoxItemCard(creditCardDTO: CreditCardDTODB, state: ReorderableState?, callBack: Callback) {
     Card(
         backgroundColor = Color(creditCardDTO.colorCard),
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
             .fillMaxWidth(.95f)
             .padding(vertical = 4.dp)
-            .draggedItem(state.offsetByKey(creditCardDTO.myShoppingId))
+            .draggedItem(state?.offsetByKey(creditCardDTO.myShoppingId))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

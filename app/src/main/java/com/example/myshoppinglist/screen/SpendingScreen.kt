@@ -70,22 +70,11 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
     val callback = object : CallbackObject<ItemListDTO> {
         override fun onSuccess() {
-
-            if (visibleWaiting) {
-                MeasureTimeService.resetMeasureTime(object : Callback {
-                    override fun onChangeValue(newValue: Boolean) {
-                        resetMonth = false
-                        visibilityBackHandler = false
-                        visibleWaiting = false
-                        reset()
-                        reload = true
-                    }
-                })
-            } else {
-                reset()
-                reload = true
-            }
-
+            resetMonth = false
+            visibilityBackHandler = false
+            visibleWaiting = false
+            reset()
+            reload = true
         }
 
         override fun onCancel() {
@@ -172,7 +161,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 DialogBackCustom(
                     visibilityBackHandler,
                     {
-                        MeasureTimeService.startMeasureTime(callback)
                         resetMonth = true
                         purchaseController.deletePurchase(
                             purchaseCurrent.idPurchaseApi,
@@ -298,7 +286,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                     ) {
                                         visibilityDialog = false
                                         if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
-                                            MeasureTimeService.startMeasureTime(callback)
 
                                             val creditCard =
                                                 creditCardCollection.find { it.myShoppingId == idCardCurrent }
@@ -352,18 +339,20 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                             }
 
                             items(purchaseInfo.purchaseCollection) { purchase ->
-                                BoxPurchaseSpendingComponent(purchase, idPurchaseEdit, object : Callback {
-                                    override fun onClick() {
-                                        idPurchaseEdit =
-                                            if (idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId) {
-                                                purchase.purchase.myShoppingId
-                                            } else {
-                                                0L
-                                            }
+                                BoxPurchaseSpendingComponent(purchase,
+                                    idPurchaseEdit,
+                                    object : Callback {
+                                        override fun onClick() {
+                                            idPurchaseEdit =
+                                                if (idPurchaseEdit == 0L || idPurchaseEdit != purchase.purchase.myShoppingId) {
+                                                    purchase.purchase.myShoppingId
+                                                } else {
+                                                    0L
+                                                }
 
-                                        purchaseCurrent = purchase.purchase
-                                    }
-                                },
+                                            purchaseCurrent = purchase.purchase
+                                        }
+                                    },
                                     object : CallbackOptions {
                                         override fun onTransfer(
                                             value: Boolean,
