@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleOwner
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
@@ -28,10 +26,10 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.DialogCustom
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.components.TextInputComponent
+import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.ItemList
-import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
@@ -40,15 +38,14 @@ import com.example.myshoppinglist.utils.AssetsUtils
 fun DialogRegisterItemList(
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    idCard: Long,
     enabledDialog: Boolean,
-    itemListUpdate: ItemListAndCategory?,
+    itemListUpdate: ItemListDTO?,
     callback: CallbackItemList
 ) {
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
     val categoryCollections = remember { mutableStateListOf<Category>() }
     var categoryChoice by remember {
-        mutableStateOf<Long>(-1)
+        mutableStateOf(CategoryDTO())
     }
     var item by remember {
         mutableStateOf("")
@@ -56,29 +53,29 @@ fun DialogRegisterItemList(
     var checkRemoved by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
-        categoryViewModel.getAll()
+        categoryViewModel.getAll().observe(lifecycleOwner){
+            categoryCollections.removeAll(categoryCollections)
+            categoryCollections.addAll(it)
+        }
+    }
+
+    LaunchedEffect(key1 = enabledDialog){
+        if(!enabledDialog){
+            categoryChoice = CategoryDTO()
+            item = ""
+            checkRemoved = false
+        }
     }
 
     LaunchedEffect(key1 = itemListUpdate) {
         if (itemListUpdate != null) {
-            categoryChoice = itemListUpdate.category.id!!
-            item = itemListUpdate.itemList.item
+            categoryChoice = itemListUpdate.categoryDTO
+            item = itemListUpdate.item
         }
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        categoryCollections.removeAll(categoryCollections)
-        categoryCollections.addAll(it)
-    }
-
-    fun onClick(id: Long) {
-        categoryChoice = id
-    }
-
-    fun reset() {
-        categoryChoice = -1L
-        item = ""
-        checkRemoved = false
+    fun onClick(categoryDTO: CategoryDTO) {
+        categoryChoice = categoryDTO
     }
 
     DialogCustom(visibilityDialog = enabledDialog) {
@@ -173,7 +170,7 @@ fun DialogRegisterItemList(
                             ),
                             fontWeight = FontWeight.Bold
                         )
-                        if (categoryChoice == -1L) Icon(
+                        if (categoryChoice.myShoppingId == 0L) Icon(
                             painter = painterResource(id = R.drawable.ic_baseline_error_24),
                             modifier = Modifier.size(16.dp),
                             contentDescription = null,
@@ -186,13 +183,15 @@ fun DialogRegisterItemList(
                                 .padding(2.dp)
                                 .clip(CircleShape)
                                 .clickable {
-                                    onClick(category.id!!)
+                                    val categoryDTO = CategoryDTO()
+                                    categoryDTO.toCategoryDTO(category)
+                                    onClick(categoryDTO)
                                 }
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .height(33.dp)
-                                        .background(if (category.id == categoryChoice) background_card_light else background_card),
+                                        .background(if (category.myShoppingId == categoryChoice.myShoppingId) background_card_light else background_card),
                                     horizontalArrangement = Arrangement.SpaceAround,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -208,7 +207,9 @@ fun DialogRegisterItemList(
                                         enabledBackground = false,
                                         callback = object : Callback {
                                             override fun onClick() {
-                                                onClick(category.id!!)
+                                                val categoryDTO = CategoryDTO()
+                                                categoryDTO.toCategoryDTO(category)
+                                                onClick(categoryDTO)
                                             }
                                         }
                                     )
@@ -232,18 +233,23 @@ fun DialogRegisterItemList(
                 btnTextAccept = "SALVAR",
                 onClickCancel = {
                     callback.onClick()
-                    reset()
                 },
                 onClickAccept = {
-                    val itemList = ItemList(item, checkRemoved, categoryChoice, idCard)
-                    if (itemListUpdate != null) {
-                        itemList.id = itemListUpdate.itemList.id
-                        callback.onUpdate(ItemListAndCategory(itemList, Category()))
-                    } else {
-                        callback.itemList(itemList)
+                    val itemListDTO = ItemListDTO()
+                    itemListDTO.item = item
+                    itemListDTO.isRemoved = checkRemoved
+                    itemListDTO.categoryDTO = categoryChoice
+
+                    if(itemListDTO.item.isNotBlank() && itemListDTO.categoryDTO.category.isNotBlank()){
+                        if (itemListUpdate != null) {
+                            itemListDTO.myShoppingId = itemListUpdate.myShoppingId
+                            itemListDTO.id = itemListUpdate.id
+                            callback.onUpdate(itemListDTO)
+                        } else {
+                            callback.onInsert(itemListDTO)
+                        }
                     }
 
-                    reset()
                 })
         }
     }

@@ -35,18 +35,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.User
+import com.example.myshoppinglist.components.WaitingProcessComponent
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
-import com.example.myshoppinglist.database.viewModels.UserViewModel
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.services.UserService
+import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.services.dtos.CategoryDTO
+import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import com.example.myshoppinglist.utils.MeasureTimeService
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.kotlin.toObservable
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
@@ -56,87 +64,150 @@ fun CreateUserScreen(
     isUpdate: Boolean? = false,
     hasToolbar: Boolean? = false
 ) {
-    var createUserViewModel: CreateUserFieldViewModel = viewModel()
+    val TAG = "CREATE_USER_SCREEN"
+    val createUserViewModel: CreateUserFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val userViewModel: UserViewModel = UserViewModel(context)
-    val categoryViewModel: CategoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    var user by remember { mutableStateOf(UserDTO()) }
     val categoryCollections = listOf(
-        Category("Higiene", "outline_sanitizer_black_36.png", card_blue.toArgb()),
-        Category("Limpeza", "outline_cleaning_services_black_36.png", card_pink.toArgb()),
-        Category("Comida", "food_bank.png", card_red_dark.toArgb()),
-        Category("Bebida", "outline_water_drop_black_36.png", card_orange.toArgb())
+        CategoryDTO(
+            category = "Higiene",
+            idImage = "outline_sanitizer_black_36.png",
+            color = card_blue.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Limpeza",
+            idImage = "outline_cleaning_services_black_36.png",
+            color = card_pink.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Comida",
+            idImage = "food_bank.png",
+            color = card_red_dark.toArgb(),
+            userDTO = user
+        ),
+        CategoryDTO(
+            category = "Bebida",
+            idImage = "outline_water_drop_black_36.png",
+            color = card_orange.toArgb(),
+            userDTO = user
+        )
     )
-    var user by remember { mutableStateOf(User()) }
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+    val loginViewModel =
+        LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
-    LaunchedEffect(Unit) {
-        val email = UserLoggedShared.getEmailUserCurrent()
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
-    }
+    var visibleWaiting by remember { mutableStateOf(false) }
+    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
-    UserInstanceImpl.userViewModel?.searchResult?.observe(lifecycleOwner) {
-        user = it
+    fun save() {
+        UserInstanceImpl.reset()
+        UserInstanceImpl.getInstance(context)
 
-        createUserViewModel.onChangeName(user.name)
-
-        createUserViewModel.onChangeNickName(user.nickName)
-
-        createUserViewModel.onChangeIdAvatar(user.idAvatar)
-    }
-
-    fun saveUser() {
-        if (createUserViewModel.checkFileds()) {
-            if (!isUpdate!!) {
-                categoryCollections.forEach {
-                    val category = Category(user.email, it.category, it.idImage, it.color)
-                    categoryViewModel.insertCategory(category)
-                }
+        if (isUpdate!!) {
+            navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+            {
+                popUpTo(Screen.Home.name) { inclusive = false }
             }
-            user.name = name.trim()
-            user.nickName = nickName.trim()
-            user.idAvatar = idAvatar
-
-            userViewModel.updateUser(user)
-            UserInstanceImpl.reset()
-            UserInstanceImpl.getInstance(context, user.email)
-
-            if (isUpdate) {
-                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
-                }
-            } else {
-                navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
-                {
-                    popUpTo(Screen.Home.name) { inclusive = false }
-                }
+        } else {
+            navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
+            {
+                popUpTo(Screen.Home.name) { inclusive = false }
             }
         }
     }
 
+    val callback = object : CallbackObject<UserDTO> {
+        override fun onSuccess(userDTO: UserDTO) {
+            save()
+        }
+
+        override fun onFailed(messageError: String) {
+
+        }
+
+        override fun onClick() {
+            visibleWaiting = false
+        }
+
+        override fun onChangeValue(newValue: Boolean) {
+            visibleWaiting = true
+        }
+
+        override fun onChangeValue(newValue: String) {
+            messageError = newValue
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val email = UserLoggedShared.getEmailUserCurrent()
+        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
+            lifecycleOwner
+        ) { userDTO ->
+            user = userDTO ?: UserDTO()
+
+            createUserViewModel.onChangeName(user.name)
+
+            createUserViewModel.onChangeNickName(user.nickName)
+
+            createUserViewModel.onChangeIdAvatar(user.idAvatar)
+
+        }
+    }
+
+    fun saveUser() {
+        if (createUserViewModel.checkFields()) {
+            if (!isUpdate!!) {
+                categoryCollections.toObservable().subscribeBy(onNext = {
+                    categoryController.saveCategory(it, object : CallbackObject<CategoryDTO> {
+                        override fun onSuccess() {
+                        }
+
+                        override fun onFailed(messageError: String) {
+
+                        }
+                    })
+                }, onError = { throwable -> {} }, onComplete = {})
+
+            }
+
+            user.name = name.trim()
+            user.nickName = nickName.trim()
+            user.idAvatar = idAvatar
+
+            loginViewModel.updateUser(user, callback)
+        }
+    }
+
     TopAppBarScreen(
+        enableScroll = true,
         hasBackButton = !hasToolbar!!,
         hasToolbar = hasToolbar,
-        isScrollable = true,
         hasDoneButton = hasToolbar,
         onClickIcon = { navController?.popBackStack() },
         onClickIconDone = { saveUser() },
         content = {
             Column(
                 modifier = Modifier
+                    .fillMaxHeight()
                     .padding(start = 28.dp, end = 28.dp, top = 16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column {
-                    if (!hasToolbar) {
+
+                WaitingProcessComponent(visibleWaiting, messageError, callback)
+
+                Column(modifier = Modifier) {
+                    if (!hasToolbar!!) {
                         HeaderText()
                     }
                     HeaderImage(createUserViewModel)
-                    ContentAvatares(createUserViewModel)
+                    ContentAvatars(createUserViewModel)
                     TextFieldContent(createUserViewModel, object : Callback {
                         override fun onClick() {
                             saveUser()
@@ -144,7 +215,7 @@ fun CreateUserScreen(
                     })
                 }
 
-                if (!hasToolbar) {
+                if (!hasToolbar!!) {
                     ButtonsFooterContent(
                         btnTextAccept = "PROXIMO",
                         iconAccept = Icons.Filled.ArrowForward,
@@ -214,7 +285,7 @@ fun HeaderImage(createUserViewModel: CreateUserFieldViewModel) {
 
 @ExperimentalFoundationApi
 @Composable
-fun ContentAvatares(createUserViewModel: CreateUserFieldViewModel) {
+fun ContentAvatars(createUserViewModel: CreateUserFieldViewModel) {
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
     var idAvatarCurrent: Int by remember {
@@ -380,7 +451,7 @@ class CreateUserFieldViewModel : BaseFieldViewModel() {
         isErrorNickName.value = newIsErrorNickName
     }
 
-    override fun checkFileds(): Boolean {
+    override fun checkFields(): Boolean {
 
         if (name.value!!.isBlank()) {
             onChangeIsErrorName(true)

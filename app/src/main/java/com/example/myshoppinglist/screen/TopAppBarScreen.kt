@@ -1,22 +1,22 @@
 package com.example.myshoppinglist.screen
 
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.components.rememberImeState
 import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
 import com.example.myshoppinglist.ui.theme.primary
 import com.example.myshoppinglist.ui.theme.secondary_dark
@@ -31,7 +31,7 @@ fun TopAppBarScreen(
     contentHeader: @Composable (() -> Unit?)? = {},
     onClickIcon: (() -> Unit)? = null,
     onClickIconDone: (() -> Unit)? = null,
-    isScrollable: Boolean = false,
+    enableScroll: Boolean = false,
     modifier: Modifier = Modifier,
     hasBackButton: Boolean = true,
     color: Color = MaterialTheme.colors.background,
@@ -41,9 +41,14 @@ fun TopAppBarScreen(
     paddingFloatingButton: Dp = 0.dp
 ) {
 
-    val baseModifier = if (!isScrollable) modifier else modifier.verticalScroll(
-        rememberScrollState()
-    )
+    val imeState = rememberImeState()
+    val scrollState: ScrollState = rememberScrollState()
+
+    LaunchedEffect(key1 = imeState.value) {
+        scrollState.animateScrollTo(scrollState.maxValue, tween(1300))
+    }
+
+    val baseModifier = if (enableScroll) modifier.verticalScroll(scrollState) else modifier
 
     MyShoppingListTheme {
         Scaffold(
@@ -89,7 +94,9 @@ fun TopAppBarScreen(
                     color = color,
                     contentColor = contentColor,
                     modifier = baseModifier,
-                    ) {screen()} }
+                    ) {screen()
+                }
+            }
         }
     }
 }

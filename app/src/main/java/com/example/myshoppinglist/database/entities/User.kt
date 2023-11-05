@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.R
+import com.google.gson.annotations.SerializedName
 import org.jetbrains.annotations.NotNull
 
 @Entity(tableName = "users")
@@ -11,20 +12,25 @@ class User {
 
     @PrimaryKey
     @NotNull
+    @SerializedName("email")
     @ColumnInfo(name = "email")
     var email: String = ""
 
     @NotNull
+    @SerializedName("password")
     @ColumnInfo(name = "password")
     var password: String = ""
 
-    @ColumnInfo(name = "userName")
+    @ColumnInfo(name = "name")
+    @SerializedName("name")
     var name: String = ""
 
     @ColumnInfo(name = "nickName")
+    @SerializedName("nickName")
     var nickName: String = ""
 
     @ColumnInfo(name = "idAvatar")
+    @SerializedName("idAvatar")
     var idAvatar:Int = R.drawable.default_avatar
 
     constructor()

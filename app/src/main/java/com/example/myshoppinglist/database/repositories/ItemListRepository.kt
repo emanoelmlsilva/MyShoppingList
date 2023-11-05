@@ -1,22 +1,26 @@
 package com.example.myshoppinglist.database.repositories
 
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
 import com.example.myshoppinglist.database.daos.ItemListDAO
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class ItemListRepository(private val itemListDAO: ItemListDAO) {
 
-    val searchItemListResult = MutableLiveData<List<ItemListAndCategory>>()
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    fun insertItemListAll(itemListCollection: List<ItemList>){
+        coroutineScope.launch(Dispatchers.IO) {
+            itemListDAO.insertItemAll(itemListCollection)
+        }
+    }
 
     fun insertItemList(itemList: ItemList){
         coroutineScope.launch(Dispatchers.IO) {
-            itemListDAO.insetItem(itemList)
+            itemListDAO.insertItem(itemList)
         }
     }
 
@@ -32,13 +36,8 @@ class ItemListRepository(private val itemListDAO: ItemListDAO) {
         }
     }
 
-    fun getAll(idCard: Long){
-        coroutineScope.launch(Dispatchers.Main){
-            searchItemListResult.value = asyncFindAll(idCard)
-        }
+    fun getAll(idCard: Long): LiveData<List<ItemListAndCategory>>{
+        return itemListDAO.getAll(idCard)
     }
 
-    private suspend fun asyncFindAll(idCard: Long): List<ItemListAndCategory> = coroutineScope.async(Dispatchers.IO) {
-        return@async itemListDAO.getAll(idCard)
-    }.await()
 }

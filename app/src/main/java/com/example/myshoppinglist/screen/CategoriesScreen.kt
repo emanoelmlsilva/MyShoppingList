@@ -26,8 +26,9 @@ import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.IconCategoryComponent
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.viewModels.CategoryViewModel
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
@@ -37,150 +38,163 @@ fun CategoriesScreen(navController: NavHostController?) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     var visibleAnimation by remember { mutableStateOf(true) }
-    val categoryViewModel = CategoryViewModel(context, lifecycleOwner)
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
     val categoryCollection = remember { mutableListOf<Category>() }
     var categorySize by remember {
         mutableStateOf(0)
     }
 
     LaunchedEffect(key1 = Unit) {
-        categoryViewModel.getAll()
+        categoryController.getAllDB().observe(lifecycleOwner) {
+            categoryCollection.removeAll(categoryCollection)
+            categoryCollection.addAll(it)
+            categorySize = it.size
+        }
     }
 
-    categoryViewModel.searchCollectionResult.observe(lifecycleOwner) {
-        categoryCollection.removeAll(categoryCollection)
-        categoryCollection.addAll(it)
-        categorySize = it.size
-    }
-
-    fun onClick(idCategory: Long? = null){
+    fun onClick(idCategory: Long? = null) {
         navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory ?: 0}")
     }
 
-    TopAppBarScreen(onClickIcon = { navController?.popBackStack() }, paddingFloatingButton = 65.dp, floatingActionButton = {
-        if(visibleAnimation) FloatingActionButton(backgroundColor = primary_dark,
-            onClick = {
-                onClick()
-            }) {
-                Icon(Icons.Filled.Add,null, tint = background_card)
-        }
-    }, content = {
-        Column(modifier = Modifier.padding(start = 26.dp, end = 26.dp, top = 26.dp)) {
-            BaseAnimationComponent(
-                visibleAnimation = visibleAnimation,
-                contentBase = {
-                    Card(
-                        elevation = 4.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.padding(top = 24.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 18.dp)) {
-                            Text("Categorias")
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth(.24f)
-                            ) {
-                                Text(
-                                    "${if (categorySize > 100) categorySize else "0$categorySize"}",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 36.sp
-                                )
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_baseline_category_24),
-                                    contentDescription = null,
-                                    tint = primary_dark,
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(.24f)
-                                    .height(5.dp)
-                                    .border(
-                                        width = 6.dp,
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = primary
-                                    )
-                                    .padding(start = 50.dp)
-                            ) {}
-                        }
-                    }
-                })
-            BaseLazyColumnScroll(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 36.dp),
-                callback = object : VisibleCallback() {
-                    override fun onChangeVisible(visible: Boolean) {
-                        if (visibleAnimation != visible) {
-                            visibleAnimation = visible
-                        }
-                    }
-                }
-            ) {
-                itemsIndexed(categoryCollection) { index, category ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 16.dp,
-                                bottom = if (index == (categoryCollection.size - 1)) 56.dp else 0.dp
-                            )
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
+    TopAppBarScreen(
+        onClickIcon = { navController?.popBackStack() },
+        paddingFloatingButton = 65.dp,
+        floatingActionButton = {
+            if (visibleAnimation) FloatingActionButton(backgroundColor = primary_dark,
+                onClick = {
+                    onClick()
+                }) {
+                Icon(Icons.Filled.Add, null, tint = background_card)
+            }
+        },
+        content = {
+            Column(modifier = Modifier.padding(start = 26.dp, end = 26.dp, top = 26.dp)) {
+                BaseAnimationComponent(
+                    visibleAnimation = visibleAnimation,
+                    contentBase = {
+                        Card(
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(top = 24.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(.8f),
-                                horizontalArrangement = Arrangement.SpaceAround,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconCategoryComponent(
-                                    iconCategory = AssetsUtils.readIconBitmapById(context, category.idImage)!!
-                                        .asImageBitmap(),
-                                    colorIcon = Color(category.color),
-                                    size = 36.dp,
-                                    enableClick = true
+                            Column(
+                                modifier = Modifier.padding(
+                                    vertical = 12.dp,
+                                    horizontal = 18.dp
                                 )
-
-                                Text(text = category.category, modifier = Modifier.fillMaxWidth())
-                            }
-                            Row() {
-                                IconButton(
-                                    onClick = {
-                                        onClick(category.id)
-                                    },
+                            ) {
+                                Text("Categorias")
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth(.24f)
                                 ) {
+                                    Text(
+                                        "${if (categorySize > 100) categorySize else "0$categorySize"}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 36.sp
+                                    )
                                     Icon(
-                                        painter = painterResource(R.drawable.ic_outline_mode_edit_outline_24),
+                                        painter = painterResource(R.drawable.ic_baseline_category_24),
                                         contentDescription = null,
-                                        tint = text_primary,
+                                        tint = primary_dark,
                                     )
                                 }
-                                IconButton(
-                                    enabled = false,
-                                    onClick = {
-                                    },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_outline_delete_outline_24),
-                                        contentDescription = null,
-                                        tint = text_title_secondary//text_primary,
-                                    )
-                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(.24f)
+                                        .height(5.dp)
+                                        .border(
+                                            width = 6.dp,
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = primary
+                                        )
+                                        .padding(start = 50.dp)
+                                ) {}
                             }
                         }
-                        Divider(
-                            color = divider,
+                    })
+                BaseLazyColumnScroll(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 36.dp),
+                    callback = object : VisibleCallback {
+                        override fun onChangeVisible(visible: Boolean) {
+                            if (visibleAnimation != visible) {
+                                visibleAnimation = visible
+                            }
+                        }
+                    }
+                ) {
+                    itemsIndexed(categoryCollection) { index, category ->
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(1.dp)
-                        )
+                                .padding(
+                                    top = 16.dp,
+                                    bottom = if (index == (categoryCollection.size - 1)) 56.dp else 0.dp
+                                )
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(.8f),
+                                    horizontalArrangement = Arrangement.SpaceAround,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconCategoryComponent(
+                                        iconCategory = AssetsUtils.readIconBitmapById(
+                                            context,
+                                            category.idImage
+                                        )!!
+                                            .asImageBitmap(),
+                                        colorIcon = Color(category.color),
+                                        size = 36.dp,
+                                        enableClick = true
+                                    )
+
+                                    Text(
+                                        text = category.category,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Row() {
+                                    IconButton(
+                                        onClick = {
+                                            onClick(category.myShoppingId)
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_outline_mode_edit_outline_24),
+                                            contentDescription = null,
+                                            tint = text_primary,
+                                        )
+                                    }
+                                    IconButton(
+                                        enabled = false,
+                                        onClick = {
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_outline_delete_outline_24),
+                                            contentDescription = null,
+                                            tint = text_title_secondary//text_primary,
+                                        )
+                                    }
+                                }
+                            }
+                            Divider(
+                                color = divider,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                            )
+                        }
                     }
                 }
             }
-        }
-    })
+        })
 
 }

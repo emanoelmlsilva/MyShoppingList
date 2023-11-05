@@ -19,35 +19,32 @@ import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.ui.theme.LatoBlack
-import com.example.myshoppinglist.ui.theme.LatoRegular
-import com.example.myshoppinglist.ui.theme.text_primary_light
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(
-    visibleAnimation: Boolean,
-    purchaseColleciton: List<PurchaseAndCategory>,
+    purchaseCollection: List<PurchaseAndCategory>,
     callback: VisibleCallback
 ) {
     val context = LocalContext.current
 
-    if (purchaseColleciton.isNotEmpty()) {
+    if (purchaseCollection.isNotEmpty()) {
         BaseLazyColumnScroll(
             modifier = Modifier.padding(bottom = 0.dp, start = 24.dp, end = 24.dp),
-            callback = callback
+            callback = callback,
         ) {
-            itemsIndexed(purchaseColleciton) { index, purchaseAndCategory ->
+            itemsIndexed(purchaseCollection) { index, purchaseAndCategory ->
                 val purchase = purchaseAndCategory.purchase ?: Purchase()
                 val category = purchaseAndCategory.category ?: Category()
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = if (index == (purchaseColleciton.size - 1)) 56.dp else 0.dp)
+                        .padding(bottom = if (index == (purchaseCollection.size - 1)) 56.dp else 0.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -69,7 +66,7 @@ fun BoxPurchaseHistoryComponent(
                         Column(
                             modifier = Modifier
                                 .padding(start = 12.dp)
-                                .fillMaxWidth(.58f)
+                                .fillMaxWidth(.3f)
                         ) {
                             Text(
                                 text = purchase.name.capitalize(),
@@ -92,7 +89,7 @@ fun BoxPurchaseHistoryComponent(
                             horizontalAlignment = Alignment.End
                         ) {
                             Text(
-                                text = FormatUtils().getNameDay(purchase.date).uppercase(),
+                                text = FormatDateUtils().getNameDay(purchase.date).uppercase(),
                                 fontFamily = LatoRegular,
                                 fontSize = 12.sp,
                                 color = text_primary_light
@@ -125,6 +122,48 @@ fun BoxPurchaseHistoryComponent(
                                 )
 
                             }
+
+                            if (purchase.discount > 0) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                ) {
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        text = "desconto", modifier = Modifier,
+                                        textAlign = TextAlign.Start,
+                                        fontSize = 12.sp,
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        fontFamily = LatoRegular,
+                                        fontSize = 12.sp,
+                                        text = "R$ -${
+                                            MaskUtils.maskValue(
+                                                MaskUtils.convertValueDoubleToString(
+                                                    purchase.discount
+                                                )
+                                            )
+                                        }"
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        fontFamily = LatoBlack,
+                                        fontSize = 12.sp,
+                                        color = text_primary_light,
+                                        text = "R$ ${
+                                            MaskUtils.maskValue(
+                                                MaskUtils.convertValueDoubleToString(
+                                                    purchase.price - purchase.discount
+                                                )
+                                            )
+                                        }",
+                                    )
+
+                                }
+                            }
                         }
 
                     }
@@ -136,6 +175,21 @@ fun BoxPurchaseHistoryComponent(
                     )
                 }
             }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.8f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Não foi realizada nenhuma compras nos últimos 7 dias.",
+                fontFamily = LatoBlack,
+                color = text_title_secondary,
+                fontSize = 12.sp
+            )
         }
     }
 

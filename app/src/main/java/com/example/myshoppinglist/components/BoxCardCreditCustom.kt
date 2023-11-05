@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.components
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,15 +26,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.CallbackCreditCard
-import com.example.myshoppinglist.database.dtos.CreditCardDTO
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
 fun BoxCardCreditCustom(
-    creditCardDTO: CreditCardDTO,
+    creditCardDTO: CreditCardDTODB,
     navController: NavController
 ) {
 
@@ -83,7 +81,7 @@ fun BoxCardCreditCustom(
                             fontSize = 24.sp
                         )
                         Image(
-                            painter = painterResource(id = creditCardDTO.flagBlack),
+                            painter = painterResource(id = creditCardDTO.fromFlagBlack()),
                             contentDescription = null,
                             modifier = Modifier.size(36.dp),
                         )
@@ -117,7 +115,7 @@ fun BoxCardCreditCustom(
                         text = "Comprar",
                         callback = object : CallbackCreditCard {
                             override fun onClick() {
-                                navController.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${creditCardDTO.idCard}")
+                                navController.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${creditCardDTO.myShoppingId}?isEditable=${false}?purchaseEdit=${""}")
                             }
                         })
                     CustomButtonRounded(
@@ -126,7 +124,7 @@ fun BoxCardCreditCustom(
                         text = "Lista",
                         callback = object : CallbackCreditCard {
                             override fun onClick() {
-                                navController.navigate("${Screen.ListPurchase.name}?idCard=${creditCardDTO.idCard}")
+                                navController.navigate("${Screen.ListPurchase.name}?idCard=${creditCardDTO.myShoppingId}")
                             }
                         })
                     CustomButtonRounded(
@@ -138,7 +136,7 @@ fun BoxCardCreditCustom(
                         text = "Mais",
                         callback = object : CallbackCreditCard {
                             override fun onClick() {
-                                navController.navigate("${Screen.Spending.name}?idCard=${creditCardDTO.idCard}")
+                                navController.navigate("${Screen.Spending.name}?idCard=${creditCardDTO.myShoppingId}")
                             }
                         })
                 }

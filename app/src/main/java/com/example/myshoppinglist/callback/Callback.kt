@@ -20,7 +20,13 @@ interface Callback {
 
     }
 
-    fun onSucess(){}
+    fun onChangeValue(newValue: String, time: Long){
+
+    }
+
+    fun onSuccess(){}
+
+    fun onFailed(messageError: String){}
 
     fun onCancel(){}
 }

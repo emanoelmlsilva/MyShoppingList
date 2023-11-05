@@ -16,7 +16,7 @@ import androidx.compose.runtime.remember
 fun BaseAnimationComponent(visibleAnimation: Boolean? = true, contentBase: @Composable () -> Unit) {
     val initialValue = 1f
     val animatedProgress = remember { Animatable(initialValue) }
-    val durationMillis = 300
+    val durationMillis = 150
 
     LaunchedEffect(animatedProgress) {
         animatedProgress.animateTo(

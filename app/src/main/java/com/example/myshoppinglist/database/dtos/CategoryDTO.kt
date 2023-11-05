@@ -1,22 +1,31 @@
 package com.example.myshoppinglist.database.dtos
 
-import androidx.room.ColumnInfo
 import com.example.myshoppinglist.database.entities.Category
-import com.squareup.moshi.JsonClass
+import com.google.gson.annotations.SerializedName
 
-//@JsonClass(generateAdapter = true)
 class CategoryDTO () {
 
+    var myShoppingId: Long = 0L
+    @SerializedName("id")
     var id: Long = 0L
-
+    @SerializedName("category")
     var category: String = ""
-
+    @SerializedName("idImage")
     var idImage: String = ""
-
+    @SerializedName("color")
     var color: Int = 0
+    @SerializedName("user")
+    var userDTO: UserDTO = UserDTO()
+
+    fun toCategoryApi(): Category{
+        val category = toCategory()
+        category.myShoppingId = this.id
+        return category
+    }
 
     fun toCategoryDTO(category: Category){
-        this.id = category.id!!
+        this.myShoppingId = category.myShoppingId
+        this.id = category.idMyShoppingApi
         this.category = category.category
         this.idImage = category.idImage
         this.color = category.color
@@ -24,11 +33,18 @@ class CategoryDTO () {
 
     fun toCategory(): Category{
         val category = Category()
-        category.id = this.id
+        category.myShoppingId = this.myShoppingId
+        category.idMyShoppingApi = this.id
         category.idImage = this.idImage
         category.color = this.color
         category.category = this.category
 
         return category
     }
+
+    override fun toString(): String {
+        return "CategoryDTO(myShoppingId=$myShoppingId, id=$id, category='$category', idImage='$idImage', color=$color, userDTO=$userDTO)"
+    }
+
+
 }

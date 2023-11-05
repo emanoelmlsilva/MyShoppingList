@@ -1,22 +1,26 @@
 package com.example.myshoppinglist.database.repositories
 
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
 import com.example.myshoppinglist.database.daos.CreditCardDAO
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.utils.FormatUtils
-import kotlinx.coroutines.*
-import java.util.*
+import com.example.myshoppinglist.utils.FormatDateUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
 
-    val searchResult = MutableLiveData<CreditCard>()
-    val searchCollectionResult = MutableLiveData<List<CreditCard>>()
-    val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    fun insertAllCreditCards(newCreditCards: List<CreditCard>){
+        coroutineScope.launch(Dispatchers.IO) {
+            cardCreditCardDAO.insertAllCreditCards(newCreditCards)
+        }
+    }
 
     fun insertCreditCard(newCreditCard: CreditCard){
         coroutineScope.launch(Dispatchers.IO) {
-            cardCreditCardDAO.inserCreditCard(newCreditCard)
+            cardCreditCardDAO.insertCreditCard(newCreditCard)
         }
     }
 
@@ -26,34 +30,22 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         }
     }
 
-    fun findCardCreditById(emailUser: String, id: Long){
-        coroutineScope.launch(Dispatchers.Main){
-            searchResult.value = asyncFind(emailUser, id).await()
-        }
+    fun findCardCreditById(emailUser: String, id: Long): LiveData<CreditCard>{
+        return cardCreditCardDAO.findCreditCardById(emailUser, id)
     }
 
-    fun getAll(emailUser: String){
-        coroutineScope.launch(Dispatchers.Main){
-            searchCollectionResult.value = asynFindAll(emailUser).await()
-        }
+    fun getAll(emailUser: String): LiveData<List<CreditCard>>{
+        return cardCreditCardDAO.getAll(emailUser)
     }
 
-    fun getAllWithSum(emailUser: String){
-        coroutineScope.launch(Dispatchers.Main){
-            searchCollectionResult.value = ansyFindAllWithSum(emailUser).await()
-        }
+    fun getAllWithSum(emailUser: String): LiveData<List<CreditCard>>{
+        val dateMonth = FormatDateUtils().getMonthAndYear()
+
+        return cardCreditCardDAO.getAllWithSum(emailUser, dateMonth)
     }
 
-    private fun asyncFind(emailUser: String, id: Long): Deferred<CreditCard?> = coroutineScope.async(Dispatchers.IO){
-        return@async cardCreditCardDAO.findCreditCardById(emailUser, id)
+    fun getAutoIncrement(): Int{
+        return cardCreditCardDAO.getAutoIncrement()
     }
 
-    private fun asynFindAll(emailUser: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
-        return@async cardCreditCardDAO.getAll(emailUser)
-    }
-
-    private fun ansyFindAllWithSum(email: String): Deferred<List<CreditCard>> = coroutineScope.async(Dispatchers.IO) {
-        val dateMonth = FormatUtils().getMonthAndYear()
-        return@async cardCreditCardDAO.getAllWithSum(email, dateMonth)
-    }
 }

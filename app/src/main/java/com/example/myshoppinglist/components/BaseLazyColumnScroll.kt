@@ -42,9 +42,9 @@ fun BaseLazyColumnScroll(
 
                 if (listState.isScrollInProgress) {
                     val positionScroll = available.y
-                    if (positionScroll <= 0) {
+                    if (positionScroll <= 0L && consumed.getDistanceSquared().toInt() > 50) {
                         callback?.onChangeVisible(false)
-                    } else if (positionScroll >= 30) {
+                    } else if (positionScroll >= 2L) {
                         callback?.onChangeVisible(true)
                     }
                 }

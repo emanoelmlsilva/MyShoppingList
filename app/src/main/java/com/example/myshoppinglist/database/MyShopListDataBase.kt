@@ -6,7 +6,7 @@ import androidx.room.migration.AutoMigrationSpec
 import com.example.myshoppinglist.database.daos.*
 import com.example.myshoppinglist.database.entities.*
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 1, exportSchema = true
+@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 4, exportSchema = true
 //    , autoMigrations = [AutoMigration (
 //    from = 0,
 //    to = 1,
@@ -25,6 +25,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
 
     companion object {
         private var instance: MyShopListDataBase? = null
+        val DATABASE_NAME = "MyShopList.db"
 
         fun getInstance(context: Context): MyShopListDataBase {
 
@@ -32,7 +33,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         MyShopListDataBase::class.java,
-                        "MyShopList.db"
+                        DATABASE_NAME
                     ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
                 }
                 return this.instance!!
