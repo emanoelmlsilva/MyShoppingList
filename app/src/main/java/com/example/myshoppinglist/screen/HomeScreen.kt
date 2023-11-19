@@ -60,8 +60,8 @@ fun HomeScreen(navController: NavController?) {
         homeFieldViewModel.creditCardController.getAllWithSumDB().observe(lifecycleOwner){ creditCollection ->
             if (creditCollection.isNotEmpty()) {
                 creditCardCollection.removeAll(creditCardCollection)
-                creditCardCollection.add(CreditCardDTODB())
                 creditCardCollection.addAll(MountStructureCrediCard().mountSpedingDate(creditCollection))
+                creditCardCollection.add(CreditCardDTODB())
             }
         }
 
