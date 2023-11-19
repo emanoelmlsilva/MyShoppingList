@@ -18,8 +18,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.callback.VisibleCallback
 
-private const val DISTANCE_SCROLL_UP = 100
-private const val DISTANCE_SCROLL_DOWN = 5
+private const val DISTANCE_SCROLL_UP = 30
+private const val DISTANCE_SCROLL_DOWN = 3
 
 @Composable
 fun BaseLazyColumnScroll(

@@ -17,8 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.ui.theme.*
@@ -33,6 +31,36 @@ fun BoxPurchaseHistoryComponent(
     callback: VisibleCallback
 ) {
     val context = LocalContext.current
+    val dateFormattedCollection = remember { HashMap<Long, String>() }
+    val priceFormattedCollection = remember { HashMap<Long, String>() }
+    val discountFormattedCollection = remember { HashMap<Long, String>() }
+    val totalWithoutDiscountFormattedCollection = remember { HashMap<Long, String>() }
+
+    LaunchedEffect(Unit) {
+
+        purchaseCollection.forEach {
+            val purchase = it.purchase
+
+            dateFormattedCollection[purchase.myShoppingId] =
+                FormatDateUtils().getNameDay(purchase.date).uppercase()
+
+            priceFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
+                MaskUtils.convertValueDoubleToString(
+                    purchase.price
+                )
+            )
+            discountFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
+                MaskUtils.convertValueDoubleToString(
+                    purchase.discount
+                )
+            )
+            totalWithoutDiscountFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
+                MaskUtils.convertValueDoubleToString(
+                    purchase.price - purchase.discount
+                )
+            )
+        }
+    }
 
     if (purchaseCollection.isNotEmpty()) {
         BaseLazyColumnScroll(
@@ -91,7 +119,7 @@ fun BoxPurchaseHistoryComponent(
                             horizontalAlignment = Alignment.End
                         ) {
                             Text(
-                                text = FormatDateUtils().getNameDay(purchase.date).uppercase(),
+                                text = if (dateFormattedCollection.isEmpty()) "" else dateFormattedCollection[purchase.myShoppingId]!!,
                                 fontFamily = LatoRegular,
                                 fontSize = 12.sp,
                                 color = text_primary_light
@@ -110,11 +138,7 @@ fun BoxPurchaseHistoryComponent(
 
                                 Text(
                                     text = "R$ ${
-                                        MaskUtils.maskValue(
-                                            MaskUtils.convertValueDoubleToString(
-                                                purchase.price
-                                            )
-                                        )
+                                        priceFormattedCollection[purchase.myShoppingId]
                                     }",
                                     modifier = Modifier.padding(start = 10.dp),
                                     textAlign = TextAlign.End,
@@ -143,11 +167,7 @@ fun BoxPurchaseHistoryComponent(
                                         fontFamily = LatoRegular,
                                         fontSize = 12.sp,
                                         text = "R$ -${
-                                            MaskUtils.maskValue(
-                                                MaskUtils.convertValueDoubleToString(
-                                                    purchase.discount
-                                                )
-                                            )
+                                            discountFormattedCollection[purchase.myShoppingId]
                                         }"
                                     )
                                     Text(
@@ -156,11 +176,7 @@ fun BoxPurchaseHistoryComponent(
                                         fontSize = 12.sp,
                                         color = text_primary_light,
                                         text = "R$ ${
-                                            MaskUtils.maskValue(
-                                                MaskUtils.convertValueDoubleToString(
-                                                    purchase.price - purchase.discount
-                                                )
-                                            )
+                                            totalWithoutDiscountFormattedCollection[purchase.myShoppingId]
                                         }",
                                     )
 
