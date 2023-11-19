@@ -26,17 +26,6 @@ import com.example.myshoppinglist.ui.theme.text_primary
 @ExperimentalAnimationApi
 @Composable
 fun HeaderComponent(navController: NavController, idAvatar: Int, nickName: String, visibleAnimation: Boolean, callBack: Callback) {
-    val animatedProgress = remember { Animatable(1f) }
-
-    LaunchedEffect(animatedProgress) {
-        animatedProgress.animateTo(
-            0.5f,
-            animationSpec = tween(
-                durationMillis = 300,
-                delayMillis = 300
-            )
-        )
-    }
 
     BaseAnimationComponent(
         visibleAnimation = visibleAnimation,
@@ -61,7 +50,7 @@ fun HeaderComponent(navController: NavController, idAvatar: Int, nickName: Strin
                     ) {
 
                         Image(
-                            painter = painterResource(id = idAvatar),
+                            painter = painterResource(id = if(idAvatar == 0) R.drawable.default_avatar else idAvatar),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
