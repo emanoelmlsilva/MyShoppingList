@@ -189,7 +189,7 @@ fun ButtonDotted(maxHeight: Float = .22f, navController: NavController) {
                 }
             }
         }
-        Text(text = "Adicionar", fontFamily = LatoBold, modifier = Modifier.padding(top = 6.dp))
+        Text(text = "Adicionar novo cartão", fontFamily = LatoBold, modifier = Modifier.padding(top = 6.dp))
     }
 }
 
