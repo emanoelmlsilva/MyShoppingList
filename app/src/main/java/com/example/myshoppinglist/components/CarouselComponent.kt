@@ -28,7 +28,7 @@ fun CarouselComponent(
     contentHeight: Dp,
     content: @Composable (modifier: Modifier, index: Int) -> Unit
 ) {
-    val pagerState = rememberPagerState(initialPage = 1)
+    val pagerState = rememberPagerState(initialPage = 0)
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
