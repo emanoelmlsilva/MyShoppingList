@@ -1,17 +1,25 @@
 package com.example.myshoppinglist.components
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Card
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.VerticalPager
+import com.google.accompanist.pager.calculateCurrentOffsetForPage
+import com.google.accompanist.pager.rememberPagerState
+import com.google.android.material.animation.AnimationUtils
+import kotlin.math.*
 
-@OptIn(ExperimentalAnimationApi::class)
+@SuppressLint("RestrictedApi")
+@OptIn(ExperimentalAnimationApi::class, ExperimentalPagerApi::class)
 @Composable
 fun CarouselComponent(
     count: Int,
@@ -20,57 +28,65 @@ fun CarouselComponent(
     contentHeight: Dp,
     content: @Composable (modifier: Modifier, index: Int) -> Unit
 ) {
+    val pagerState = rememberPagerState(initialPage = 1)
 
-    val listState = rememberLazyListState(count / 2)
+    Column(modifier = Modifier.fillMaxWidth()) {
 
-    LaunchedEffect(key1 = count) {
-        listState.animateScrollToItem(count)
+        BaseAnimationComponent(
+            visibleAnimation = visibleAnimation,
+            contentBase = {
+                BoxWithConstraints(
+                    modifier = parentModifier
+                ) {
+
+                    VerticalPager(
+                        count = count, state = pagerState,
+                        contentPadding = PaddingValues(top = 15.dp, bottom = 15.dp),
+                    ) { page ->
+                        Card(
+                            backgroundColor = Color.Transparent,
+                            elevation = 0.dp,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .graphicsLayer {
+                                    val pageOffset =
+                                        calculateCurrentOffsetForPage(page).absoluteValue
+
+                                    AnimationUtils
+                                        .lerp(
+                                            1.15f,
+                                            1f,
+                                            1f - pageOffset.coerceIn(0f, 1f)
+                                        )
+                                        .also { scale ->
+                                            scaleX = scale
+                                            scaleY = scale
+                                        }
+                                }
+                             .aspectRatio(1.45f)
+                        ) {
+                            content(
+                                index = page,
+                                modifier = Modifier
+                                    .padding()
+                                    .height(contentHeight)
+                                    .offset {
+                                        val pageOffset =
+                                            this@VerticalPager.calculateCurrentOffsetForPage(page)
+                                        // Then use it as a multiplier to apply an offset
+                                        IntOffset(
+                                            x = (40.dp * pageOffset).roundToPx(),
+                                            y = 0,
+                                        )
+                                    }
+                            )
+
+                        }
+
+                    }
+
+                }
+            })
     }
 
-    BaseAnimationComponent(
-        visibleAnimation = visibleAnimation,
-        contentBase = {
-            BoxWithConstraints(
-                modifier = parentModifier
-            ) {
-                val halfRowWidth = constraints.maxWidth / 2
-
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(),
-                    verticalArrangement = Arrangement.spacedBy(-contentHeight / 3f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    items(
-                        count = count,
-                        itemContent = { globalIndex ->
-
-                            val scale by remember {
-                                derivedStateOf {
-                                    val currentItem =
-                                        listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == globalIndex }
-                                            ?: return@derivedStateOf 0.85f
-
-                                    (1f - minOf(
-                                        1f,
-                                        Math.abs(currentItem.offset + (currentItem.size / 2) - halfRowWidth)
-                                            .toFloat() / halfRowWidth
-                                    ) * 0.3f)
-                                }
-                            }
-
-                            content(
-                                index = globalIndex,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(contentHeight)
-                                    .scale(scale)
-                                    .zIndex(scale)
-                            )
-                        }
-                    )
-                }
-            }
-        })
 }
