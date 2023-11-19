@@ -20,7 +20,10 @@ import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.components.BoxCardCreditCustom
+import com.example.myshoppinglist.components.BoxPurchaseHistoryComponent
+import com.example.myshoppinglist.components.CarouselComponent
+import com.example.myshoppinglist.components.HeaderComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
@@ -41,7 +44,7 @@ fun HomeScreen(navController: NavController?) {
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
     val purchaseCollection = remember { mutableStateListOf<PurchaseAndCategory>() }
-    val visibleAnimation = remember { mutableStateOf(true) }
+    var visibleAnimation by remember { mutableStateOf(true) }
     val creditCardCollection = remember { mutableStateListOf<CreditCardDTODB>() }
     var idAvatar by remember {
         mutableStateOf(R.drawable.default_avatar)
@@ -81,14 +84,14 @@ fun HomeScreen(navController: NavController?) {
     ) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HeaderComponent(navController!!, idAvatar, nickName, visibleAnimation.value, object : Callback {
+            HeaderComponent(navController!!, idAvatar, nickName, visibleAnimation, object : Callback {
                 override fun onClick() {
                     homeFieldViewModel.onChangeVisibleValue()
                 }
             })
 
             CarouselComponent(
-                visibleAnimation = visibleAnimation.value,
+                visibleAnimation = visibleAnimation,
                 count = creditCardCollection.size,
                 parentModifier = Modifier
                     .fillMaxWidth()
@@ -121,8 +124,8 @@ fun HomeScreen(navController: NavController?) {
                 purchaseCollection,
                 object : VisibleCallback {
                     override fun onChangeVisible(visible: Boolean) {
-                        if (visibleAnimation.value != visible) {
-                            visibleAnimation.value = visible
+                        if (visibleAnimation != visible) {
+                            visibleAnimation = visible
                         }
                     }
                 })

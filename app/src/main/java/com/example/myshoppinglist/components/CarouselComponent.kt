@@ -24,7 +24,7 @@ import kotlin.math.*
 fun CarouselComponent(
     count: Int,
     visibleAnimation: Boolean = true,
-    parentModifier: Modifier = Modifier.fillMaxWidth(),
+    parentModifier: Modifier = Modifier,
     contentHeight: Dp,
     content: @Composable (modifier: Modifier, index: Int) -> Unit
 ) {

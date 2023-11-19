@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 interface MyShoppingListService {
 
     companion object{
-        private const val API_BASE_URL = "http://10.0.0.193:9090/v1/api/"
+        private const val API_BASE_URL = "http://10.0.0.194:9090/v1/api/"
 
         fun create() : Retrofit{
             val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }

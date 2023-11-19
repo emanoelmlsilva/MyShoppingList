@@ -18,6 +18,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.example.myshoppinglist.callback.VisibleCallback
 
+private const val DISTANCE_SCROLL_UP = 100
+private const val DISTANCE_SCROLL_DOWN = 5
+
 @Composable
 fun BaseLazyColumnScroll(
     listState: LazyListState = rememberLazyListState(),
@@ -42,9 +45,9 @@ fun BaseLazyColumnScroll(
 
                 if (listState.isScrollInProgress) {
                     val positionScroll = available.y
-                    if (positionScroll <= 0L && consumed.getDistanceSquared().toInt() > 50) {
+                    if (positionScroll <= 0L && consumed.getDistanceSquared().toInt() > DISTANCE_SCROLL_UP) {
                         callback?.onChangeVisible(false)
-                    } else if (positionScroll >= 2L) {
+                    } else if (positionScroll >= DISTANCE_SCROLL_DOWN) {
                         callback?.onChangeVisible(true)
                     }
                 }
