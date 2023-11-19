@@ -31,9 +31,9 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackFilter
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.entities.Category
+import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
-import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.background_card_gray_light
 import com.example.myshoppinglist.ui.theme.background_card_light
 import com.example.myshoppinglist.ui.theme.text_primary
@@ -56,9 +56,9 @@ fun SearchProductComponent(
     lifecycleOwner: LifecycleOwner,
     productManagerFieldViewModel: ProductManagerFieldViewModel
 ) {
-    val product = remember { mutableStateOf("") }
+    var product by remember { mutableStateOf("") }
     val listProductText = remember { mutableStateListOf<String>() }
-    val reset = remember { mutableStateOf(false) }
+    var reset by remember { mutableStateOf(false) }
     var enableDialog by remember { mutableStateOf(false) }
     var filter by remember { mutableStateOf(ObjectFilter()) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -106,14 +106,15 @@ fun SearchProductComponent(
             }
         }
 
-        productManagerFieldViewModel.getSearchPurchase(filter)
+        productManagerFieldViewModel.searchPurchases(filter)
     }
 
-    productManagerFieldViewModel.product.observe(lifecycleOwner) {
-        if (it.isNotBlank() && reset.value) {
-            reset.value = false
+    productManagerFieldViewModel.getProduct().observe(lifecycleOwner) {
+
+        if (it.isNotBlank() && reset) {
+            reset = false
         }
-        product.value = it
+        product = it
     }
 
     LaunchedEffect(key1 = enableDialog) {
@@ -125,6 +126,7 @@ fun SearchProductComponent(
     BaseAnimationComponent(
         visibleAnimation = visibleAnimation,
         contentBase = {
+
             Card(
                 backgroundColor = background_card_gray_light, modifier = Modifier
                     .fillMaxWidth()
@@ -184,7 +186,7 @@ fun SearchProductComponent(
 
                                 filter = value
 
-                                productManagerFieldViewModel.getSearchPurchase(filter)
+                                productManagerFieldViewModel.searchPurchases(filter)
                             }
                         })
                 }
@@ -209,8 +211,8 @@ fun SearchProductComponent(
                                 modifier = Modifier
                                     .fillMaxWidth(.85f)
                                     .fillMaxHeight(),
-                                value = product.value,
-                                reset = reset.value,
+                                value = product,
+                                reset = reset,
                                 label = "Produto",
                                 leadingIcon = {
                                     Icon(
@@ -222,14 +224,15 @@ fun SearchProductComponent(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        if (product.value.isNotBlank()) {
-                                            filter.textCollection.add(product.value.trim())
 
-                                            productManagerFieldViewModel.getSearchPurchase(
+                                        if (product.isNotBlank()) {
+                                            filter.textCollection.add(product.trim())
+
+                                            productManagerFieldViewModel.searchPurchases(
                                                 filter
                                             )
-                                            listProductText.add(product.value.trim())
-                                            reset.value = true
+                                            listProductText.add(product.trim())
+                                            reset = true
                                             productManagerFieldViewModel.onChangeProduct("")
                                         }
 

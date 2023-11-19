@@ -31,9 +31,9 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.enums.PositionDialog
+import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
-import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
@@ -99,12 +99,12 @@ fun AlertDialogFilterComponent(
         }
     }
 
-    productManagerFieldViewModel.categoryController.getAllDB().observe(lifecycleOwner) {
+    productManagerFieldViewModel.getCategoryController().getAllDB().observe(lifecycleOwner) {
         categoryCollections.removeAll(categoryCollections)
         categoryCollections.addAll(it)
     }
 
-    productManagerFieldViewModel.creditCardController.findAllDB()
+    productManagerFieldViewModel.getCreditCardController().findAllDB()
         .observe(lifecycleOwner) {
             if (it.isNotEmpty()) {
                 creditCardDTOCollection.removeAll(creditCardDTOCollection)

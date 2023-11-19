@@ -1,13 +1,17 @@
 package com.example.myshoppinglist.controller
 
-import android.content.Context
+import android.os.Build
 import android.view.Window
 import android.view.WindowManager
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -17,18 +21,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.enums.Screen
-import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.fieldViewModel.CategoryFieldViewModel
+import com.example.myshoppinglist.fieldViewModel.HomeFieldViewModel
+import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
+import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.screen.*
+import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.utils.ConversionUtils
-import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
 
+@RequiresApi(Build.VERSION_CODES.N)
 @ExperimentalPagerApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -147,7 +154,7 @@ fun NavController(
         composable(Screen.ProductsManager.name) {
             softInputMode(false)
             callback.onChangeVisible(true)
-            ProductsManagerScreen(navHostController)
+            ProductsManagerScreen()
         }
         composable(Screen.Finance.name) {
             callback.onChangeVisible(true)
@@ -156,7 +163,20 @@ fun NavController(
         composable(Screen.Categories.name) {
             softInputMode(true)
             callback.onChangeVisible(true)
-            CategoriesScreen(navHostController)
+
+            val context = LocalContext.current
+            val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+            val categoryFieldViewModel = CategoryFieldViewModel(context, lifecycleOwner)
+
+            val valueCategoryCollection = categoryFieldViewModel.getCategoryController().getAllDB().observeAsState()
+
+            if(valueCategoryCollection.value != null){
+
+                categoryFieldViewModel.onChangeCategoryCollection(valueCategoryCollection.value!!)
+
+                CategoriesScreen(navHostController, categoryFieldViewModel)
+
+            }
         }
         composable(
             "${Screen.RegisterCategory.name}?idCategory={idCategory}",

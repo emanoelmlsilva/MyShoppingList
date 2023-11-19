@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,32 +24,19 @@ import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.IconCategoryComponent
-import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.enums.Screen
-import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.fieldViewModel.CategoryFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CategoriesScreen(navController: NavHostController?) {
+fun CategoriesScreen(
+    navController: NavHostController?,
+    categoryFieldViewModel: CategoryFieldViewModel
+) {
     val context = LocalContext.current
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     var visibleAnimation by remember { mutableStateOf(true) }
-    val categoryController = CategoryController.getData(context, lifecycleOwner)
-    val categoryCollection = remember { mutableListOf<Category>() }
-    var categorySize by remember {
-        mutableStateOf(0)
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        categoryController.getAllDB().observe(lifecycleOwner) {
-            categoryCollection.removeAll(categoryCollection)
-            categoryCollection.addAll(it)
-            categorySize = it.size
-        }
-    }
 
     fun onClick(idCategory: Long? = null) {
         navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory ?: 0}")
@@ -69,6 +55,8 @@ fun CategoriesScreen(navController: NavHostController?) {
         },
         content = {
             Column(modifier = Modifier.padding(start = 26.dp, end = 26.dp, top = 26.dp)) {
+                val size = categoryFieldViewModel.getCategorySize()
+
                 BaseAnimationComponent(
                     visibleAnimation = visibleAnimation,
                     contentBase = {
@@ -90,7 +78,7 @@ fun CategoriesScreen(navController: NavHostController?) {
                                     modifier = Modifier.fillMaxWidth(.24f)
                                 ) {
                                     Text(
-                                        "${if (categorySize > 100) categorySize else "0$categorySize"}",
+                                        "${if (size > 100) size else "0$size"}",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 36.sp
                                     )
@@ -126,13 +114,13 @@ fun CategoriesScreen(navController: NavHostController?) {
                         }
                     }
                 ) {
-                    itemsIndexed(categoryCollection) { index, category ->
+                    itemsIndexed(categoryFieldViewModel.getCategoryCollection()) { index, category ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
                                     top = 16.dp,
-                                    bottom = if (index == (categoryCollection.size - 1)) 56.dp else 0.dp
+                                    bottom = if (index == (size - 1)) 56.dp else 0.dp
                                 )
                         ) {
                             Row(
@@ -180,7 +168,7 @@ fun CategoriesScreen(navController: NavHostController?) {
                                         Icon(
                                             painter = painterResource(R.drawable.ic_outline_delete_outline_24),
                                             contentDescription = null,
-                                            tint = text_title_secondary//text_primary,
+                                            tint = text_title_secondary
                                         )
                                     }
                                 }
@@ -198,3 +186,4 @@ fun CategoriesScreen(navController: NavHostController?) {
         })
 
 }
+

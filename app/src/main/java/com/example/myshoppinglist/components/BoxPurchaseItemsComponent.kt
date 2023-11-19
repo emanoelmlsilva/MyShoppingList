@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.enums.TypeProduct
+import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
 import com.example.myshoppinglist.model.PurchaseInfo
-import com.example.myshoppinglist.screen.ProductManagerFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
@@ -33,14 +33,11 @@ import com.example.myshoppinglist.utils.MaskUtils
 @Composable
 fun BoxPurchaseItemsComponent(
     context: Context,
-    lifecycleOwner: LifecycleOwner,
     purchaseInfoCollection: List<PurchaseInfo>,
-    productManagerFieldViewModel: ProductManagerFieldViewModel
+    callback: VisibleCallback
 ) {
     val listState: LazyListState = rememberLazyListState()
-
     val expands = remember { mutableStateListOf<Int>() }
-    var visibleAnimation by remember { mutableStateOf(false) }
 
     fun expandableContainer(index: Int) {
         val auxExpandeds = expands.toMutableList()
@@ -52,10 +49,6 @@ fun BoxPurchaseItemsComponent(
         return visibilityCollection.indexOf(index) != -1
     }
 
-    productManagerFieldViewModel.visibleAnimation.observe(lifecycleOwner){
-        visibleAnimation = it
-    }
-
     BaseLazyColumnScroll(
         listState = listState,
         modifier = Modifier
@@ -63,8 +56,7 @@ fun BoxPurchaseItemsComponent(
             .padding(top = 20.dp),
         callback = object : VisibleCallback {
             override fun onChangeVisible(visible: Boolean) {
-                productManagerFieldViewModel.onChangeVisibleAnimation(visible)
-            }
+                callback.onChangeVisible(visible)            }
         }
     ) {
         purchaseInfoCollection.mapIndexed { indexInfo, purchaseInfo ->
