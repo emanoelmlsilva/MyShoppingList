@@ -14,14 +14,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
-import com.example.myshoppinglist.screen.registerCategoryFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.godaddy.android.colorpicker.HsvColor
 import com.godaddy.android.colorpicker.harmony.ColorHarmonyMode
@@ -61,10 +58,14 @@ private fun ColorPickerGuidance(content: @Composable (() -> Unit), isVertically:
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ColorPicker(callback: CallbackColor, isVertically: Boolean? = false) {
+fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, isVertically: Boolean? = false) {
     var enableChoiceColor by remember { mutableStateOf(false) }
     var colorChoice by remember { mutableStateOf(secondary) }
-    var chosenColor by remember { mutableStateOf(card_blue) }
+    var chosenColor by remember { mutableStateOf(card_red_light) }
+
+    LaunchedEffect(key1 = colorCurrent){
+        chosenColor = colorCurrent!!
+    }
 
     if (enableChoiceColor) {
         Dialog(

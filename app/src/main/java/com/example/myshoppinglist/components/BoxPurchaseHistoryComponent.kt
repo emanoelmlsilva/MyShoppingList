@@ -46,11 +46,12 @@ fun BoxPurchaseHistoryComponent(
 
             dataFormattedCollection[purchase.myShoppingId] =
                 DataFormatted(
-                    FormatDateUtils().getNameDay(purchase.date).uppercase(), MaskUtils.maskValue(
+                    MaskUtils.maskValue(
                         MaskUtils.convertValueDoubleToString(
                             purchase.price
                         )
-                    ), MaskUtils.maskValue(
+                    ), FormatDateUtils().getNameDay(purchase.date).uppercase(),
+                    MaskUtils.maskValue(
                         MaskUtils.convertValueDoubleToString(
                             purchase.discount
                         )
@@ -117,7 +118,7 @@ fun BoxPurchaseHistoryComponent(
                             )
                         }
 
-                        if (dataFormattedCollection.isNotEmpty()){
+                        if (dataFormattedCollection.isNotEmpty()) {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.End

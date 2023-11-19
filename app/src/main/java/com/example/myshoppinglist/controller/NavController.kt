@@ -10,7 +10,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
@@ -22,16 +21,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
-import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.fieldViewModel.CategoryFieldViewModel
 import com.example.myshoppinglist.fieldViewModel.HomeFieldViewModel
 import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
+import com.example.myshoppinglist.fieldViewModel.RegisterCategoryFieldViewModel
+import com.example.myshoppinglist.model.IconCategory
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.screen.*
-import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -52,8 +52,8 @@ fun NavController(
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
-    fun softInputMode(isKeyBoard: Boolean){
-        window.setSoftInputMode(if(isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+    fun softInputMode(isKeyBoard: Boolean) {
+        window.setSoftInputMode(if (isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     }
 
     NavHost(navController = navHostController, startDestination = routeInitial) {
@@ -99,22 +99,25 @@ fun NavController(
 
             val valueUser = homeFieldViewModel.getUser(email).observeAsState()
 
-            val valueCreditCollection = homeFieldViewModel.getCreditCardController().getAllWithSumDB().observeAsState()
+            val valueCreditCollection =
+                homeFieldViewModel.getCreditCardController().getAllWithSumDB().observeAsState()
 
-            val valuePurchaseCollection = homeFieldViewModel.getPurchaseController().getPurchasesAndCategoryWeekDB().observeAsState()
+            val valuePurchaseCollection =
+                homeFieldViewModel.getPurchaseController().getPurchasesAndCategoryWeekDB()
+                    .observeAsState()
 
             if (valueUser.value != null && valueCreditCollection.value != null && valuePurchaseCollection.value != null) {
 
-                if(valueUser.value!!.name.isNotEmpty() && valueUser.value!!.idAvatar != 0){
+                if (valueUser.value!!.name.isNotEmpty() && valueUser.value!!.idAvatar != 0) {
                     homeFieldViewModel.onChangeNickName(valueUser.value!!.nickName)
                     homeFieldViewModel.onChangeIdAvatar(valueUser.value!!.idAvatar)
-               }
+                }
 
                 if (valueCreditCollection.value!!.isNotEmpty()) {
                     homeFieldViewModel.onChangeCreditCardCollection(valueCreditCollection.value!!)
                 }
 
-                if(valuePurchaseCollection.value!!.isNotEmpty()){
+                if (valuePurchaseCollection.value!!.isNotEmpty()) {
                     homeFieldViewModel.onChangePurchaseCollection(valuePurchaseCollection.value!!)
                 }
 
@@ -124,7 +127,10 @@ fun NavController(
         }
         composable(
             "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}?isEditable={isEditable}?purchaseEdit={purchaseEdit}",
-            arguments = listOf(navArgument("idCardCurrent") { type = NavType.LongType }, navArgument("isEditable") {type = NavType.BoolType}, navArgument("purchaseEdit") {type = NavType.StringType})
+            arguments = listOf(
+                navArgument("idCardCurrent") { type = NavType.LongType },
+                navArgument("isEditable") { type = NavType.BoolType },
+                navArgument("purchaseEdit") { type = NavType.StringType })
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val idCardCurrent = navBackStack.arguments?.getLong("idCardCurrent")
@@ -132,7 +138,7 @@ fun NavController(
             val purchaseJson = navBackStack.arguments?.getString("purchaseEdit").toString()
             var purchaseEdit: Purchase? = null
 
-            if(purchaseJson.isNotBlank()){
+            if (purchaseJson.isNotBlank()) {
                 purchaseEdit = Purchase()
 
                 purchaseEdit.toDTO(
@@ -140,7 +146,12 @@ fun NavController(
                 )
             }
 
-            RegisterPurchaseScreen(navController = navHostController, idCardCurrent!!, isEditable, purchaseEdit)
+            RegisterPurchaseScreen(
+                navController = navHostController,
+                idCardCurrent!!,
+                isEditable,
+                purchaseEdit
+            )
         }
         composable(
             "${Screen.Spending.name}?idCard={idCard}",
@@ -169,13 +180,12 @@ fun NavController(
             softInputMode(true)
             callback.onChangeVisible(true)
 
-            val context = LocalContext.current
-            val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
             val categoryFieldViewModel = CategoryFieldViewModel(context, lifecycleOwner)
 
-            val valueCategoryCollection = categoryFieldViewModel.getCategoryController().getAllDB().observeAsState()
+            val valueCategoryCollection =
+                categoryFieldViewModel.getCategoryController().getAllDB().observeAsState()
 
-            if(valueCategoryCollection.value != null){
+            if (valueCategoryCollection.value != null) {
 
                 categoryFieldViewModel.onChangeCategoryCollection(valueCategoryCollection.value!!)
 
@@ -189,7 +199,23 @@ fun NavController(
         ) { navBackStack ->
             callback.onChangeVisible(false)
             val idCategory = navBackStack.arguments?.getLong("idCategory")
-            RegisterCategoryScreen(navHostController, idCategory)
+            val registerCategoryFieldViewModel =
+                RegisterCategoryFieldViewModel(context, lifecycleOwner)
+
+            registerCategoryFieldViewModel.onChangeIconsCategories(
+                (AssetsUtils.readIconCollections(
+                    context
+                ) as List<IconCategory>).toMutableList()
+            )
+
+            registerCategoryFieldViewModel.recoverCategory(idCategory!!, lifecycleOwner)
+
+            RegisterCategoryScreen(
+                navHostController,
+                registerCategoryFieldViewModel,
+                idCategory
+            )
+
         }
         composable(
             "${Screen.ListPurchase.name}?idCard={idCard}",
@@ -224,13 +250,13 @@ fun NavController(
 
             SettingsScreen(navHostController, idAvatar!!, nickName!!)
         }
-        composable(Screen.ChoiceLogin.name){
+        composable(Screen.ChoiceLogin.name) {
             ChoiceLogin(navHostController)
         }
-        composable(Screen.Login.name){
+        composable(Screen.Login.name) {
             Login(navHostController)
         }
-        composable(Screen.Register.name){
+        composable(Screen.Register.name) {
             Register(navHostController)
         }
     }
