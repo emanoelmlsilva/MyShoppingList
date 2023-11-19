@@ -24,6 +24,13 @@ import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
+private class DataFormatted(
+    var price: String,
+    var date: String,
+    var discount: String,
+    var totalWitDiscount: String
+)
+
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(
@@ -31,34 +38,30 @@ fun BoxPurchaseHistoryComponent(
     callback: VisibleCallback
 ) {
     val context = LocalContext.current
-    val dateFormattedCollection = remember { HashMap<Long, String>() }
-    val priceFormattedCollection = remember { HashMap<Long, String>() }
-    val discountFormattedCollection = remember { HashMap<Long, String>() }
-    val totalWithoutDiscountFormattedCollection = remember { HashMap<Long, String>() }
-
+    val dataFormattedCollection = remember { HashMap<Long, DataFormatted>() }
     LaunchedEffect(Unit) {
 
         purchaseCollection.forEach {
             val purchase = it.purchase
 
-            dateFormattedCollection[purchase.myShoppingId] =
-                FormatDateUtils().getNameDay(purchase.date).uppercase()
+            dataFormattedCollection[purchase.myShoppingId] =
+                DataFormatted(
+                    FormatDateUtils().getNameDay(purchase.date).uppercase(), MaskUtils.maskValue(
+                        MaskUtils.convertValueDoubleToString(
+                            purchase.price
+                        )
+                    ), MaskUtils.maskValue(
+                        MaskUtils.convertValueDoubleToString(
+                            purchase.discount
+                        )
+                    ),
+                    MaskUtils.maskValue(
+                        MaskUtils.convertValueDoubleToString(
+                            purchase.price - purchase.discount
+                        )
+                    )
+                )
 
-            priceFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
-                MaskUtils.convertValueDoubleToString(
-                    purchase.price
-                )
-            )
-            discountFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
-                MaskUtils.convertValueDoubleToString(
-                    purchase.discount
-                )
-            )
-            totalWithoutDiscountFormattedCollection[purchase.myShoppingId] = MaskUtils.maskValue(
-                MaskUtils.convertValueDoubleToString(
-                    purchase.price - purchase.discount
-                )
-            )
         }
     }
 
@@ -114,72 +117,74 @@ fun BoxPurchaseHistoryComponent(
                             )
                         }
 
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = if (dateFormattedCollection.isEmpty()) "" else dateFormattedCollection[purchase.myShoppingId]!!,
-                                fontFamily = LatoRegular,
-                                fontSize = 12.sp,
-                                color = text_primary_light
-                            )
-
-                            Row(
-                                modifier = Modifier
-                                    .padding(top = 12.dp)
+                        if (dataFormattedCollection.isNotEmpty()){
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                                    text = dataFormattedCollection[purchase.myShoppingId]!!.date,
                                     fontFamily = LatoRegular,
                                     fontSize = 12.sp,
                                     color = text_primary_light
                                 )
 
-                                Text(
-                                    text = "R$ ${
-                                        priceFormattedCollection[purchase.myShoppingId]
-                                    }",
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    textAlign = TextAlign.End,
-                                    fontFamily = LatoBlack,
-                                    fontSize = 12.sp,
-                                    color = text_primary_light
-                                )
-
-                            }
-
-                            if (purchase.discount > 0) {
                                 Row(
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
-                                        .padding(top = 8.dp)
+                                        .padding(top = 12.dp)
                                 ) {
                                     Text(
-                                        fontFamily = LatoRegular,
-                                        text = "desconto", modifier = Modifier,
-                                        textAlign = TextAlign.Start,
-                                        fontSize = 12.sp,
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(start = 10.dp),
+                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                                         fontFamily = LatoRegular,
                                         fontSize = 12.sp,
-                                        text = "R$ -${
-                                            discountFormattedCollection[purchase.myShoppingId]
-                                        }"
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(start = 10.dp),
-                                        fontFamily = LatoBlack,
-                                        fontSize = 12.sp,
-                                        color = text_primary_light,
-                                        text = "R$ ${
-                                            totalWithoutDiscountFormattedCollection[purchase.myShoppingId]
-                                        }",
+                                        color = text_primary_light
                                     )
 
+                                    Text(
+                                        text = "R$ ${
+                                            dataFormattedCollection[purchase.myShoppingId]!!.price
+                                        }",
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        textAlign = TextAlign.End,
+                                        fontFamily = LatoBlack,
+                                        fontSize = 12.sp,
+                                        color = text_primary_light
+                                    )
+
+                                }
+
+                                if (purchase.discount > 0) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .padding(top = 8.dp)
+                                    ) {
+                                        Text(
+                                            fontFamily = LatoRegular,
+                                            text = "desconto", modifier = Modifier,
+                                            textAlign = TextAlign.Start,
+                                            fontSize = 12.sp,
+                                        )
+                                        Text(
+                                            modifier = Modifier.padding(start = 10.dp),
+                                            fontFamily = LatoRegular,
+                                            fontSize = 12.sp,
+                                            text = "R$ -${
+                                                dataFormattedCollection[purchase.myShoppingId]!!.discount
+                                            }"
+                                        )
+                                        Text(
+                                            modifier = Modifier.padding(start = 10.dp),
+                                            fontFamily = LatoBlack,
+                                            fontSize = 12.sp,
+                                            color = text_primary_light,
+                                            text = "R$ ${
+                                                dataFormattedCollection[purchase.myShoppingId]!!.totalWitDiscount
+                                            }",
+                                        )
+
+                                    }
                                 }
                             }
                         }
