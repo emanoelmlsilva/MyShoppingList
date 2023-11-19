@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,8 +40,8 @@ fun BoxPurchaseHistoryComponent(
             callback = callback,
         ) {
             itemsIndexed(purchaseCollection) { index, purchaseAndCategory ->
-                val purchase = purchaseAndCategory.purchase ?: Purchase()
-                val category = purchaseAndCategory.category ?: Category()
+                val purchase = purchaseAndCategory.purchase
+                val category = purchaseAndCategory.category
 
                 Column(
                     modifier = Modifier

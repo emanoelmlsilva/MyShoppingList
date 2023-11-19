@@ -12,15 +12,13 @@ import androidx.compose.runtime.Composable
 @Composable
 fun BaseAnimationComponent(visibleAnimation: Boolean? = true, contentBase: @Composable () -> Unit) {
 
-    val durationEndSpring = 150f
-
     AnimatedVisibility(
         visible = visibleAnimation!!,
         enter = slideInVertically(
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
         ),
         exit = shrinkVertically(
-            animationSpec = spring(stiffness = durationEndSpring)
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
         ),
         content = {
             contentBase()

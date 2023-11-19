@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.VerticalPager
 import com.google.accompanist.pager.calculateCurrentOffsetForPage
@@ -22,11 +24,11 @@ import kotlin.math.*
 @OptIn(ExperimentalAnimationApi::class, ExperimentalPagerApi::class)
 @Composable
 fun CarouselComponent(
-    count: Int,
+    list: List<CreditCardDTODB>,
     visibleAnimation: Boolean = true,
     parentModifier: Modifier = Modifier,
     contentHeight: Dp,
-    content: @Composable (modifier: Modifier, index: Int) -> Unit
+    navController: NavController
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
 
@@ -40,7 +42,7 @@ fun CarouselComponent(
                 ) {
 
                     VerticalPager(
-                        count = count, state = pagerState,
+                        count = list.size, state = pagerState,
                         contentPadding = PaddingValues(top = 15.dp, bottom = 15.dp),
                     ) { page ->
                         Card(
@@ -63,23 +65,25 @@ fun CarouselComponent(
                                             scaleY = scale
                                         }
                                 }
-                             .aspectRatio(1.45f)
+                                .aspectRatio(1.45f)
                         ) {
-                            content(
-                                index = page,
-                                modifier = Modifier
-                                    .padding()
-                                    .height(contentHeight)
-                                    .offset {
-                                        val pageOffset =
-                                            this@VerticalPager.calculateCurrentOffsetForPage(page)
-                                        // Then use it as a multiplier to apply an offset
-                                        IntOffset(
-                                            x = (40.dp * pageOffset).roundToPx(),
-                                            y = 0,
-                                        )
-                                    }
-                            )
+
+                            val creditCardDTO = list[page]
+
+                            Column(modifier = Modifier
+                                .padding()
+                                .height(contentHeight)
+                                .offset {
+                                    val pageOffset =
+                                        this@VerticalPager.calculateCurrentOffsetForPage(page)
+                                    // Then use it as a multiplier to apply an offset
+                                    IntOffset(
+                                        x = (40.dp * pageOffset).roundToPx(),
+                                        y = 0,
+                                    )
+                                }) {
+                                BoxCardCreditCustom(creditCardDTO, navController)
+                            }
 
                         }
 

@@ -132,7 +132,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Image(
-                                    painter = painterResource(id = idAvatar),
+                                    painter = painterResource(id = if(idAvatar == 0) R.drawable.default_avatar else idAvatar),
                                     contentDescription = "",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier

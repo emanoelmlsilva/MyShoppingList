@@ -11,6 +11,7 @@ import com.example.myshoppinglist.services.CreditCardService
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
+import kotlinx.coroutines.flow.Flow
 
 class CreditCardController {
 
@@ -30,7 +31,7 @@ class CreditCardController {
         }
     }
 
-    fun getAllWithSumDB(): LiveData<List<CreditCard>>{
+    fun getAllWithSumDB(): LiveData<List<CreditCard>> {
         return creditCardViewModel.getAllWithSum()
     }
 

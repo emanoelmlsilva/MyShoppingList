@@ -6,20 +6,27 @@ import android.view.WindowManager
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.myshoppinglist.callback.VisibleCallback
+import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.entities.Purchase
+import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.screen.*
 import com.example.myshoppinglist.utils.ConversionUtils
+import com.example.myshoppinglist.utils.MountStructureCrediCard
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 @ExperimentalPagerApi
@@ -74,9 +81,38 @@ fun NavController(
             )
         }
         composable(Screen.Home.name) {
+            val context = LocalContext.current
+            val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+            val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
+            val email = UserLoggedShared.getEmailUserCurrent()
+
             softInputMode(true)
             callback.onChangeVisible(true)
-            HomeScreen(navHostController)
+
+            val valueUser = homeFieldViewModel.getUser(email).observeAsState()
+
+            val valueCreditCollection = homeFieldViewModel.getCreditCardController().getAllWithSumDB().observeAsState()
+
+            val valuePurchaseCollection = homeFieldViewModel.getPurchaseController().getPurchasesAndCategoryWeekDB().observeAsState()
+
+            if (valueUser.value != null && valueCreditCollection.value != null && valuePurchaseCollection.value != null) {
+
+                if(valueUser.value!!.name.isNotEmpty() && valueUser.value!!.idAvatar != 0){
+                    homeFieldViewModel.onChangeNickName(valueUser.value!!.nickName)
+                    homeFieldViewModel.onChangeIdAvatar(valueUser.value!!.idAvatar)
+               }
+
+                if (valueCreditCollection.value!!.isNotEmpty()) {
+                    homeFieldViewModel.onChangeCreditCardCollection(valueCreditCollection.value!!)
+                }
+
+                if(valuePurchaseCollection.value!!.isNotEmpty()){
+                    homeFieldViewModel.onChangePurchaseCollection(valuePurchaseCollection.value!!)
+                }
+
+                HomeScreen(navHostController, homeFieldViewModel)
+            }
+
         }
         composable(
             "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}?isEditable={isEditable}?purchaseEdit={purchaseEdit}",
