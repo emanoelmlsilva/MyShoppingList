@@ -31,11 +31,9 @@ val TAG = "ProductsManagerScreen"
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @Composable
-fun ProductsManagerScreen() {
+fun ProductsManagerScreen(productManagerFieldViewModel: ProductManagerFieldViewModel) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val productManagerFieldViewModel: ProductManagerFieldViewModel =
-        ProductManagerFieldViewModel(context, lifecycleOwner)
     var valueSum by remember { mutableStateOf(0.0) }
     var quantityPurchases by remember { mutableStateOf("00") }
     var visibleAnimation by remember { mutableStateOf(true) }

@@ -49,6 +49,9 @@ fun NavController(
     callback: VisibleCallback
 ) {
 
+    val context = LocalContext.current
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+
     fun softInputMode(isKeyBoard: Boolean){
         window.setSoftInputMode(if(isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     }
@@ -88,8 +91,6 @@ fun NavController(
             )
         }
         composable(Screen.Home.name) {
-            val context = LocalContext.current
-            val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
             val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
             val email = UserLoggedShared.getEmailUserCurrent()
 
@@ -154,7 +155,11 @@ fun NavController(
         composable(Screen.ProductsManager.name) {
             softInputMode(false)
             callback.onChangeVisible(true)
-            ProductsManagerScreen()
+            val productManagerFieldViewModel: ProductManagerFieldViewModel =
+                ProductManagerFieldViewModel(context, lifecycleOwner)
+
+            productManagerFieldViewModel.searchPurchases(ObjectFilter())
+            ProductsManagerScreen(productManagerFieldViewModel)
         }
         composable(Screen.Finance.name) {
             callback.onChangeVisible(true)
