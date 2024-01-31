@@ -16,7 +16,7 @@ import java.io.InputStream
 object AssetsUtils {
 
     @JvmStatic
-    fun readIconCollections(context: Context): List<IconCategory?> {
+    fun readIconCollections(context: Context): List<IconCategory> {
         return context.assets.list("icons")?.map {
             try {
                 val ims: InputStream = context.assets.open("icons/${it}")
@@ -24,10 +24,10 @@ object AssetsUtils {
                 IconCategory(it, drawable!!.toBitmap())
             } catch (e: IOException) {
                 e.printStackTrace()
-                null
+                emptyList<IconCategory>()
             }
 
-        }!!.toList()
+        } as List<IconCategory>
     }
 
     @JvmStatic

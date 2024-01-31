@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemListDAO {

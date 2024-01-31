@@ -4,9 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -42,8 +45,11 @@ fun DialogRegisterItemList(
     itemListUpdate: ItemListDTO?,
     callback: CallbackItemList
 ) {
+    val scope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
+
     val categoryViewModel = CategoryViewModelDB(context, lifecycleOwner)
-    val categoryCollections = remember { mutableStateListOf<Category>() }
+    val categoryCollections by categoryViewModel.getAll().observeAsState(initial = emptyList())
     var categoryChoice by remember {
         mutableStateOf(CategoryDTO())
     }
@@ -51,13 +57,6 @@ fun DialogRegisterItemList(
         mutableStateOf("")
     }
     var checkRemoved by remember { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = Unit) {
-        categoryViewModel.getAll().observe(lifecycleOwner){
-            categoryCollections.removeAll(categoryCollections)
-            categoryCollections.addAll(it)
-        }
-    }
 
     LaunchedEffect(key1 = enabledDialog){
         if(!enabledDialog){
@@ -71,6 +70,9 @@ fun DialogRegisterItemList(
         if (itemListUpdate != null) {
             categoryChoice = itemListUpdate.categoryDTO
             item = itemListUpdate.item
+        } else{
+            categoryChoice = CategoryDTO()
+            item = ""
         }
     }
 
@@ -177,7 +179,20 @@ fun DialogRegisterItemList(
                             tint = message_error
                         )
                     }
-                    LazyRow(modifier = Modifier.padding(start = 8.dp)) {
+                    LazyRow(state = scrollState,
+                        modifier = Modifier.padding(start = 8.dp)) {
+                        categoryCollections!!.forEachIndexed { indexAnimation, categoryAnimation ->
+
+                            if (categoryAnimation.myShoppingId == categoryChoice.myShoppingId) {
+
+                                scope.launch {
+                                    //esse calculo deve ser feito porque é um grid
+                                    scrollState.animateScrollToItem(((indexAnimation)))
+                                }
+
+                            }
+                        }
+
                         items(categoryCollections) { category ->
                             Card(modifier = Modifier
                                 .padding(2.dp)

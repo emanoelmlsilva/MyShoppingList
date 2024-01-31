@@ -5,38 +5,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.myshoppinglist.model.IconCategory
 import com.example.myshoppinglist.services.controller.CategoryController
+import com.example.myshoppinglist.utils.AssetsUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RegisterCategoryFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) :
     BaseFieldViewModel() {
-    val categoryCurrent = MutableLiveData("")
-    val idImage = MutableLiveData("fastfood.png")
-    val color = MutableLiveData(Color.Red.toArgb())
-    var isErrorCategory: MutableLiveData<Boolean> = MutableLiveData(false)
-    val categoryController = CategoryController.getData(context, lifecycleOwner)
-    val iconsCategories: MutableLiveData<MutableList<IconCategory>> =
-        MutableLiveData(mutableListOf())
+    var nameCategory = MutableLiveData("")
+    var idImage = MutableLiveData("fastfood.png")
+    var color = MutableLiveData(Color.Red.toArgb())
+    var isErrorCategory = MutableLiveData(false)
     val idMyShoppingApi = MutableLiveData(0L)
+    val iconsCategories = MutableLiveData(emptyList<IconCategory>())
+
+    val categoryController = CategoryController.getData(context, lifecycleOwner)
+
+    init{
+        viewModelScope.launch(Dispatchers.Main) {
+            onChangeIconsCategories(AssetsUtils.readIconCollections(context))
+        }
+
+    }
 
     fun reset() {
         this.color.value = Color.Red.toArgb()
-        this.categoryCurrent.value = ""
+        onChangeCategory("")
         this.idImage.value = "fastfood.png"
     }
 
-    fun recoverCategory(idCategory: Long, lifecycleOwner: LifecycleOwner) {
-        if (idCategory != 0L) {
-            categoryController.getCategoryByIdDB(idCategory).observe(lifecycleOwner) { category ->
-                if (category != null) {
-                    onChangeIdMyShoppingApi(category.idMyShoppingApi)
-                    onChangeCategory(category.category)
-                    onChangeColor(category.color)
-                    onChangeIdImageCurrent(category.idImage)
-                }
+    fun updateCategory(idCategory: Long) {
+        viewModelScope.launch(Dispatchers.Main) {
+            categoryController.getCategoryByIdDB(idCategory).observeForever {
+                onChangeCategory(it.category)
+                onChangeIdImageCurrent(it.idImage)
+                onChangeColor(it.color)
+                onChangeIdMyShoppingApi(it.idMyShoppingApi)
             }
-
         }
     }
 
@@ -53,12 +60,13 @@ class RegisterCategoryFieldViewModel(context: Context, lifecycleOwner: Lifecycle
     }
 
     fun onChangeCategory(newCategory: String) {
+        nameCategory.value = newCategory
         onChangeErrorCategory(newCategory.isBlank())
-        this.categoryCurrent.value = newCategory
     }
 
-    fun onChangeIconsCategories(newIconsCategories: MutableList<IconCategory>) {
-        this.iconsCategories.value = newIconsCategories
+    fun onChangeIconsCategories(newIconsCategories: List<IconCategory>) {
+        this.iconsCategories.value = emptyList()
+        iconsCategories.value = newIconsCategories
     }
 
     fun onChangeErrorCategory(newError: Boolean) {
@@ -66,8 +74,6 @@ class RegisterCategoryFieldViewModel(context: Context, lifecycleOwner: Lifecycle
     }
 
     override fun checkFields(): Boolean {
-
-        return this.categoryCurrent.value!!.isNotBlank()
-
+        return this.nameCategory.value?.isNotBlank() ?: false
     }
 }

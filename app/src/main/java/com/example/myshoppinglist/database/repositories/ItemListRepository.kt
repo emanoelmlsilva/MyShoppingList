@@ -6,6 +6,7 @@ import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class ItemListRepository(private val itemListDAO: ItemListDAO) {
@@ -36,7 +37,7 @@ class ItemListRepository(private val itemListDAO: ItemListDAO) {
         }
     }
 
-    fun getAll(idCard: Long): LiveData<List<ItemListAndCategory>>{
+    fun getAll(idCard: Long): LiveData<List<ItemListAndCategory>> {
         return itemListDAO.getAll(idCard)
     }
 

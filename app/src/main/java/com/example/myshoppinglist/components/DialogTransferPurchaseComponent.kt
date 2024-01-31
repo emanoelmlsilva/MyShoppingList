@@ -112,8 +112,8 @@ fun DialogTransferPurchaseComponent(
                     },
                     Modifier
                         .fillMaxHeight(.3f)
-                        .fillMaxWidth(.8f)
-                        .padding(start = 16.dp)
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
                 )
 
                 ButtonsFooterContent(

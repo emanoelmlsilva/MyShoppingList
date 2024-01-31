@@ -7,6 +7,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.utils.FormatDateUtils
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 @Dao
@@ -21,7 +22,7 @@ interface PurchaseDAO {
     @Update
     fun updatePurchase(purchase: Purchase)
 
-    @Query("DELETE FROM purchases WHERE myShoppingId = :myShoppingId AND purchaseUserId = :emailUser")
+    @Query("DELETE FROM purchases WHERE myShoppingIdPurchase = :myShoppingId AND purchaseUserId = :emailUser")
     fun deletePurchaseById(myShoppingId: Long, emailUser: String)
 
     @Query("DELETE FROM purchases WHERE idPurchaseApi = :myShoppingIdApi AND purchaseUserId = :emailUser")
@@ -58,10 +59,10 @@ interface PurchaseDAO {
     fun sumPriceByMonth(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
 
     @Transaction
-    @Query("SELECT * FROM purchases, credit_cards, category WHERE categoryOwnerId = category.myShoppingIdCategory AND cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingId")
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE purchases.categoryOwnerId = category.myShoppingIdCategory AND credit_cards.cardUserId = :emailUser AND credit_cards.myShoppingId = purchases.purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) GROUP BY purchases.myShoppingIdPurchase ORDER BY date DESC")
     fun getPurchasesAndCategoryWeek(week: String, emailUser: String): LiveData<List<PurchaseAndCategory>>
 
-    @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingId")
+    @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingIdPurchase")
     fun getPurchasesWeek(week: String, emailUser: String): List<Purchase>
 
     @Transaction
@@ -70,8 +71,8 @@ interface PurchaseDAO {
 
     @Transaction
     @RawQuery(observedEntities = [PurchaseAndCategory::class])
-    fun getPurchasesSearch(query: SupportSQLiteQuery): List<PurchaseAndCategory>
+    fun getPurchasesSearch(query: SupportSQLiteQuery): Flow<List<PurchaseAndCategory>>
 
     @RawQuery(observedEntities = [Purchase::class])
-    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Double
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Flow<Double>
 }

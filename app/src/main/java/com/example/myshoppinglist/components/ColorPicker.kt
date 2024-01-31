@@ -58,13 +58,18 @@ private fun ColorPickerGuidance(content: @Composable (() -> Unit), isVertically:
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, isVertically: Boolean? = false) {
+fun ColorPicker(
+    colorCurrent: Color? = card_blue,
+    callback: CallbackColor,
+    isVertically: Boolean? = false
+) {
     var enableChoiceColor by remember { mutableStateOf(false) }
-    var colorChoice by remember { mutableStateOf(secondary) }
-    var chosenColor by remember { mutableStateOf(card_red_light) }
+    var colorChoice by remember { mutableStateOf(colorCurrent) }
+    var chosenColor by remember { mutableStateOf(colorCurrent) }
 
-    LaunchedEffect(key1 = colorCurrent){
+    LaunchedEffect(key1 = colorCurrent) {
         chosenColor = colorCurrent!!
+        colorChoice = colorCurrent
     }
 
     if (enableChoiceColor) {
@@ -98,7 +103,7 @@ fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, 
                                 .size(60.dp)
                                 .padding(top = 4.dp),
                             shape = RoundedCornerShape(16.dp),
-                            backgroundColor = colorChoice
+                            backgroundColor = colorChoice!!
                         ) {}
 
                         Column(
@@ -107,10 +112,10 @@ fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, 
                                 .height(250.dp)
                         ) {
                             HarmonyColorPicker(
+                                color = colorChoice!!,
                                 harmonyMode = ColorHarmonyMode.MONOCHROMATIC,
                                 onColorChanged = { color: HsvColor ->
                                     colorChoice = color.toColor()
-                                    callback.onChangeValue(colorChoice)
                                 }
                             )
                         }
@@ -124,7 +129,7 @@ fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, 
                             },
                             onClickAccept = {
                                 chosenColor = colorChoice
-                                callback.onChangeValue(colorChoice)
+                                callback.onChangeValue(colorChoice!!)
                                 enableChoiceColor = false
                             })
                     }
@@ -135,29 +140,39 @@ fun ColorPicker(colorCurrent: Color? = card_red_light, callback: CallbackColor, 
     ColorPickerGuidance(content = {
         repeat(colorCollection.size) { index ->
             val color = colorCollection[index]
-            CircleColor(color, index == colorCollection.size - 1, isVertically!!,
+            CircleColor(color, chosenColor!!, index == colorCollection.size - 1, isVertically!!,
                 chosenColor == color, object : CallbackColor {
-                override fun onChangeValue(newValue: Boolean) {
-                    enableChoiceColor = newValue
-                }
+                    override fun onChangeValue(newValue: Boolean) {
+                        enableChoiceColor = newValue
+                    }
 
-                override fun onChangeValue(value: Color) {
-                    colorChoice = value
-                    chosenColor = colorChoice
-                    callback.onChangeValue(value)
-                }
-            })
+                    override fun onChangeValue(value: Color) {
+                        colorChoice = value
+                        chosenColor = colorChoice
+                        callback.onChangeValue(value)
+                    }
+                })
         }
     }, isVertically = isVertically!!)
 }
 
 @Composable
-private fun CircleColor(color: Color, isEditable: Boolean, isVertically: Boolean, isChosen: Boolean, callback: CallbackColor) {
+private fun CircleColor(
+    color: Color,
+    colorChoice: Color,
+    isEditable: Boolean,
+    isVertically: Boolean,
+    isChosen: Boolean,
+    callback: CallbackColor
+) {
     val SPACE_PEDDING = 2.dp
 
     Card(
         modifier = Modifier
-            .padding(start = if(isVertically) SPACE_PEDDING else 0.dp, top = if(!isVertically) SPACE_PEDDING else 0.dp),
+            .padding(
+                start = if (isVertically) SPACE_PEDDING else 0.dp,
+                top = if (!isVertically) SPACE_PEDDING else 0.dp
+            ),
         border = BorderStroke(1.dp, background_opacity),
         shape = RoundedCornerShape(16.dp),
         elevation = 4.dp,
@@ -172,20 +187,40 @@ private fun CircleColor(color: Color, isEditable: Boolean, isVertically: Boolean
                         callback.onChangeValue(color)
                     }
                 }),
-            backgroundColor = color,
+            backgroundColor = if (isEditable && !isChosen) colorChoice else color,
         ) {
             if (isEditable) {
-                Icon(
-                    modifier = Modifier.padding(3.dp),
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = null,
-                    tint = text_primary
-                )
-            } else if(isChosen){
+
+                val isChoiceEdit = colorCollection.find { it == colorChoice } == null
+
+                Card(backgroundColor = if (isChoiceEdit) colorChoice else color) {
+
+                    Icon(
+                        modifier = Modifier.padding(3.dp),
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = text_primary
+                    )
+
+                    if (isChoiceEdit) {
+                        Card(
+                            modifier = Modifier.padding(4.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            backgroundColor = circle_background_opacity,
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, text_primary)
+                            ) {}
+
+                    }
+
+                }
+            } else if (isChosen) {
                 Card(
                     modifier = Modifier.padding(4.dp),
                     shape = RoundedCornerShape(16.dp),
-                    backgroundColor = circle_background_opacity
+                    backgroundColor = circle_background_opacity,
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, text_primary)
                 ) {}
             }
         }

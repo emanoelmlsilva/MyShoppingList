@@ -65,7 +65,7 @@ fun CardCreditComponent(
                 null
             )
 
-            ColorPicker(callback = callbackColor!!)
+            ColorPicker(colorCurrent = colorCurrent,callback = callbackColor!!)
         }
     } else {
         colorCurrent = Color(cardCreditDTO.colorCard)

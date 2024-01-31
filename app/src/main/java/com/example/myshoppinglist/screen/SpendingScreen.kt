@@ -17,20 +17,28 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
-import com.example.myshoppinglist.callback.*
+import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackCreditCard
+import com.example.myshoppinglist.callback.CallbackObject
+import com.example.myshoppinglist.callback.CallbackOptions
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
-import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.*
+import com.example.myshoppinglist.ui.theme.LatoBlack
+import com.example.myshoppinglist.ui.theme.background_card
+import com.example.myshoppinglist.ui.theme.divider
+import com.example.myshoppinglist.ui.theme.text_title_secondary
+import com.example.myshoppinglist.utils.ConversionUtils
+import com.example.myshoppinglist.utils.FormatDateUtils
+import com.example.myshoppinglist.utils.MeasureTimeService
 import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi
@@ -39,16 +47,19 @@ import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+
     val purchaseController: PurchaseController = PurchaseController.getData(context, lifecycleOwner)
     val creditCardController: CreditCardController =
         CreditCardController.getData(context, lifecycleOwner)
+
     val spendingTextFieldViewModel = SpendingTextFieldViewModel()
+
     val purchaseInfoCollection = remember { mutableStateListOf<PurchaseAndCategoryInfo>() }
-    var price by remember { mutableStateOf(0.0) }
     val monthsCollection = remember { mutableStateListOf<String>() }
     val creditCardCollection = remember { mutableListOf<CreditCard>() }
+
+    var price by remember { mutableStateOf(0.0) }
     var currentCreditCard by remember { mutableStateOf<CreditCard?>(null) }
-    var visibleAnimation by remember { mutableStateOf(true) }
     var idPurchaseEdit by remember { mutableStateOf(0L) }
     var visibilityDialog by remember { mutableStateOf(false) }
     var reload by remember { mutableStateOf(false) }
@@ -56,7 +67,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     var visibilityBackHandler by remember { mutableStateOf(false) }
     val categoryCollection = remember { mutableListOf<Category>() }
     var resetMonth by remember { mutableStateOf(false) }
-
     var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
@@ -208,7 +218,6 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 )
 
                 BaseAnimationComponent(
-                    visibleAnimation = visibleAnimation,
                     contentBase = {
                         Column {
                             Row {
@@ -244,7 +253,9 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}") }) {
+                                        onClick = {
+                                            navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                        }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.list_view),
                                             contentDescription = null,
@@ -319,14 +330,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                 if (purchaseInfoCollection.isNotEmpty()) {
                     BaseLazyColumnScroll(
                         horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.fillMaxWidth(),
-                        callback = object : VisibleCallback {
-                            override fun onChangeVisible(visible: Boolean) {
-                                if (visibleAnimation != visible) {
-                                    visibleAnimation = visible
-                                }
-                            }
-                        }
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         purchaseInfoCollection.map { purchaseInfo ->
                             item {

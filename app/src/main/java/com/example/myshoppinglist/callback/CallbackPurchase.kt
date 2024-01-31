@@ -8,5 +8,5 @@ abstract class CallbackPurchase : Callback{
         TODO("Not yet implemented")
     }
 
-    abstract fun onChangeIndex(indexInfo: Int, index: Int, typeState: TypeState)
+    abstract fun onChangeIndex(index: Int, typeState: TypeState)
 }

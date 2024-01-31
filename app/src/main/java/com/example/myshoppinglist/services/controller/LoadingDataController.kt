@@ -32,12 +32,12 @@ class LoadingDataController {
         }
     }
 
-    fun loadingData(user: User, callback: com.example.myshoppinglist.callback.Callback) {
+    fun loadingData(user: User, callback: Callback) {
         val email = user.email
 
         Log.d(TAG, "loadingData - findAllCreditCard")
 
-        loadingDataCategories(email, object : com.example.myshoppinglist.callback.Callback {
+        loadingDataCategories(email, object : Callback {
             override fun onSuccess() {
                 loadingDataCreditCard(email, object : CallbackObject<List<CreditCardDTO>> {
                     override fun onSuccess(creditCardCollection: List<CreditCardDTO>) {

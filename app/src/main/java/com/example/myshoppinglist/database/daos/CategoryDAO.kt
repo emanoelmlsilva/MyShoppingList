@@ -3,6 +3,7 @@ package com.example.myshoppinglist.database.daos
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.myshoppinglist.database.entities.Category
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoryDAO {
@@ -17,7 +18,7 @@ interface CategoryDAO {
     fun updateCategory(category: Category)
 
     @Query("SELECT * FROM category, users WHERE category = :category AND users.email = :emailUser AND categoryUserId = users.email")
-    fun getByCategory(category: String, emailUser: String): Category
+    fun getByCategory(category: String, emailUser: String): LiveData<Category>
 
     @Query("SELECT * FROM category, users WHERE category.myShoppingIdCategory = :idCategory AND users.email = :emailUser AND categoryUserId = users.email")
     fun getById(idCategory: Long, emailUser: String): LiveData<Category>

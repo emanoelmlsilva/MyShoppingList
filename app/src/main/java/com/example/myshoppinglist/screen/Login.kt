@@ -45,7 +45,7 @@ import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.LoadingDataController
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import com.example.myshoppinglist.services.viewModel.LoginViewModel
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 

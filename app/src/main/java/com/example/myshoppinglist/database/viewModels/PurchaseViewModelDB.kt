@@ -14,6 +14,7 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.utils.FormatDateUtils
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 class PurchaseViewModelDB(context: Context) : ViewModel() {
@@ -30,7 +31,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
     fun getPurchasesOfSearch(
         arguments: MutableList<Any>,
         condition: String
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         return getPurchasesOfSearch(arguments, condition, null)
     }
 
@@ -38,7 +39,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         arguments: MutableList<Any>,
         condition: String,
         valueGroupBy: String?
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         val email = UserLoggedShared.getEmailUserCurrent()
 
         val query: SimpleSQLiteQuery = if (arguments.size == 0 || condition.isBlank()) {
@@ -67,7 +68,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         return repository.getPurchasesOfSearch(query)
     }
 
-    fun getPurchasesSumOfSearch(arguments: MutableList<Any>, condition: String): Double {
+    fun getPurchasesSumOfSearch(arguments: MutableList<Any>, condition: String): Flow<Double> {
 
         val email = UserLoggedShared.getEmailUserCurrent()
 

@@ -7,6 +7,7 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class CategoryRepository(private val categoryDAO: CategoryDAO) {
@@ -46,9 +47,9 @@ class CategoryRepository(private val categoryDAO: CategoryDAO) {
        return categoryDAO.getAll(email)
     }
 
-    private suspend fun asyncFindByCategory(email: String, category: String): Category =
-        coroutineScope.async(Dispatchers.IO) {
-            return@async categoryDAO.getByCategory(category, email)
-        }.await()
+//    private suspend fun asyncFindByCategory(email: String, category: String): Category =
+//        coroutineScope.async(Dispatchers.IO) {
+//            return@async categoryDAO.getByCategory(category, email)
+//        }.await()
 
 }

@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,16 +14,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.fieldViewModel.ChoiceDataFieldViewModel
 import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.background_card_light
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.FormatDateUtils
-import com.example.myshoppinglist.utils.SeparateDateUtils
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -31,74 +30,32 @@ import java.util.*
 fun ChoiceDataComponent(
     idCard: Long,
     dataCurrent: String,
+    choiceDataFieldViewModel: ChoiceDataFieldViewModel,
     callback: Callback
 ) {
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val purchaseController = PurchaseController()
     var expanded by remember { mutableStateOf(false) }
-    val splitDataCurrent = if (dataCurrent.isNotBlank()) dataCurrent.split("-") else listOf()
-    var yearCurrent by remember { mutableStateOf("") }
-    var monthCurrent by remember { mutableStateOf("") }
-    val dateMonthAndYear = remember { mutableStateMapOf<String, MutableList<String>>() }
-    val monthCollection = remember { mutableListOf<String>("") }
+    val yearCurrent by choiceDataFieldViewModel.yearCurrent.collectAsState()
+    val monthCurrent by choiceDataFieldViewModel.monthCurrent.collectAsState()
+    val dateMonthAndYear by choiceDataFieldViewModel.dateMonthAndYear.collectAsState()
+    val monthCollection by choiceDataFieldViewModel.monthCollection.collectAsState()
 
-    fun getMonthCurrentOfDropdown(): String {
+    LaunchedEffect(key1 = dataCurrent) {
+        val splitDataCurrent = if (dataCurrent.isNotBlank()) dataCurrent.split("-") else listOf()
         if (splitDataCurrent.isNotEmpty()) {
-            return splitDataCurrent[1]
+            choiceDataFieldViewModel.updateYear(splitDataCurrent[0])
         }
-        return ""
-    }
 
-    fun getYearCurrentOfDropdown(): String {
         if (splitDataCurrent.isNotEmpty()) {
-            return splitDataCurrent[0]
+            choiceDataFieldViewModel.updateMonth(splitDataCurrent[1])
         }
-        return ""
-    }
-
-    fun updateMonthCollection() {
-        monthCollection.removeAll(monthCollection)
-        if (yearCurrent.isNotBlank() && dateMonthAndYear.isNotEmpty()) {
-            val monthOfYearCollection = dateMonthAndYear[yearCurrent]!!.toList()
-            monthCollection.addAll(if (monthOfYearCollection.isNotEmpty()) monthOfYearCollection else listOf())
-            if (monthCurrent.isNotEmpty()) {
-                callback.onChangeValue("$yearCurrent-$monthCurrent")
-            }
-        } else {
-            callback.onChangeValue("")
-            monthCollection.addAll(listOf())
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        monthCurrent = getMonthCurrentOfDropdown()
-        yearCurrent = getYearCurrentOfDropdown()
     }
 
     LaunchedEffect(key1 = idCard) {
-        dateMonthAndYear.clear()
-
-        purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { dates ->
-            val mothsAndYearCollection = SeparateDateUtils.separateMonthAndYear(dates)
-            dateMonthAndYear.clear()
-            dateMonthAndYear.putAll(mothsAndYearCollection)
-
-            if (splitDataCurrent.isNotEmpty()) {
-                yearCurrent = splitDataCurrent[0]
-                monthCurrent = splitDataCurrent[1]
-            } else {
-                val year = FormatDateUtils().getYearCurrent()
-                if (dateMonthAndYear[year] != null) {
-                    yearCurrent = year
-                }
-            }
-
-            updateMonthCollection()
-        }
+        choiceDataFieldViewModel.updateMonths(idCard)
     }
 
-    LaunchedEffect(key1 = yearCurrent) {
-        updateMonthCollection()
+    LaunchedEffect(key1 = yearCurrent, key2 = dateMonthAndYear.size) {
+        choiceDataFieldViewModel.updateMonthCollection()
     }
 
     Column {
@@ -130,7 +87,7 @@ fun ChoiceDataComponent(
                     dateMonthAndYear.keys.forEach { yearDate ->
                         DropdownMenuItem(modifier = Modifier.height(25.dp), onClick = {
                             expanded = false
-                            yearCurrent = yearDate
+                            choiceDataFieldViewModel.updateYear(yearDate)
                         }) {
                             Text(text = yearDate, fontSize = 12.sp)
                         }
@@ -163,15 +120,15 @@ fun ChoiceDataComponent(
                             callback = object : Callback {
                                 override fun onClick() {
                                     var monthDate = ""
+                                    var monthChoice = month
 
-                                    if (monthCurrent == month) {
-                                        monthCurrent = ""
-                                        monthDate = monthCurrent
-                                    } else {
-                                        monthCurrent = month
-                                        monthDate = "$yearCurrent-$monthCurrent"
+                                    if (monthCurrent != month) {
+                                        monthDate = "$yearCurrent-$month"
+                                    } else{
+                                        monthChoice = ""
                                     }
 
+                                    choiceDataFieldViewModel.updateMonth(monthChoice)
                                     callback.onChangeValue(monthDate)
                                 }
                             })

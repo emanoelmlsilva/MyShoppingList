@@ -1,6 +1,8 @@
 package com.example.myshoppinglist.screen
 
 import ResultData
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -45,7 +47,7 @@ import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.LoadingDataController
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import com.example.myshoppinglist.services.viewModel.LoginViewModel
 import kotlinx.coroutines.*
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -53,7 +55,7 @@ import java.net.SocketTimeoutException
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Register(navController: NavController) {
-    val LOG = "REGISTER"
+    val TAG = "REGISTER"
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     var email by remember { mutableStateOf("") }
@@ -244,14 +246,20 @@ fun Register(navController: NavController) {
                                         user,
                                         object : CallbackObject<UserDTO> {
                                             override fun onSuccess() {
-                                                Log.d(LOG, "Sucesso ao fazer signUp")
+                                                Log.d(TAG, "Sucesso ao fazer signUp")
 
                                                 LoadingDataController.getData(context, lifecycleOwner).loadingDataCategories(email, object : Callback {
                                                     override fun onSuccess() {
                                                         UserLoggedShared.insertUserLogged(email)
                                                         UserInstanceImpl.getInstance(context)
 
-                                                        navController.navigate("${Screen.CreateUser.name}?isUpdate=${false}?hasToolbar=${false}") {
+                                                        val bundle = Bundle()
+                                                        bundle.putBoolean("isUpdate", false)
+                                                        bundle.putBoolean("hasToolbar", false)
+
+                                                        navController.currentBackStackEntry!!.arguments!!.putAll(bundle)
+
+                                                        navController.navigate(Screen.CreateUser.name) {
                                                             popUpTo(0) { inclusive = false }
                                                         }
                                                     }

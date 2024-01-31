@@ -9,9 +9,10 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.repositories.ItemListRepository
-import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
+import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
+import kotlinx.coroutines.flow.Flow
 
 class ItemListViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
 
@@ -24,10 +25,6 @@ class ItemListViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : Ba
         val itemListDAO = myShopListDataBase.itemListDAO()
         repository = ItemListRepository(itemListDAO)
         mLifecycleOwner = lifecycleOwner
-    }
-
-    fun getAllDB(idCard: Long): LiveData<List<ItemListAndCategory>>{
-        return repository.getAll(idCard)
     }
 
     fun insertItemListAll(itemListCollection: List<ItemList>, callback: Callback) {

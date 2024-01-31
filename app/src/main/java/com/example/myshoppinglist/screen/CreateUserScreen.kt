@@ -41,8 +41,7 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.dtos.UserDTO
-import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
@@ -51,7 +50,7 @@ import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.ui.viewModel.LoginViewModel
+import com.example.myshoppinglist.services.viewModel.LoginViewModel
 import com.example.myshoppinglist.utils.MeasureTimeService
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
@@ -61,8 +60,8 @@ import io.reactivex.rxjava3.kotlin.toObservable
 @Composable
 fun CreateUserScreen(
     navController: NavController?,
-    isUpdate: Boolean? = false,
-    hasToolbar: Boolean? = false
+    isUpdate: Boolean? = true,
+    hasToolbar: Boolean? = true
 ) {
     val TAG = "CREATE_USER_SCREEN"
     val createUserViewModel: CreateUserFieldViewModel = viewModel()
@@ -71,31 +70,32 @@ fun CreateUserScreen(
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    var user by remember { mutableStateOf(UserDTO()) }
+    val user by createUserViewModel.getUser().observeAsState(initial = UserDTO())
+
     val categoryCollections = listOf(
         CategoryDTO(
             category = "Higiene",
             idImage = "outline_sanitizer_black_36.png",
             color = card_blue.toArgb(),
-            userDTO = user
+            userDTO = user!!
         ),
         CategoryDTO(
             category = "Limpeza",
             idImage = "outline_cleaning_services_black_36.png",
             color = card_pink.toArgb(),
-            userDTO = user
+            userDTO = user!!
         ),
         CategoryDTO(
             category = "Comida",
             idImage = "food_bank.png",
             color = card_red_dark.toArgb(),
-            userDTO = user
+            userDTO = user!!
         ),
         CategoryDTO(
             category = "Bebida",
             idImage = "outline_water_drop_black_36.png",
             color = card_orange.toArgb(),
-            userDTO = user
+            userDTO = user!!
         )
     )
     val categoryController = CategoryController.getData(context, lifecycleOwner)
@@ -112,12 +112,12 @@ fun CreateUserScreen(
         if (isUpdate!!) {
             navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
             {
-                popUpTo(Screen.Home.name) { inclusive = false }
+                popUpTo(0) { inclusive = false }
             }
         } else {
             navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
             {
-                popUpTo(Screen.Home.name) { inclusive = false }
+                popUpTo(0) { inclusive = false }
             }
         }
     }
@@ -145,19 +145,18 @@ fun CreateUserScreen(
     }
 
     LaunchedEffect(Unit) {
-        val email = UserLoggedShared.getEmailUserCurrent()
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
-            lifecycleOwner
-        ) { userDTO ->
-            user = userDTO ?: UserDTO()
 
-            createUserViewModel.onChangeName(user.name)
-
-            createUserViewModel.onChangeNickName(user.nickName)
-
-            createUserViewModel.onChangeIdAvatar(user.idAvatar)
+        if(isUpdate!!){
+            createUserViewModel.getUser().observe(lifecycleOwner){ userDTO ->
+                if(userDTO != null){
+                    createUserViewModel.onChangeName(userDTO.name)
+                    createUserViewModel.onChangeNickName(userDTO.nickName)
+                    createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
+                }
+            }
 
         }
+
     }
 
     fun saveUser() {
@@ -176,11 +175,11 @@ fun CreateUserScreen(
 
             }
 
-            user.name = name.trim()
-            user.nickName = nickName.trim()
-            user.idAvatar = idAvatar
+            user!!.name = name.trim()
+            user!!.nickName = nickName.trim()
+            user!!.idAvatar = idAvatar
 
-            loginViewModel.updateUser(user, callback)
+            loginViewModel.updateUser(user!!, callback)
         }
     }
 
@@ -225,6 +224,7 @@ fun CreateUserScreen(
                 }
             }
         })
+
 }
 
 @Composable

@@ -36,6 +36,7 @@ import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
 fun BoxItemListComponent(
@@ -63,8 +64,8 @@ fun BoxItemListComponent(
     var showOptions by remember { mutableStateOf(false) }
     var isInitial by remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = isCheck){
-        if(!isCheck && showOptions){
+    LaunchedEffect(key1 = isCheck) {
+        if (!isCheck && showOptions) {
             showOptions = false
         }
     }
@@ -75,79 +76,12 @@ fun BoxItemListComponent(
             .fillMaxWidth()
     ) {
 
-        if (enabledDeleteDialog) {
-            Dialog(
-                onDismissRequest = { },
-                content = {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = text_secondary,
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(text_secondary)
-
-                        ) {
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 18.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    modifier = Modifier.padding(horizontal = 6.dp),
-                                    imageVector = Icons.Rounded.Warning,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFFEA0F)
-                                )
-
-                                Text(
-                                    buildAnnotatedString {
-                                        append("Deseja remover o item")
-                                        withStyle(style = SpanStyle(fontFamily = LatoBlack)) {
-                                            append("  $product")
-                                        }
-                                        append(" da lista?")
-                                    },
-                                    fontFamily = LatoRegular,
-                                )
-
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 6.dp),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                TextButton(
-                                    colors = ButtonDefaults.textButtonColors(contentColor = text_primary_light),
-                                    onClick = {
-                                        enabledDeleteDialog = false
-                                    })
-                                {
-                                    Text(
-                                        text = "Não", fontFamily = LatoRegular
-                                    )
-                                }
-
-                                TextButton(
-                                    colors = ButtonDefaults.textButtonColors(contentColor = primary_dark),
-                                    onClick = {
-                                        callback?.onDelete()
-                                        enabledDeleteDialog = false
-                                    })
-                                { Text(text = "Sim", fontFamily = LatoBlack) }
-                            }
-
-                        }
-                    }
-                })
-        }
+        DialogBackCustom(enabledDeleteDialog, {
+            callback?.onDelete()
+            enabledDeleteDialog = false
+        }, {
+            enabledDeleteDialog = false
+        }, "Deletar", "Deseja remover o item $product da lista?")
 
         Row(
             modifier = Modifier.height(65.dp),
@@ -205,7 +139,7 @@ fun BoxItemListComponent(
                     colors = CheckboxDefaults.colors(checkedColor = primary_dark),
                     checked = isCheck,
                     onCheckedChange = {
-                        if(isInitial){
+                        if (isInitial) {
                             isInitial = false
                         }
                         callback?.onChangeValue(idItem)
@@ -306,43 +240,9 @@ fun BoxItemInfo(
     callbackQuantOrKilo: CustomTextFieldOnClick?,
     callbackDiscount: CustomTextFieldOnClick?
 ) {
-    var isMoney by remember { mutableStateOf(true) }
-    var price by remember { mutableStateOf(newPrice.toString()) }
-    var quantOrKilo by remember { mutableStateOf(newQuantOrKilo) }
-    var type by remember {
-        mutableStateOf(newType)
-    }
-    var priceError by remember { mutableStateOf(false) }
-    var amountOrKiloError by remember { mutableStateOf(false) }
-    var isMarketCurrent by remember { mutableStateOf(false) }
-    var discount by remember { mutableStateOf(newDiscount.toString()) }
-    var discountError by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = newPrice, key2 = isInitial) {
-        price = newPrice.toString()
-        priceError = !isInitial && (price == "0.00" || price == "0.0")
-    }
-
-    LaunchedEffect(key1 = newDiscount, key2 = isCheckDiscount, key3 = isInitial) {
-        discount = newDiscount.toString()
-        discountError = !isInitial && isCheckDiscount && newDiscount == 0F
-    }
-
-    LaunchedEffect(key1 = newQuantOrKilo, key2 = isInitial) {
-        quantOrKilo = newQuantOrKilo!!
-        amountOrKiloError = !isInitial && ( quantOrKilo!!.isBlank() || quantOrKilo == "0" || quantOrKilo == "0.000")
-    }
-
-    LaunchedEffect(key1 = newType) {
-        type = newType!!
-    }
-
-    LaunchedEffect(key1 = isMarket) {
-        isMarketCurrent = isMarket
-    }
-
-    if (isMarketCurrent) {
+    if (isMarket) {
         Card(
             elevation = 2.dp,
             shape = RoundedCornerShape(6.dp),
@@ -360,26 +260,26 @@ fun BoxItemInfo(
                     NumberInputComponent(
                         maxChar = 13,
                         keyboardType = KeyboardType.Number,
-                        value = price,
+                        value = MaskUtils.convertValueDoubleToString(newPrice!!.toDouble()),
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
                             .padding(end = 16.dp),
                         label = "Preço",
-                        error = priceError,
+                        error = !isInitial && (newPrice.toString() == "0.00" || newPrice.toString() == "0.0"),
                         customOnClick = callbackPrice!!
                     )
 
                     NumberInputComponent(
                         maxChar = 11,
                         hasIcon = true,
-                        isKilogram = type == TypeProduct.KILO,
-                        value = quantOrKilo,
-                        error = amountOrKiloError,
+                        isKilogram = newType == TypeProduct.KILO,
+                        value = newQuantOrKilo,
+                        error = !isInitial && (newQuantOrKilo!!.isBlank() || newQuantOrKilo == "0" || newQuantOrKilo == "0.000"),
                         isMandatory = false,
                         modifier = Modifier
                             .padding(vertical = 1.dp)
                             .fillMaxWidth(.99f),
-                        label = if (isMoney) "Quantidade" else "Quilograma",
+                        label = if (newType == TypeProduct.QUANTITY) "Quantidade" else "Quilograma",
                         customOnClick = callbackQuantOrKilo!!
                     )
 
@@ -414,12 +314,12 @@ fun BoxItemInfo(
                         NumberInputComponent(
                             maxChar = 13,
                             keyboardType = KeyboardType.Number,
-                            value = discount,
+                            value = newDiscount.toString(),
                             modifier = Modifier
                                 .fillMaxWidth(0.45f)
                                 .padding(end = 16.dp),
                             label = "Desconto",
-                            error = discountError,
+                            error = !isInitial && isCheckDiscount && newDiscount == 0F,
                             customOnClick = callbackDiscount!!
                         )
                     }

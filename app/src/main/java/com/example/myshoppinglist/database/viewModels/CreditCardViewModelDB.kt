@@ -5,7 +5,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.myshoppinglist.database.MyShopListDataBase
-import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.repositories.CreditCardRepository
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
@@ -46,7 +45,7 @@ class CreditCardViewModelDB(context: Context, lifecycleOwner: LifecycleOwner): V
         return repository.getAll(email)
     }
 
-    fun getAllWithSum(): LiveData<List<CreditCard>>{
+    fun getAllWithSum(): LiveData<List<CreditCard>> {
         return repository.getAllWithSum(email)
     }
 

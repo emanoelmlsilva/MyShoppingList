@@ -1,4 +1,4 @@
-package com.example.myshoppinglist.ui.viewModel
+package com.example.myshoppinglist.services.viewModel
 
 import ResultData
 import android.util.Log
@@ -12,6 +12,7 @@ import com.example.myshoppinglist.database.entities.relations.ItemListAndCategor
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.repository.ItemListRepository
 import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException

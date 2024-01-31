@@ -1,16 +1,15 @@
 package com.example.myshoppinglist.controller
 
+import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -22,19 +21,15 @@ import androidx.navigation.navArgument
 import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.enums.Screen
-import com.example.myshoppinglist.fieldViewModel.CategoryFieldViewModel
-import com.example.myshoppinglist.fieldViewModel.HomeFieldViewModel
-import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
-import com.example.myshoppinglist.fieldViewModel.RegisterCategoryFieldViewModel
-import com.example.myshoppinglist.model.IconCategory
+import com.example.myshoppinglist.fieldViewModel.*
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.screen.*
-import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.google.accompanist.pager.ExperimentalPagerApi
+import kotlinx.coroutines.delay
 
+@SuppressLint("FlowOperatorInvokedInComposition", "StateFlowValueCalledInComposition")
 @RequiresApi(Build.VERSION_CODES.N)
 @ExperimentalPagerApi
 @ExperimentalAnimationApi
@@ -52,24 +47,30 @@ fun NavController(
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
+    val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
+    val categoryFieldViewModel = CategoryFieldViewModel(context, lifecycleOwner)
+    val productManagerFieldViewModel = ProductManagerFieldViewModel(context, lifecycleOwner)
+    val registerCategoryFieldViewModel = RegisterCategoryFieldViewModel(context, lifecycleOwner)
+    val listItemFieldViewModel = ListItemFieldViewModel(context, lifecycleOwner)
+    val marketItemFieldViewModel = MarketItemFieldViewModel(context, lifecycleOwner)
+
     fun softInputMode(isKeyBoard: Boolean) {
         window.setSoftInputMode(if (isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     }
 
+    LaunchedEffect(key1 = navHostController.currentDestination) {
+        callback.onChangeVisible(Screen.enableScreenBottomBarState(navHostController.currentDestination!!.route!!))
+    }
+
     NavHost(navController = navHostController, startDestination = routeInitial) {
-        composable(Screen.CreateUser.name) {
-            callback.onChangeVisible(false)
-            CreateUserScreen(navHostController, isUpdate = false, hasToolbar = false)
-        }
-        composable("${Screen.CreateUser.name}?isUpdate={isUpdate}?hasToolbar={hasToolbar}",
-            arguments = listOf(
-                navArgument("isUpdate") { type = NavType.BoolType },
-                navArgument("hasToolbar") { type = NavType.BoolType }
-            )) { navBackStack ->
-            callback.onChangeVisible(false)
-            val isUpdate = navBackStack.arguments?.getBoolean("isUpdate")
-            val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
-            CreateUserScreen(navHostController, isUpdate ?: false, hasToolbar)
+        composable(Screen.CreateUser.name) { navBackStack ->
+            val arguments = navBackStack.arguments
+
+            val isUpdate = arguments?.getBoolean("isUpdate") ?: true
+            val hasToolbar = arguments?.getBoolean("hasToolbar") ?: true
+
+            CreateUserScreen(navHostController, isUpdate, hasToolbar)
+
         }
         composable(
             "${Screen.CreateCards.name}?hasToolbar={hasToolbar}?holderName={holderName}?isUpdate={isUpdate}?creditCardDTO={creditCardDTO}",
@@ -79,7 +80,6 @@ fun NavController(
                 navArgument("creditCardDTO") { type = NavType.StringType },
                 navArgument("isUpdate") { type = NavType.BoolType })
         ) { navBackStack ->
-            callback.onChangeVisible(false)
             val hasToolbar = navBackStack.arguments?.getBoolean("hasToolbar")
             val holderName = navBackStack.arguments?.getString("holderName")
             val creditCardDTO = navBackStack.arguments?.getString("creditCardDTO")
@@ -91,39 +91,27 @@ fun NavController(
             )
         }
         composable(Screen.Home.name) {
-            val homeFieldViewModel = HomeFieldViewModel(context, lifecycleOwner)
-            val email = UserLoggedShared.getEmailUserCurrent()
 
-            softInputMode(true)
-            callback.onChangeVisible(true)
+            val creditCardCollection = homeFieldViewModel.creditCardCollection.value
+            val purchaseCollection = homeFieldViewModel.purchaseCollection.value
 
-            val valueUser = homeFieldViewModel.getUser(email).observeAsState()
-
-            val valueCreditCollection =
-                homeFieldViewModel.getCreditCardController().getAllWithSumDB().observeAsState()
-
-            val valuePurchaseCollection =
-                homeFieldViewModel.getPurchaseController().getPurchasesAndCategoryWeekDB()
-                    .observeAsState()
-
-            if (valueUser.value != null && valueCreditCollection.value != null && valuePurchaseCollection.value != null) {
-
-                if (valueUser.value!!.name.isNotEmpty() && valueUser.value!!.idAvatar != 0) {
-                    homeFieldViewModel.onChangeNickName(valueUser.value!!.nickName)
-                    homeFieldViewModel.onChangeIdAvatar(valueUser.value!!.idAvatar)
+            if (creditCardCollection != null) {
+                if (creditCardCollection.isEmpty()) {
+                    homeFieldViewModel.updateCreditCards()
                 }
-
-                if (valueCreditCollection.value!!.isNotEmpty()) {
-                    homeFieldViewModel.onChangeCreditCardCollection(valueCreditCollection.value!!)
-                }
-
-                if (valuePurchaseCollection.value!!.isNotEmpty()) {
-                    homeFieldViewModel.onChangePurchaseCollection(valuePurchaseCollection.value!!)
-                }
-
-                HomeScreen(navHostController, homeFieldViewModel)
             }
 
+            if (purchaseCollection != null) {
+                if (purchaseCollection.isEmpty()) {
+                    homeFieldViewModel.updatePurchases()
+                }
+            }
+
+            HomeScreen(
+                navHostController, homeFieldViewModel
+            )
+
+            softInputMode(true)
         }
         composable(
             "${Screen.RegisterPurchase.name}?idCardCurrent={idCardCurrent}?isEditable={isEditable}?purchaseEdit={purchaseEdit}",
@@ -132,7 +120,8 @@ fun NavController(
                 navArgument("isEditable") { type = NavType.BoolType },
                 navArgument("purchaseEdit") { type = NavType.StringType })
         ) { navBackStack ->
-            callback.onChangeVisible(false)
+            softInputMode(false)
+
             val idCardCurrent = navBackStack.arguments?.getLong("idCardCurrent")
             val isEditable = navBackStack.arguments?.getBoolean("isEditable")
             val purchaseJson = navBackStack.arguments?.getString("purchaseEdit").toString()
@@ -157,7 +146,6 @@ fun NavController(
             "${Screen.Spending.name}?idCard={idCard}",
             arguments = listOf(navArgument("idCard") { type = NavType.LongType })
         ) { navBackStack ->
-            callback.onChangeVisible(false)
             val idCard = navBackStack.arguments?.getLong("idCard")
             if (idCard != null) {
                 SpendingScreen(navHostController, idCard)
@@ -165,90 +153,77 @@ fun NavController(
         }
         composable(Screen.ProductsManager.name) {
             softInputMode(false)
-            callback.onChangeVisible(true)
-            val productManagerFieldViewModel: ProductManagerFieldViewModel =
-                ProductManagerFieldViewModel(context, lifecycleOwner)
 
             productManagerFieldViewModel.searchPurchases(ObjectFilter())
             ProductsManagerScreen(productManagerFieldViewModel)
         }
         composable(Screen.Finance.name) {
-            callback.onChangeVisible(true)
             FinanceScreen(navHostController)
         }
         composable(Screen.Categories.name) {
             softInputMode(true)
-            callback.onChangeVisible(true)
 
-            val categoryFieldViewModel = CategoryFieldViewModel(context, lifecycleOwner)
+            val categoryCollection = categoryFieldViewModel.categoryCollection.value
 
-            val valueCategoryCollection =
-                categoryFieldViewModel.getCategoryController().getAllDB().observeAsState()
-
-            if (valueCategoryCollection.value != null) {
-
-                categoryFieldViewModel.onChangeCategoryCollection(valueCategoryCollection.value!!)
-
-                CategoriesScreen(navHostController, categoryFieldViewModel)
-
+            if (categoryCollection != null && categoryCollection.isEmpty()) {
+                categoryFieldViewModel.updateCategoryCollection()
             }
+
+            CategoriesScreen(navHostController, categoryFieldViewModel)
+
         }
         composable(
             "${Screen.RegisterCategory.name}?idCategory={idCategory}",
             arguments = listOf(navArgument("idCategory") { type = NavType.LongType })
         ) { navBackStack ->
-            callback.onChangeVisible(false)
             val idCategory = navBackStack.arguments?.getLong("idCategory")
-            val registerCategoryFieldViewModel =
-                RegisterCategoryFieldViewModel(context, lifecycleOwner)
+            val category = registerCategoryFieldViewModel.nameCategory.value
 
-            registerCategoryFieldViewModel.onChangeIconsCategories(
-                (AssetsUtils.readIconCollections(
-                    context
-                ) as List<IconCategory>).toMutableList()
-            )
-
-            registerCategoryFieldViewModel.recoverCategory(idCategory!!, lifecycleOwner)
+            if (idCategory != null && idCategory != 0L && category != null && category.isEmpty()) {
+                LaunchedEffect(Unit) {
+                    registerCategoryFieldViewModel.updateCategory(idCategory)
+                    delay(500)
+                }
+            }
 
             RegisterCategoryScreen(
                 navHostController,
                 registerCategoryFieldViewModel,
-                idCategory
+                idCategory!!
             )
 
+        }
+        composable(
+            Screen.MakingMarketScreen.name
+        ) { navBackStack ->
+
+            val arguments = navBackStack.arguments
+
+            val idCard = arguments?.getLong("idCard") ?: 0L
+
+            MakingMarketScreen(navHostController, idCard, marketItemFieldViewModel)
         }
         composable(
             "${Screen.ListPurchase.name}?idCard={idCard}",
             arguments = listOf(navArgument("idCard") { type = NavType.LongType })
         ) { navBackStack ->
-            callback.onChangeVisible(false)
-            val idCard = navBackStack.arguments?.getLong("idCard")
-            ListItemPurchaseScreen(navHostController, idCard!!)
-        }
-        composable("${Screen.MakingMarketScreen.name}?idCard={idCard}?itemListCollection={itemListCollection}",
-            arguments = listOf(
-                navArgument("idCard") { type = NavType.LongType },
-                navArgument("itemListCollection") {
-                    type = NavType.StringType
-                }
-            )) { navBackStack ->
-            callback.onChangeVisible(false)
-            val idCard = navBackStack.arguments?.getLong("idCard")
-            val itemListCollection = navBackStack.arguments?.getString("itemListCollection")
 
-            MakingMarketScreen(navHostController, idCard!!, itemListCollection!!)
+            val idCard = navBackStack.arguments?.getLong("idCard")
+
+            ListItemPurchaseScreen(navHostController, idCard!!, listItemFieldViewModel)
+
         }
         composable("${Screen.SettingsScreen.name}?idAvatar={idAvatar}?nickName={nickName}",
             arguments = listOf(
                 navArgument("idAvatar") { type = NavType.IntType },
                 navArgument("nickName") { type = NavType.StringType }
             )) { navBackStack ->
-            callback.onChangeVisible(false)
 
             val idAvatar = navBackStack.arguments?.getInt("idAvatar")
             val nickName = navBackStack.arguments?.getString("nickName")
 
             SettingsScreen(navHostController, idAvatar!!, nickName!!)
+
         }
         composable(Screen.ChoiceLogin.name) {
             ChoiceLogin(navHostController)

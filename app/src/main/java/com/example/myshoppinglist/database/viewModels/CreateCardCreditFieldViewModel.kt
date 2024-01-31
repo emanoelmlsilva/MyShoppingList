@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
+import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.ui.theme.card_blue
 import org.burnoutcrew.reorderable.ItemPosition
 
@@ -22,31 +23,6 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var idCreditCard: MutableLiveData<Long> = MutableLiveData()
     var lastPosition: MutableLiveData<Int> = MutableLiveData(0)
     var idCardApi: MutableLiveData<Long> = MutableLiveData(0)
-
-    fun updateCreditCardCollection(newTesteList: MutableList<CreditCardDTODB>) {
-        creditCardCollection.value = newTesteList
-    }
-
-    fun onTaskReordered(
-        creditCardCollectionUpdate: MutableList<CreditCardDTODB>,
-        fromPos: ItemPosition,
-        toPos: ItemPosition
-    ) {
-        if(creditCardCollection.value!!.size > 0){
-            val auxCreditCardCollection = ArrayList(creditCardCollection.value!!)
-            val positionFrom = creditCardCollection.value!![fromPos.index].position
-            val positionTo = creditCardCollection.value!![toPos.index].position
-
-            auxCreditCardCollection[fromPos.index].position = positionTo
-            auxCreditCardCollection[toPos.index].position = positionFrom
-
-            auxCreditCardCollection[fromPos.index] = creditCardCollectionUpdate[toPos.index]
-            auxCreditCardCollection[toPos.index] = creditCardCollectionUpdate[fromPos.index]
-
-            updateCreditCardCollection(auxCreditCardCollection)
-        }
-
-    }
 
     fun onChangeIdCardApi(newIdCardApi: Long){
         idCardApi.value = newIdCardApi

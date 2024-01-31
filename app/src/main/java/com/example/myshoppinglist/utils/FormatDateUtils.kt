@@ -131,7 +131,7 @@ class FormatDateUtils {
     @RequiresApi(Build.VERSION_CODES.N)
     fun getYearCurrent(): String {
         val cal = Calendar.getInstance()
-        val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
+//        val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
         return cal.weekYear.toString()
     }
 

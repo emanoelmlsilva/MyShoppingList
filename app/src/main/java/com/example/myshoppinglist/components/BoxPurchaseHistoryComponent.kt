@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,64 +14,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myshoppinglist.callback.VisibleCallback
-import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
+import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.ui.theme.*
+import com.example.myshoppinglist.ui.theme.LatoBlack
+import com.example.myshoppinglist.ui.theme.LatoRegular
+import com.example.myshoppinglist.ui.theme.text_primary_light
+import com.example.myshoppinglist.ui.theme.text_title_secondary
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatDateUtils
-import com.example.myshoppinglist.utils.MaskUtils
-
-private class DataFormatted(
-    var price: String,
-    var date: String,
-    var discount: String,
-    var totalWitDiscount: String
-)
 
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(
-    purchaseCollection: List<PurchaseAndCategory>,
-    callback: VisibleCallback
+    purchaseCollection: List<PurchaseAndCategoryDTO>
 ) {
     val context = LocalContext.current
-    val dataFormattedCollection = remember { HashMap<Long, DataFormatted>() }
-    LaunchedEffect(Unit) {
-
-        purchaseCollection.forEach {
-            val purchase = it.purchase
-
-            dataFormattedCollection[purchase.myShoppingId] =
-                DataFormatted(
-                    MaskUtils.maskValue(
-                        MaskUtils.convertValueDoubleToString(
-                            purchase.price
-                        )
-                    ), FormatDateUtils().getNameDay(purchase.date).uppercase(),
-                    MaskUtils.maskValue(
-                        MaskUtils.convertValueDoubleToString(
-                            purchase.discount
-                        )
-                    ),
-                    MaskUtils.maskValue(
-                        MaskUtils.convertValueDoubleToString(
-                            purchase.price - purchase.discount
-                        )
-                    )
-                )
-
-        }
-    }
 
     if (purchaseCollection.isNotEmpty()) {
         BaseLazyColumnScroll(
-            modifier = Modifier.padding(bottom = 0.dp, start = 24.dp, end = 24.dp),
-            callback = callback,
+            modifier = Modifier.padding(bottom = 0.dp, start = 24.dp, end = 24.dp)
         ) {
             itemsIndexed(purchaseCollection) { index, purchaseAndCategory ->
-                val purchase = purchaseAndCategory.purchase
-                val category = purchaseAndCategory.category
+                val purchase = purchaseAndCategory.purchaseDTO
+                val category = purchaseAndCategory.categoryDTO
 
                 Column(
                     modifier = Modifier
@@ -118,74 +80,72 @@ fun BoxPurchaseHistoryComponent(
                             )
                         }
 
-                        if (dataFormattedCollection.isNotEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.End
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = purchaseAndCategory.dateFormat,
+                                fontFamily = LatoRegular,
+                                fontSize = 12.sp,
+                                color = text_primary_light
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
                             ) {
                                 Text(
-                                    text = dataFormattedCollection[purchase.myShoppingId]!!.date,
+                                    text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                                     fontFamily = LatoRegular,
                                     fontSize = 12.sp,
                                     color = text_primary_light
                                 )
 
+                                Text(
+                                    text = "R$ ${
+                                        purchaseAndCategory.priceFormat
+                                    }",
+                                    modifier = Modifier.padding(start = 10.dp),
+                                    textAlign = TextAlign.End,
+                                    fontFamily = LatoBlack,
+                                    fontSize = 12.sp,
+                                    color = text_primary_light
+                                )
+
+                            }
+
+                            if (purchase.discount > 0) {
                                 Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
-                                        .padding(top = 12.dp)
+                                        .padding(top = 8.dp)
                                 ) {
                                     Text(
-                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                                        fontFamily = LatoRegular,
+                                        text = "desconto", modifier = Modifier,
+                                        textAlign = TextAlign.Start,
+                                        fontSize = 12.sp,
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 10.dp),
                                         fontFamily = LatoRegular,
                                         fontSize = 12.sp,
-                                        color = text_primary_light
+                                        text = "R$ -${
+                                            purchaseAndCategory.discountFormat
+                                        }"
                                     )
-
                                     Text(
-                                        text = "R$ ${
-                                            dataFormattedCollection[purchase.myShoppingId]!!.price
-                                        }",
                                         modifier = Modifier.padding(start = 10.dp),
-                                        textAlign = TextAlign.End,
                                         fontFamily = LatoBlack,
                                         fontSize = 12.sp,
-                                        color = text_primary_light
+                                        color = text_primary_light,
+                                        text = "R$ ${
+                                            purchaseAndCategory.totalWithoutDiscountFormat
+                                        }",
                                     )
 
-                                }
-
-                                if (purchase.discount > 0) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .padding(top = 8.dp)
-                                    ) {
-                                        Text(
-                                            fontFamily = LatoRegular,
-                                            text = "desconto", modifier = Modifier,
-                                            textAlign = TextAlign.Start,
-                                            fontSize = 12.sp,
-                                        )
-                                        Text(
-                                            modifier = Modifier.padding(start = 10.dp),
-                                            fontFamily = LatoRegular,
-                                            fontSize = 12.sp,
-                                            text = "R$ -${
-                                                dataFormattedCollection[purchase.myShoppingId]!!.discount
-                                            }"
-                                        )
-                                        Text(
-                                            modifier = Modifier.padding(start = 10.dp),
-                                            fontFamily = LatoBlack,
-                                            fontSize = 12.sp,
-                                            color = text_primary_light,
-                                            text = "R$ ${
-                                                dataFormattedCollection[purchase.myShoppingId]!!.totalWitDiscount
-                                            }",
-                                        )
-
-                                    }
                                 }
                             }
                         }
@@ -201,20 +161,7 @@ fun BoxPurchaseHistoryComponent(
             }
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(.8f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Não foi realizada nenhuma compras nos últimos 7 dias.",
-                fontFamily = LatoBlack,
-                color = text_title_secondary,
-                fontSize = 12.sp
-            )
-        }
+        EmptyTextComponent("Não foi realizada nenhuma compras nos últimos 7 dias.")
     }
 
 }

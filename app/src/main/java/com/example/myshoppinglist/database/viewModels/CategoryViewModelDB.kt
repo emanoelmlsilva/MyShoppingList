@@ -12,6 +12,7 @@ import com.example.myshoppinglist.database.repositories.CategoryRepository
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
+import kotlinx.coroutines.flow.Flow
 
 class CategoryViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
     //repository
@@ -24,7 +25,6 @@ class CategoryViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : Vi
     init {
         val myShopListDataBase = MyShopListDataBase.getInstance(context)
         val categoryDAO = myShopListDataBase.categoryDAO()
-        val email = UserLoggedShared.getEmailUserCurrent()
         repository = CategoryRepository(categoryDAO)
         mLifecycleOwner = lifecycleOwner
     }

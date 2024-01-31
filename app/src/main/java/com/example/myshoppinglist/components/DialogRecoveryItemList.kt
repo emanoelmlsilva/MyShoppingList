@@ -1,5 +1,4 @@
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,11 +12,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.example.myshoppinglist.callback.CallbackItemList
-import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.viewModels.ItemListViewModelDB
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -30,9 +29,8 @@ fun DialogRecoveryItemList(
     listItemChosen: List<ItemListDTO>,
     callback: CallbackItemList
 ) {
-
+    val MESSAGE_EMPTY_LIST = "Selecione algum item da lista de mercado"
     var checkAll by remember { mutableStateOf(false) }
-    var visibleAnimation by remember { mutableStateOf(true) }
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val itemListViewModel = ItemListViewModelDB(context, lifecycleOwner)
     val itemListCollection = remember { mutableStateListOf<ItemListDTO>() }
@@ -40,7 +38,7 @@ fun DialogRecoveryItemList(
     val scope = rememberCoroutineScope()
 
     fun selectedCheckAll() {
-        itemCheckCollection.removeAll(itemCheckCollection)
+        itemCheckCollection.clear()
         itemListCollection.forEach {
             itemCheckCollection.add(it.myShoppingId)
         }
@@ -48,10 +46,25 @@ fun DialogRecoveryItemList(
     }
 
     fun cancel() {
-        itemCheckCollection.removeAll(itemCheckCollection)
+        itemCheckCollection.clear()
         showDialog = false
         callback.onChangeValue(false)
         checkAll = false
+    }
+
+    fun removeCheckAll() {
+        itemCheckCollection.clear()
+    }
+
+    fun handleClickSelected() {
+        if (itemListCollection.isNotEmpty()) {
+            checkAll = !checkAll
+            if (checkAll) {
+                selectedCheckAll()
+            } else {
+                removeCheckAll()
+            }
+        }
     }
 
     LaunchedEffect(key1 = enabledDialog) {
@@ -60,7 +73,7 @@ fun DialogRecoveryItemList(
 
     LaunchedEffect(key1 = idCard, key2 = showDialog) {
         if (showDialog) {
-            itemListViewModel.getAllDB(idCard).observe(lifecycleOwner) { itemListAndCategory ->
+            itemListViewModel.getAllWithCategory(idCard).observeForever { itemListAndCategory ->
                 if (itemListAndCategory.isNotEmpty()) {
                     itemListCollection.removeAll(itemListCollection)
                     itemListCollection.addAll(itemListAndCategory.map {
@@ -86,6 +99,7 @@ fun DialogRecoveryItemList(
         percentHeight = 1.2f,
         visibilityDialog = showDialog
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -95,7 +109,6 @@ fun DialogRecoveryItemList(
         ) {
             Column {
                 BaseAnimationComponent(
-                    visibleAnimation = visibleAnimation,
                     contentBase = {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -127,10 +140,7 @@ fun DialogRecoveryItemList(
                         .padding(vertical = 8.dp)
                         .align(Alignment.Start)
                         .clickable {
-                            checkAll = !checkAll
-                            if (checkAll) {
-                                selectedCheckAll()
-                            }
+                            handleClickSelected()
                         },
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -139,10 +149,7 @@ fun DialogRecoveryItemList(
                         colors = CheckboxDefaults.colors(checkedColor = primary_dark),
                         checked = checkAll,
                         onCheckedChange = {
-                            checkAll = it
-                            if (checkAll) {
-                                selectedCheckAll()
-                            }
+                            handleClickSelected()
                         }
                     )
                     Text(
@@ -154,72 +161,78 @@ fun DialogRecoveryItemList(
                 }
 
                 BaseLazyColumnScroll(modifier = Modifier
-                    .fillMaxWidth(), callback = object : VisibleCallback {
-                    override fun onChangeVisible(visible: Boolean) {
-                        visibleAnimation = visible
-                    }
-                }, content = {
-                    itemsIndexed(itemListCollection) { index, itemListService ->
-                        val isCheck = itemCheckCollection.indexOf(itemListService.id) != -1
-                        SlidingItemListComponent(
-                            context = context,
-                            itemListDTO = itemListService,
-                            isCheck = isCheck,
-                            hasOptionEdit = false,
-                            isMarket = false,
-                            isRemoved = itemListService.isRemoved,
-                            idItem = if (itemListService.id == 0L) itemListService.myShoppingId else itemListService.id,
-                            category = itemListService.categoryDTO.toCategory(),
-                            product = itemListService.item,
-                            callback = object : CallbackItemList {
-                                override fun onUpdate(itemList: ItemListDTO) {
-                                    TODO("Not yet implemented")
-                                }
+                    .fillMaxWidth()
+                    .fillMaxHeight(.9f),
+                    verticalArrangement = Arrangement.Top,
+                    content = {
+                        itemsIndexed(itemListCollection) { index, itemListService ->
+                            val isCheck =
+                                itemCheckCollection.indexOf(itemListService.myShoppingId) != -1
+                            SlidingItemListComponent(
+                                context = context,
+                                itemListDTO = itemListService,
+                                isCheck = isCheck,
+                                hasOptionEdit = false,
+                                isMarket = false,
+                                isRemoved = itemListService.isRemoved,
+                                idItem = itemListService.myShoppingId,
+                                category = itemListService.categoryDTO.toCategory(),
+                                product = itemListService.item,
+                                callback = object : CallbackItemList {
+                                    override fun onUpdate(itemList: ItemListDTO) {
+                                        TODO("Not yet implemented")
+                                    }
 
-                                override fun onChangeValue(idItem: Long) {
-                                    val isChecked = itemCheckCollection.indexOf(idItem) != -1
-                                    checkAll = if (isChecked) {
-                                        itemCheckCollection.remove(idItem)
-                                        false
-                                    } else {
-                                        itemCheckCollection.add(idItem)
-                                        itemCheckCollection.size == itemListCollection.size
+                                    override fun onChangeValue(idCard: Long) {
+                                        val isChecked = itemCheckCollection.indexOf(idCard) != -1
+                                        checkAll = if (isChecked) {
+                                            itemCheckCollection.remove(idCard)
+                                            false
+                                        } else {
+                                            itemCheckCollection.add(idCard)
+                                            itemCheckCollection.size == itemListCollection.size
 
+                                        }
                                     }
                                 }
-                            }
-                        )
-                    }
-                })
+                            )
+                        }
+                    })
 
             }
 
-            ButtonsFooterContent(
-                modifierButton = Modifier.padding(start = 16.dp, end = 16.dp),
-                btnTextAccept = "ADICIONAR",
-                onClickAccept = {
-                    if (itemCheckCollection.isNotEmpty()) {
-                        scope.launch {
+            Box() {
+                ButtonsFooterContent(
+                    modifierButton = Modifier
+                        .padding(start = 16.dp, end = 16.dp),
+                    btnTextAccept = "ADICIONAR",
+                    onClickAccept = {
+                        if (itemCheckCollection.isNotEmpty()) {
+                            scope.launch {
 
-                            val listUpdate = itemListCollection.filter { itemChoice ->
-                                itemCheckCollection.find { itemCheck ->
+                                val listUpdate = itemListCollection.filter { itemChoice ->
+                                    itemCheckCollection.find { itemCheck ->
+                                        return@find itemChoice.myShoppingId == itemCheck
 
-                                    val idItem =
-                                        if (itemChoice.id == 0L) itemChoice.myShoppingId else itemChoice.id
-                                    return@find idItem == itemCheck
-
-                                } != null
+                                    } != null
+                                }
+                                callback.onUpdate(listUpdate)
+                            }.invokeOnCompletion {
+                                cancel()
                             }
-                            callback.onUpdate(listUpdate)
-                        }.invokeOnCompletion {
-                            cancel()
+                        } else {
+                            CustomToastComponent(
+                                context,
+                                MESSAGE_EMPTY_LIST
+                            )
                         }
-                    }
-                },
-                btnTextCancel = "CANCELAR",
-                onClickCancel = {
-                    cancel()
-                })
+                    },
+                    btnTextCancel = "CANCELAR",
+                    onClickCancel = {
+                        cancel()
+                    })
+
+            }
 
         }
     }

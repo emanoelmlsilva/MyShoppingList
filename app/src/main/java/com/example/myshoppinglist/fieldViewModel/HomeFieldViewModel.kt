@@ -2,96 +2,68 @@ package com.example.myshoppinglist.fieldViewModel
 
 import android.content.Context
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
-import com.example.myshoppinglist.database.dtos.UserDTO
-import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
-import com.example.myshoppinglist.model.UserInstanceImpl
+import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
+import com.example.myshoppinglist.utils.FormatDateUtils
+import com.example.myshoppinglist.utils.MaskUtils
 import com.example.myshoppinglist.utils.MountStructureCrediCard
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class HomeFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
 
     private val purchaseController = PurchaseController.getData(context, lifecycleOwner)
     private val creditCardController = CreditCardController.getData(context, lifecycleOwner)
-    private val purchaseCollection: MutableLiveData<MutableList<PurchaseAndCategory>> =
-        MutableLiveData(mutableListOf())
-    private val creditCardCollection: MutableLiveData<MutableList<CreditCardDTODB>> =
-        MutableLiveData(mutableListOf())
-    private val idAvatar = MutableLiveData(0)
-    private val nickName = MutableLiveData("")
-    private var isVisibleValue: MutableLiveData<Boolean> = MutableLiveData(true)
+    val purchaseCollection: MutableLiveData<List<PurchaseAndCategoryDTO>> =
+        MutableLiveData(emptyList())
+    var creditCardCollection = MutableLiveData(emptyList<CreditCardDTODB>())
 
-    fun getPurchaseCollection(): List<PurchaseAndCategory> {
-        return purchaseCollection.value!!
-    }
+    fun updateCreditCards(){
+        viewModelScope.launch(Dispatchers.Main) {
+            creditCardController.getAllWithSumDB().observeForever { creditCards ->
 
-    fun getCreditCardCollection(): List<CreditCardDTODB> {
-        return creditCardCollection.value!!
-    }
+                val creditCardWitchCreateCollection = MountStructureCrediCard().mountSpedingDate(
+                    creditCards
+                ).toMutableList()
 
-    fun getIdAvatar(): Int {
-        return idAvatar.value!!
-    }
+                creditCardWitchCreateCollection.add(CreditCardDTODB())
 
-    fun getNickName(): String {
-        return nickName.value!!
-    }
-
-    fun onChangeIdAvatar(newIdAvatar: Int) {
-        idAvatar.value = newIdAvatar
-    }
-
-    fun onChangeNickName(newNickName: String) {
-        nickName.value = newNickName
-    }
-
-    fun onChangeVisibleValue() {
-        isVisibleValue.value = !isVisibleValue.value!!
-    }
-
-    fun getPurchaseController(): PurchaseController {
-        return purchaseController
-    }
-
-    fun getCreditCardController(): CreditCardController {
-        return creditCardController
-    }
-
-    fun onChangePurchaseCollection(newPurchaseCollection: List<PurchaseAndCategory>) {
-        purchaseCollection.value!!.clear()
-        purchaseCollection.value!!.addAll(newPurchaseCollection.reversed())
-    }
-
-    fun onChangeCreditCardCollection(newCreditCardCollection: List<CreditCard>) {
-        creditCardCollection.value!!.clear()
-        creditCardCollection.value!!.addAll(
-            MountStructureCrediCard().mountSpedingDate(
-                newCreditCardCollection
-            )
-        )
-        creditCardCollection.value!!.add(CreditCardDTODB())
-
-    }
-
-    fun isVisibleValue(): Boolean {
-        return isVisibleValue.value!!
-    }
-
-    fun getUser(email: String): LiveData<UserDTO> {
-        return UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
-    }
-
-    fun onUpdateUser(email: String, lifecycleOwner: LifecycleOwner){
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(lifecycleOwner){
-            onChangeNickName(it.nickName)
-            onChangeIdAvatar(it.idAvatar)
+                creditCardCollection.value = creditCardWitchCreateCollection
+            }
         }
+    }
+
+    fun updatePurchases() {
+        viewModelScope.launch(Dispatchers.Main) {
+            purchaseController.getPurchasesAndCategoryWeekDB().observeForever{ list->
+                purchaseCollection.value = list.map { purchaseAndCategory ->
+                    val purchaseFormatData = PurchaseDTO(purchaseAndCategory.purchase)
+                    val categoryFormatData = CategoryDTO()
+                    categoryFormatData.toCategoryDTO(purchaseAndCategory.category)
+
+                    val purchaseAndCategoryDTO =
+                        PurchaseAndCategoryDTO(purchaseFormatData, categoryFormatData)
+
+                    purchaseAndCategoryDTO.dateFormat =
+                        FormatDateUtils().getNameDay(purchaseFormatData.date).uppercase()
+
+                    purchaseAndCategoryDTO.priceFormat = MaskUtils.maskValue(String.format("%.2f", purchaseAndCategory.purchase.price))
+
+                    purchaseAndCategoryDTO.discountFormat = MaskUtils.maskValue(String.format("%.2f", purchaseAndCategory.purchase.discount))
+
+                    purchaseAndCategoryDTO.totalWithoutDiscountFormat = MaskUtils.maskValue(String.format("%.2f", (purchaseAndCategory.purchase.price - purchaseAndCategory.purchase.discount)).toString())
+
+                    purchaseAndCategoryDTO
+                }
+            }
+        }
+
     }
 
     override fun checkFields(): Boolean {
