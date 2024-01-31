@@ -7,8 +7,9 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.User
 import com.example.myshoppinglist.database.repositories.UserRepository
+import kotlinx.coroutines.flow.Flow
 
-class UserViewModelDB(private val context: Context): ViewModel() {
+class UserViewModelDB(var context: Context): ViewModel() {
 
     private val repository: UserRepository
 

@@ -38,7 +38,7 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         return cardCreditCardDAO.getAll(emailUser)
     }
 
-    fun getAllWithSum(emailUser: String): LiveData<List<CreditCard>>{
+    fun getAllWithSum(emailUser: String): LiveData<List<CreditCard>> {
         val dateMonth = FormatDateUtils().getMonthAndYear()
 
         return cardCreditCardDAO.getAllWithSum(emailUser, dateMonth)

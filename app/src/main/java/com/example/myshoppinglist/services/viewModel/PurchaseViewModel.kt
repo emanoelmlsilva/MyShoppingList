@@ -1,4 +1,4 @@
-package com.example.myshoppinglist.ui.viewModel
+package com.example.myshoppinglist.services.viewModel
 
 import ResultData
 import android.util.Log
@@ -13,6 +13,7 @@ import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
 import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -32,7 +33,7 @@ class PurchaseViewModel(
         return purchaseViewModelDB.getPurchasesAndCategoryWeek()
     }
 
-    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Double {
+    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Flow<Double> {
         return purchaseViewModelDB.getPurchasesSumOfSearch(arguments, condition)
     }
 
@@ -40,14 +41,14 @@ class PurchaseViewModel(
         arguments: MutableList<Any>,
         condition: String,
         valueGroupBy: String?
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         return purchaseViewModelDB.getPurchasesOfSearch(arguments, condition, valueGroupBy)
     }
 
     fun getPurchasesOfSearchDB(
         arguments: MutableList<Any>,
         condition: String
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         return purchaseViewModelDB.getPurchasesOfSearch(arguments, condition)
     }
 

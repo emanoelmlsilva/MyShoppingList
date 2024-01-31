@@ -1,8 +1,6 @@
 package com.example.myshoppinglist.components
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -11,6 +9,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -88,15 +87,9 @@ fun BoxCardCreditCustom(
 
                     }
                     Text(
-                        text = "R$ ${
-                            MaskUtils.maskValue(
-                                MaskUtils.convertValueDoubleToString(
-                                    creditCardDTO.value.toDouble()
-                                )
-                            )
-                        }",
+                        text = "R$ ${MaskUtils.maskValue(String.format("%.2f", creditCardDTO.value))}",
                         fontFamily = LatoBold,
-                        fontSize = 54.sp,
+                        fontSize = 45.sp,
                         color = background_card
                     )
                 }
@@ -107,9 +100,7 @@ fun BoxCardCreditCustom(
                         .fillMaxWidth()
                         .fillMaxHeight(.65f)
                 ) {
-                    CustomButtonRounded(isDotted = true,
-                        top = .25f,
-                        maxWidth = .3f,
+                    CustomButtonRounded(
                         icon = ImageVector.vectorResource(id = R.drawable.shopping_bag),
                         backgroundColor = text_primary.copy(alpha = 0.2f),
                         text = "Comprar",
@@ -128,10 +119,7 @@ fun BoxCardCreditCustom(
                             }
                         })
                     CustomButtonRounded(
-                        maxWidth = .64f,
-                        top = .05f,
-                        left = 3.8f,
-                        icon = ImageVector.vectorResource(id = R.drawable.more_horiz),
+                        icon = ImageVector.vectorResource(id = R.drawable.ic_baseline_more_horiz_24),
                         backgroundColor = background_card,
                         text = "Mais",
                         callback = object : CallbackCreditCard {
@@ -147,13 +135,7 @@ fun BoxCardCreditCustom(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ButtonDotted(maxHeight: Float = .22f, navController: NavController) {
-    val stroke = Stroke(
-        width = 6f,
-        pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 18f), 0f)
-    )
-    val painter = rememberVectorPainter(Icons.Rounded.Add)
-
+fun ButtonDotted(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -166,89 +148,48 @@ fun ButtonDotted(maxHeight: Float = .22f, navController: NavController) {
             },
             elevation = 0.dp,
             shape = RoundedCornerShape(28.dp),
-            backgroundColor = text_primary.copy(alpha = 0.2f)
+            backgroundColor = text_primary.copy(alpha = 0.2f),
+            border = BorderStroke(1.dp, secondary),
         ) {
-            Canvas(
-                Modifier
-                    .fillMaxWidth(.28f)
-                    .fillMaxHeight(maxHeight)
-                    .padding(1.dp)
-            ) {
-                drawRoundRect(
-                    color = background_card,
-                    cornerRadius = CornerRadius(x = 36.dp.toPx(), 36.dp.toPx()),
-                    style = stroke
-                )
-                translate(
-                    left = ((size.width / 2.7).toFloat()),
-                    top = (size.height * 0.29).toFloat()
-                ) {
-                    with(painter) {
-                        draw(painter.intrinsicSize)
-                    }
-                }
-            }
+            Text(
+                text = "Criar novo cartão",
+                fontFamily = LatoBold,
+                modifier = Modifier.padding(all = 18.dp)
+            )
         }
-        Text(text = "Adicionar novo cartão", fontFamily = LatoBold, modifier = Modifier.padding(top = 6.dp))
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CustomButtonRounded(
-    isDotted: Boolean = false,
-    maxWidth: Float = .4f,
-    top: Float = 0.29F,
-    left: Float = 2.7F,
     icon: ImageVector,
     backgroundColor: Color,
     text: String,
     callback: CallbackCreditCard
 ) {
-    val stroke = Stroke(
-        width = 6f,
-        pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 18f), 0f)
-    )
     val painter = rememberVectorPainter(icon)
 
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(
+        Card(modifier = Modifier.defaultMinSize(90.dp, 50.dp),
             onClick = {
                 callback.onClick()
             },
             elevation = 0.dp,
             shape = RoundedCornerShape(28.dp),
-            backgroundColor = backgroundColor
+            backgroundColor = backgroundColor,
+            border = BorderStroke(1.dp, secondary),
         ) {
-            Canvas(
-                Modifier
-                    .fillMaxWidth(maxWidth)
-                    .fillMaxHeight(.62f)
-                    .padding(1.dp)
-            ) {
-                if (isDotted) {
-                    drawRoundRect(
-                        color = background_card,
-                        cornerRadius = CornerRadius(x = 36.dp.toPx(), 36.dp.toPx()),
-                        style = stroke
-                    )
-                }
-                translate(
-                    left = ((size.width / left)),
-                    top = (size.height * top)
-                ) {
-                    with(painter) {
-                        draw(
-                            size = painter.intrinsicSize, colorFilter = ColorFilter.tint(
-                                text_primary
-                            )
-                        )
-                    }
-                }
-            }
+            Icon(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(all = 14.dp),
+                tint = text_primary
+            )
         }
         Text(text = text, fontFamily = LatoBold, modifier = Modifier.padding(top = 6.dp))
     }

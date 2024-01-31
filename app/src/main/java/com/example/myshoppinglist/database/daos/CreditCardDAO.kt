@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.enums.TypeProduct
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CreditCardDAO {

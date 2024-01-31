@@ -31,6 +31,7 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.enums.PositionDialog
+import com.example.myshoppinglist.fieldViewModel.ChoiceDataFieldViewModel
 import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
 import com.example.myshoppinglist.model.CardCreditFilter
 import com.example.myshoppinglist.model.ObjectFilter
@@ -53,13 +54,15 @@ fun AlertDialogFilterComponent(
     val priceMinDefault = 0F
     val priceMaxDefault = 100F
     val categoryChoices = remember { mutableStateListOf<Category>() }
-    val categoryCollections = remember { mutableStateListOf<Category>() }
+    val categoryCollections by productManagerFieldViewModel.categoryCollection.collectAsState()
+    val creditCardDTOCollection by productManagerFieldViewModel.cardCreditCollection.collectAsState()
+    val choiceDataFieldViewModel = ChoiceDataFieldViewModel(context, lifecycleOwner)
+
     var priceMin by remember { mutableStateOf(priceMinDefault) }
     var priceMax by remember { mutableStateOf(priceMaxDefault) }
     var month by remember { mutableStateOf("") }
     var idCardCredit by remember { mutableStateOf(0L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
-    val creditCardDTOCollection = remember { mutableListOf<CreditCardDTODB>() }
 
     val callbackChoiceData = object : Callback {
         override fun onChangeValue(newMonth: String) {
@@ -84,9 +87,7 @@ fun AlertDialogFilterComponent(
         if(filter.month.isNotBlank()){
             month = filter.month
         }
-    }
 
-    LaunchedEffect(key1 = categoryCollections.size){
         if(categoryCollections.isNotEmpty()){
             categoryChoices.removeAll(categoryChoices)
             filter.categoryCollection.forEach {
@@ -98,24 +99,6 @@ fun AlertDialogFilterComponent(
             }
         }
     }
-
-    productManagerFieldViewModel.getCategoryController().getAllDB().observe(lifecycleOwner) {
-        categoryCollections.removeAll(categoryCollections)
-        categoryCollections.addAll(it)
-    }
-
-    productManagerFieldViewModel.getCreditCardController().findAllDB()
-        .observe(lifecycleOwner) {
-            if (it.isNotEmpty()) {
-                creditCardDTOCollection.removeAll(creditCardDTOCollection)
-                val creditCardDBCollection = it.map { creditCard ->
-                    CreditCardDTODB().fromCreditCardDTODB(
-                        creditCard
-                    )
-                }
-                creditCardDTOCollection.addAll(creditCardDBCollection)
-            }
-        }
 
     fun removeCategory(category: Category){
         val hasNotExist =
@@ -206,6 +189,7 @@ fun AlertDialogFilterComponent(
                         LazyRow(
                             modifier = Modifier
                                 .background(background_card_gray_light)
+                                .fillMaxWidth()
                                 .fillMaxHeight(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -293,10 +277,11 @@ fun AlertDialogFilterComponent(
                         override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
                             idCardCredit = cardCreditFilter.id
                             currentCardCreditFilter = cardCreditFilter
+                            choiceDataFieldViewModel.updateMonth("")
                         }
                     })
 
-                ChoiceDataComponent(idCardCredit, filter.month, callbackChoiceData)
+                ChoiceDataComponent(idCardCredit, filter.month, choiceDataFieldViewModel, callbackChoiceData)
             }
             ButtonsFooterContent(
                 modifier = Modifier

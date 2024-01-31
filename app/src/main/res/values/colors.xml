@@ -8,5 +8,6 @@
     <color name="secondary_light">#C4C4C4</color>
     <color name="error">#9E1E40</color>
     <color name="text_primary">#000000</color>
+    <color name="toast_color">#DC000000</color>
     <color name="text_secondary">#FFFFFF</color>
 </resources>

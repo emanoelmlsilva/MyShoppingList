@@ -8,6 +8,7 @@ import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class UserRepository(private val userDao: UserDao) {
@@ -33,8 +34,8 @@ class UserRepository(private val userDao: UserDao) {
     }
 
     fun hasExistUser(email: String): Boolean {
-        val userDTO = userDao.findUserByEmail(email).value
-        return userDTO != null && userDTO.email.isNotBlank()
+//        val userDTO = userDao.findUserByEmail(email).value
+        return false// userDTO != null && userDTO.email.isNotBlank()
     }
 
     fun findUserByEmail(name: String): LiveData<UserDTO> {

@@ -1,13 +1,17 @@
 package com.example.myshoppinglist.services.dtos
 
+import android.os.Parcelable
 import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.ItemList
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
-class ItemListDTO() {
+@Parcelize
+class ItemListDTO() : Parcelable {
+
 
     @SerializedName("myShoppingId")
     var myShoppingId: Long = 0

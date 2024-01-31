@@ -11,7 +11,7 @@ import com.google.gson.annotations.SerializedName
 class Purchase {
 
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "myShoppingId")
+    @ColumnInfo(name = "myShoppingIdPurchase")
     var myShoppingId: Long = 0
 
     @SerializedName("idMyShoppingApi")

@@ -5,13 +5,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.services.CreditCardService
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
-import com.example.myshoppinglist.ui.viewModel.CreditCardViewModel
-import kotlinx.coroutines.flow.Flow
+import com.example.myshoppinglist.services.viewModel.CreditCardViewModel
 
 class CreditCardController {
 
@@ -21,7 +19,6 @@ class CreditCardController {
         private lateinit var creditCardViewModel: CreditCardViewModel
 
         fun getData(context: Context, lifecycleOwner: LifecycleOwner): CreditCardController {
-            val email = UserLoggedShared.getEmailUserCurrent()
             creditCardViewModel = CreditCardViewModel(
                 CreditCardRepository(CreditCardService.getCreditCardService()),
                 CreditCardViewModelDB(context, lifecycleOwner)

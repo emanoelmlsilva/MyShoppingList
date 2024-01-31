@@ -1,4 +1,4 @@
-package com.example.myshoppinglist.ui.viewModel
+package com.example.myshoppinglist.services.viewModel
 
 import ResultData
 import android.util.Log
@@ -8,7 +8,6 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
-import com.example.myshoppinglist.screen.TAG
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
@@ -20,7 +19,7 @@ class LoginViewModel(
     private val userViewModel: UserViewModelDB
 ) : ViewModel() {
 
-    private val LOG = "LoginViewModel"
+    private val TAG = "LoginViewModel"
 
     fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>) {
         viewModelScope.launch {
@@ -32,11 +31,11 @@ class LoginViewModel(
                 when (exception) {
                     is ConnectException -> {
                         MeasureTimeService.resetMeasureTimeErrorConnection(callback)
-                        ResultData.NotConnectionService(UserDTO())
+                        ResultData.NotConnectionService(userDTO)
                     }
                     is SocketTimeoutException -> {
                         callback.onChangeValue(MeasureTimeService.messageNoService)
-                        ResultData.NotConnectionService(UserDTO())
+                        ResultData.NotConnectionService(userDTO)
                     }
                     else -> {
                         ResultData.Error(exception)
@@ -67,7 +66,7 @@ class LoginViewModel(
                 else -> {
                     val messageError = (resultUpdate as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
                     callback.onFailed(messageError.toString())
                 }
             }
@@ -87,7 +86,7 @@ class LoginViewModel(
             when (result) {
                 is ResultData.Success<UserDTO> -> {
                     val user = result.data
-                    Log.d(LOG, "user $user")
+                    Log.d(TAG, "user $user")
 
                     userViewModel.insertUser(user.fromUser())
 
@@ -96,7 +95,7 @@ class LoginViewModel(
                 else -> {
                     val messageError = (result as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
                     callback.onFailedException(result.exception)
                 }
             }
@@ -115,7 +114,7 @@ class LoginViewModel(
 
             when (result) {
                 is ResultData.Success<UserDTO> -> {
-                    Log.d(LOG, "result ${result.data}")
+                    Log.d(TAG, "result ${result.data}")
 
                     userViewModel.insertUser(user.fromUser())
 
@@ -125,7 +124,7 @@ class LoginViewModel(
 
                     val messageError = (result as ResultData.Error).exception.message
 
-                    Log.d(LOG, "error $messageError")
+                    Log.d(TAG, "error $messageError")
                     callback.onFailedException(result.exception)
                 }
             }

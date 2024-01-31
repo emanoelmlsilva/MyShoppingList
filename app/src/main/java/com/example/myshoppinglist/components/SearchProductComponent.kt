@@ -52,11 +52,11 @@ import java.util.*
 @Composable
 fun SearchProductComponent(
     context: Context,
-    visibleAnimation: Boolean,
     lifecycleOwner: LifecycleOwner,
     productManagerFieldViewModel: ProductManagerFieldViewModel
 ) {
-    var product by remember { mutableStateOf("") }
+    val product by productManagerFieldViewModel.getProduct().collectAsState(initial = "")
+
     val listProductText = remember { mutableStateListOf<String>() }
     var reset by remember { mutableStateOf(false) }
     var enableDialog by remember { mutableStateOf(false) }
@@ -98,6 +98,9 @@ fun SearchProductComponent(
         } else if (productItem.startsWith("%card%")) {
             filter.cardFilter = CardCreditFilter()
             filter.idCard = 0
+            val productItemMonth =  "%month%, ${filter.month}"
+            filter.month = ""
+            listProductText.remove(productItemMonth)
         } else {
             var typeCategory =
                 filter.categoryCollection.find { productItem.contains(it.category) }
@@ -109,14 +112,6 @@ fun SearchProductComponent(
         productManagerFieldViewModel.searchPurchases(filter)
     }
 
-    productManagerFieldViewModel.getProduct().observe(lifecycleOwner) {
-
-        if (it.isNotBlank() && reset) {
-            reset = false
-        }
-        product = it
-    }
-
     LaunchedEffect(key1 = enableDialog) {
         if (enableDialog) {
             keyboardController!!.hide()
@@ -124,7 +119,6 @@ fun SearchProductComponent(
     }
 
     BaseAnimationComponent(
-        visibleAnimation = visibleAnimation,
         contentBase = {
 
             Card(
@@ -248,8 +242,10 @@ fun SearchProductComponent(
                             IconButton(
                                 onClick = {
                                     keyboardController!!.hide()
-                                    CoroutineScope(Dispatchers.IO).launch {
+                                    CoroutineScope(Dispatchers.Main).launch {
                                         withContext(Dispatchers.Main) {
+                                            productManagerFieldViewModel.updateCategories()
+                                            productManagerFieldViewModel.updateCreditCardCollection()
                                             enableDialog = true
                                         }
                                     }

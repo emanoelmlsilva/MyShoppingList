@@ -22,87 +22,87 @@ import com.example.myshoppinglist.utils.MaskUtils
 fun BoxShowPriceProduct(speding: String, amount: String) {
     val sizeIcon = 25.dp
 
+    Row(
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(.1f)
+    ) {
+
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(.1f)
+                .fillMaxWidth(.4f)
         ) {
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_monetization_on_24),
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth(.4f)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_monetization_on_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(sizeIcon).padding(end = 6.dp),
-                    tint = text_primary
-                )
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "R$ ${
-                            MaskUtils.maskValue(
-                                MaskUtils.convertValueString(
-                                    speding
-                                )
-                            )
-                        }",
-                        fontFamily = LatoBlack,
-                        fontSize = 18.sp,
-                        color = primary_dark
-                    )
-                    Divider(
-                        color = primary_dark,
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .height(1.5.dp)
-                    )
-                }
-            }
-
-            Divider(
-                color = secondary_dark,
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight(.5f)
+                    .size(sizeIcon)
+                    .padding(end = 6.dp),
+                tint = text_primary
             )
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth(.55f)
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_counter),
-                    contentDescription = null,
-                    modifier = Modifier.size(sizeIcon).padding(end = 6.dp),
-                    tint = text_primary
+                Text(
+                    text = "R$ ${
+                        MaskUtils.maskValue(speding)
+                    }",
+                    fontFamily = LatoBlack,
+                    fontSize = 18.sp,
+                    color = primary_dark
                 )
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = amount,
-                        fontFamily = LatoBlack,
-                        fontSize = 18.sp,
-                        color = primary_dark
-                    )
-                    Divider(
-                        color = primary_dark,
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .height(1.5.dp)
-                    )
-                }
+                Divider(
+                    color = primary_dark,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .height(1.5.dp)
+                )
             }
-
         }
+
+        Divider(
+            color = secondary_dark,
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight(.5f)
+        )
+        Row(
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth(.55f)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_counter),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(sizeIcon)
+                    .padding(end = 6.dp),
+                tint = text_primary
+            )
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = amount,
+                    fontFamily = LatoBlack,
+                    fontSize = 18.sp,
+                    color = primary_dark
+                )
+                Divider(
+                    color = primary_dark,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .height(1.5.dp)
+                )
+            }
+        }
+
+    }
 }

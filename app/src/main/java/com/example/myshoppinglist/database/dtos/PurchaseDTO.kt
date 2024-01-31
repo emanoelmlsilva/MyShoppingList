@@ -32,4 +32,8 @@ class PurchaseDTO() {
         this.purchaseUserId = purchase.purchaseUserId
         this.discount = purchase.discount
     }
+
+    fun toPurchase(email: String) : Purchase{
+        return Purchase(idMyShoppingApi, myShoppingId, name, locale, purchaseCardId, quantiOrKilo, typeProduct, date, price, categoryOwnerId, email, discount)
+    }
 }

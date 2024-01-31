@@ -16,7 +16,7 @@ import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.components.CardCreditComponent
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.entities.CreditCard
-import com.example.myshoppinglist.database.viewModels.BaseFieldViewModel
+import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.google.accompanist.pager.ExperimentalPagerApi

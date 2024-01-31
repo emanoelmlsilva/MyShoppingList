@@ -25,7 +25,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
 
     companion object {
         private var instance: MyShopListDataBase? = null
-        val DATABASE_NAME = "MyShopList.db"
+        val DATABASE_NAME = "MyShopList2.db"
 
         fun getInstance(context: Context): MyShopListDataBase {
 

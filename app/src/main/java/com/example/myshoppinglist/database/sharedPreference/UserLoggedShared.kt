@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 
 class UserLoggedShared private constructor(context: Context) {
 
@@ -40,7 +41,11 @@ class UserLoggedShared private constructor(context: Context) {
         }
 
         @JvmStatic
-        fun logout(){
+        fun logout(context: Context){
+            val userViewModel = UserViewModelDB(context)
+
+            userViewModel.deleteUser()
+
             val editor = sharedPreference.edit()
             editor.clear()
             editor.apply()

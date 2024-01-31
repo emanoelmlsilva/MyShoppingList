@@ -9,6 +9,7 @@ import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.utils.FormatDateUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -101,11 +102,11 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
 
     }
 
-    fun getPurchasesOfSearch(query: SupportSQLiteQuery): List<PurchaseAndCategory> {
+    fun getPurchasesOfSearch(query: SupportSQLiteQuery): Flow<List<PurchaseAndCategory>> {
         return purchaseDAO.getPurchasesSearch(query)
     }
 
-    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Double {
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Flow<Double> {
         return purchaseDAO.getPurchasesSearchSum(query)
     }
 }

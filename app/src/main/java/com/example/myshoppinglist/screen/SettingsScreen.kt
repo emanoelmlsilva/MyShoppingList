@@ -1,8 +1,8 @@
 package com.example.myshoppinglist.screen
 
+import android.os.Bundle
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
@@ -30,13 +30,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.components.BaseAnimationComponent
 import com.example.myshoppinglist.components.BaseLazyColumnScroll
 import com.example.myshoppinglist.components.DialogBackCustom
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
+import com.example.myshoppinglist.database.viewModels.SettingsFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.services.controller.CreditCardController
@@ -51,17 +51,18 @@ import org.burnoutcrew.reorderable.*
 fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: String) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
+
     var visibilityBackHandler by remember { mutableStateOf(false) }
-    var visibleAnimation by remember {
-        mutableStateOf(true)
-    }
-    val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
+
+    val creditCardController = CreditCardController.getData(context, lifecycleOwner)
+
+    val settingsFieldViewModel: SettingsFieldViewModel = viewModel()
+
     val state = rememberReorderState()
-    val creditCardCollection by createCardCreditViewModel.creditCardCollection.observeAsState(
+
+    val creditCardCollection by settingsFieldViewModel.creditCardCollection.observeAsState(
         mutableListOf()
     )
-    val userViewModel: UserViewModelDB = UserViewModelDB(context)
 
     fun updatePositionCreditCard() {
         creditCardCollection.toObservable().subscribeBy(onNext = {
@@ -77,7 +78,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                 )
             })
 
-            createCardCreditViewModel.updateCreditCardCollection(it.map { creditCard ->
+            settingsFieldViewModel.updateCreditCardCollection(it.map { creditCard ->
                 CreditCardDTODB().fromCreditCardDTODB(
                     creditCard
                 )
@@ -92,8 +93,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
     }
 
     DialogBackCustom(visibilityBackHandler, {
-        UserLoggedShared.logout()
-        userViewModel.deleteUser()
+        UserLoggedShared.logout(context)
         navController.navigate(Screen.ChoiceLogin.name) {
             popUpTo(0) { inclusive = false }
         }
@@ -117,50 +117,53 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                if (visibleAnimation) {
-                    BaseAnimationComponent(
-                        visibleAnimation = true,
+                BaseAnimationComponent() {
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(start = 65.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(start = 65.dp)
+                        Column(
+                            modifier = Modifier.padding(top = 24.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column(
-                                modifier = Modifier.padding(top = 24.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Image(
-                                    painter = painterResource(id = if(idAvatar == 0) R.drawable.default_avatar else idAvatar),
-                                    contentDescription = "",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(135.dp)
-                                        .clip(CircleShape)
-                                        .border(1.5.dp, text_primary, CircleShape)
-                                )
+                            Image(
+                                painter = painterResource(id = if (idAvatar == 0) R.drawable.default_avatar else idAvatar),
+                                contentDescription = "",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(135.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, text_primary, CircleShape)
+                            )
 
-                                Text(
-                                    text = nickName,
-                                    Modifier.padding(vertical = 12.dp),
-                                    color = text_primary,
-                                    fontFamily = LatoBlack
-                                )
-                            }
+                            Text(
+                                text = nickName,
+                                Modifier.padding(vertical = 12.dp),
+                                color = text_primary,
+                                fontFamily = LatoBlack
+                            )
+                        }
 
-                            IconButton(onClick = {
-                                navController.navigate("${Screen.CreateUser.name}?isUpdate=${true}?hasToolbar=${true}")
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = text_primary
-                                )
-                            }
+                        IconButton(onClick = {
+                            val bundle = Bundle()
+                            bundle.putBoolean("isUpdate", true)
+                            bundle.putBoolean("hasToolbar", true)
+
+                            navController.currentBackStackEntry!!.arguments!!.putAll(bundle)
+
+                            navController.navigate(Screen.CreateUser.name)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = text_primary
+                            )
                         }
                     }
                 }
+
                 Column() {
                     Divider(
                         color = divider, modifier = Modifier
@@ -181,33 +184,32 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        BaseLazyColumnScroll(modifier = Modifier
-                            .fillMaxWidth(.9f)
-                            .reorderable(state, { fromPos, toPos ->
-                                createCardCreditViewModel.onTaskReordered(
-                                    creditCardCollection, fromPos, toPos
-                                )
-                            })
-                            .detectReorderAfterLongPress(state),
+                        BaseLazyColumnScroll(
                             listState = state.listState,
-                            callback = object : VisibleCallback {
-                                override fun onChangeVisible(visible: Boolean) {
-                                    visibleAnimation = visible
-                                }
-                            }) {
+                            modifier = Modifier
+                                .fillMaxWidth(.9f)
+                                .reorderable(state, { fromPos, toPos ->
+                                    settingsFieldViewModel.onTaskReordered(
+                                        creditCardCollection, fromPos, toPos
+                                    )
+                                })
+                                .detectReorderAfterLongPress(state)) {
                             items(creditCardCollection,
                                 key = { creditCard -> creditCard.myShoppingId }) { creditCardDTO ->
-                                BoxItemCard(creditCardDTO, if(creditCardCollection.size > 1) state else null, object : Callback {
-                                    override fun onClick() {
-                                        navController.navigate(
-                                            "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
-                                                ConversionUtils<CreditCardDTODB>(CreditCardDTODB::class.java).toJsonList(
-                                                    listOf(creditCardDTO)
-                                                )
-                                            }"
-                                        )
-                                    }
-                                })
+                                BoxItemCard(
+                                    creditCardDTO,
+                                    if (creditCardCollection.size > 1) state else null,
+                                    object : Callback {
+                                        override fun onClick() {
+                                            navController.navigate(
+                                                "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
+                                                    ConversionUtils<CreditCardDTODB>(CreditCardDTODB::class.java).toJsonList(
+                                                        listOf(creditCardDTO)
+                                                    )
+                                                }"
+                                            )
+                                        }
+                                    })
                             }
                         }
                     }

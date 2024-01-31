@@ -4,8 +4,10 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.lifecycleScope
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
@@ -14,17 +16,19 @@ import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.PurchaseService
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
-import com.example.myshoppinglist.ui.viewModel.PurchaseViewModel
+import com.example.myshoppinglist.services.viewModel.PurchaseViewModel
 import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 class PurchaseController {
-
-    private val TAG = "PurchaseController"
 
     companion object {
         private lateinit var purchaseViewModel: PurchaseViewModel
         private val email = UserLoggedShared.getEmailUserCurrent()
         private lateinit var lifecycleOwner: LifecycleOwner
+        private lateinit var userDTO: UserDTO
+        private val TAG = "PurchaseController"
 
         fun getData(context: Context, mLifecycleOwner: LifecycleOwner): PurchaseController {
             lifecycleOwner = mLifecycleOwner
@@ -32,6 +36,17 @@ class PurchaseController {
                 PurchaseRepository(PurchaseService.getPurchaseService()),
                 PurchaseViewModelDB(context)
             )
+
+            lifecycleOwner.lifecycleScope.launch {
+                UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observeForever {
+                    try {
+                        userDTO = it
+                    } catch (nullPoint: NullPointerException) {
+                        Log.d(TAG, "getData " + nullPoint.message)
+                    }
+                }
+            }
+
 
             return PurchaseController()
         }
@@ -64,7 +79,7 @@ class PurchaseController {
     fun getPurchasesOfSearchDB(
         arguments: MutableList<Any>,
         condition: String
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         return getPurchasesOfSearchDB(arguments, condition, null)
     }
 
@@ -72,19 +87,19 @@ class PurchaseController {
         arguments: MutableList<Any>,
         condition: String,
         valueGroupBy: String?
-    ): List<PurchaseAndCategory> {
+    ): Flow<List<PurchaseAndCategory>> {
         return purchaseViewModel.getPurchasesOfSearchDB(arguments, condition, valueGroupBy)
     }
 
-    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Double {
+    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Flow<Double> {
         return purchaseViewModel.getPurchasesSumOfSearchDB(arguments, condition)
     }
 
     fun savePurchases(purchaseCollection: List<PurchaseDTO>, callback: Callback) {
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
-            lifecycleOwner
-        ) {
-
+//        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
+//            lifecycleOwner
+//        ) {
+//
             val indexObservable = Observable.range(0, purchaseCollection.size)
 
             Observable.fromIterable(purchaseCollection)
@@ -92,8 +107,8 @@ class PurchaseController {
                     Pair(value, index)
                 }
                 .subscribe { (purchaseDTO, index) ->
-                    purchaseDTO.category.userDTO = it
-                    purchaseDTO.creditCard.userDTO = it
+                    purchaseDTO.category.userDTO = userDTO
+                    purchaseDTO.creditCard.userDTO = userDTO
 
                     purchaseViewModel.save(purchaseDTO, object : CallbackObject<PurchaseDTO> {
                         override fun onSuccess() {
@@ -120,15 +135,15 @@ class PurchaseController {
                         }
                     })
                 }
-        }
+//        }
     }
 
     fun updatePurchase(purchaseDTO: PurchaseDTO, callback: Callback) {
-        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
-            lifecycleOwner
-        ) {
-            purchaseDTO.category.userDTO = it
-            purchaseDTO.creditCard.userDTO = it
+//        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
+//            lifecycleOwner
+//        ) {
+            purchaseDTO.category.userDTO = userDTO
+            purchaseDTO.creditCard.userDTO = userDTO
 
             purchaseViewModel.update(purchaseDTO, object : CallbackObject<PurchaseDTO> {
                 override fun onSuccess() {
@@ -151,7 +166,7 @@ class PurchaseController {
                     callback.onChangeValue(newValue)
                 }
             })
-        }
+//        }
     }
 
     fun savePurchaseAll(idCard: Long, callback: Callback) {

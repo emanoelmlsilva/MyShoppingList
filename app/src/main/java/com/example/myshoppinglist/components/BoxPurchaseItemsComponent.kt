@@ -1,42 +1,35 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LifecycleOwner
-import com.example.myshoppinglist.callback.VisibleCallback
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.fieldViewModel.ProductManagerFieldViewModel
 import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
 
 @Composable
 fun BoxPurchaseItemsComponent(
     context: Context,
-    purchaseInfoCollection: List<PurchaseInfo>,
-    callback: VisibleCallback
+    purchaseInfoCollection: List<PurchaseInfo>
 ) {
-    val listState: LazyListState = rememberLazyListState()
     val expands = remember { mutableStateListOf<Int>() }
 
     fun expandableContainer(index: Int) {
@@ -50,69 +43,72 @@ fun BoxPurchaseItemsComponent(
     }
 
     BaseLazyColumnScroll(
-        listState = listState,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp),
-        callback = object : VisibleCallback {
-            override fun onChangeVisible(visible: Boolean) {
-                callback.onChangeVisible(visible)            }
-        }
+            .padding(top = 24.dp)
     ) {
         purchaseInfoCollection.mapIndexed { indexInfo, purchaseInfo ->
             item {
-                Column( modifier = Modifier
-                    .fillMaxWidth()
+                Card(
+                    shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
+                    backgroundColor = secondary,
+                    elevation = 1.dp
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { expandableContainer(indexInfo) }
-                            .padding(top = 6.dp, bottom = 6.dp, end = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = { expandableContainer(indexInfo) },
-                                modifier = Modifier.size(30.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (isExpanded(
-                                            indexInfo,
-                                            expands
-                                        )
-                                    ) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    tint = text_primary,
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expandableContainer(indexInfo) }
+                                .padding(top = 6.dp, bottom = 6.dp, end = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(
+                                    onClick = { expandableContainer(indexInfo) },
+                                    modifier = Modifier.size(30.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isExpanded(
+                                                indexInfo,
+                                                expands
+                                            )
+                                        ) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = text_primary,
+                                    )
+                                }
+                                IconCategoryComponent(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    iconCategory = AssetsUtils.readIconBitmapById(
+                                        context,
+                                        purchaseInfo.avatar
+                                    )!!
+                                        .asImageBitmap(),
+                                    colorIcon = purchaseInfo.color,
+                                    size = 30.dp,
+                                    enabledBackground = true
+                                )
+
+                                Text(
+                                    text = purchaseInfo.title.capitalize(),
+                                    modifier = Modifier
+                                        .fillMaxWidth(.9f)
+                                        .padding(start = 8.dp),
+                                    fontFamily = LatoBold
                                 )
                             }
-                            IconCategoryComponent(
-                                modifier = Modifier.padding(start = 6.dp),
-                                iconCategory = AssetsUtils.readIconBitmapById(
-                                    context,
-                                    purchaseInfo.avatar
-                                )!!
-                                    .asImageBitmap(),
-                                colorIcon = purchaseInfo.color,
-                                size = 30.dp,
-                                enabledBackground = true
-                            )
-
                             Text(
-                                text = purchaseInfo.title.capitalize(),
-                                modifier = Modifier
-                                    .fillMaxWidth(.9f)
-                                    .padding(start = 8.dp),
-                                fontFamily = LatoBold
+                                text = "${if (purchaseInfo.purchaseCollection.size < 100) "0${purchaseInfo.purchaseCollection.size}" else purchaseInfo.purchaseCollection.size}",
+                                fontFamily = LatoBlack
                             )
                         }
-                        Text(
-                            text = "${if (purchaseInfo.purchaseCollection.size < 100) "0${purchaseInfo.purchaseCollection.size}" else purchaseInfo.purchaseCollection.size}",
-                            fontFamily = LatoBlack
-                        )
                     }
                 }
+
 
             }
 
@@ -121,18 +117,19 @@ fun BoxPurchaseItemsComponent(
                     expands
                 )
             ) {
-
                 itemsIndexed(purchaseInfo.purchaseCollection) { index, purchaseAndCategory ->
-                    val purchase = purchaseAndCategory.purchase
-
+                    val purchase = purchaseAndCategory.purchaseDTO
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .background(background_text_field)
+                            .padding(start = 8.dp, end = 12.dp),
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth(.9f)) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth(.9f)
+                            .padding(top = 6.dp)) {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.Bottom,
@@ -165,11 +162,7 @@ fun BoxPurchaseItemsComponent(
                                             fontFamily = LatoRegular,
                                             fontSize = 12.sp,
                                             text = "R$ ${
-                                                MaskUtils.maskValue(
-                                                    MaskUtils.convertValueDoubleToString(
-                                                        purchase.price
-                                                    )
-                                                )
+                                                purchaseAndCategory.priceFormat
                                             }",
                                             modifier = Modifier
                                                 .padding(start = 12.dp),
@@ -199,22 +192,14 @@ fun BoxPurchaseItemsComponent(
                                                     fontFamily = LatoRegular,
                                                     fontSize = 12.sp,
                                                     text = "R$ -${
-                                                        MaskUtils.maskValue(
-                                                            MaskUtils.convertValueDoubleToString(
-                                                                purchase.discount
-                                                            )
-                                                        )
+                                                        purchaseAndCategory.discountFormat
                                                     }"
                                                 )
                                                 Text(
                                                     fontFamily = LatoRegular,
                                                     fontSize = 12.sp,
                                                     text = "R$ ${
-                                                        MaskUtils.maskValue(
-                                                            MaskUtils.convertValueDoubleToString(
-                                                                purchase.price - purchase.discount
-                                                            )
-                                                        )
+                                                        purchaseAndCategory.totalWithoutDiscountFormat
                                                     }",
                                                     modifier = Modifier
                                                         .padding(start = 12.dp),
@@ -226,8 +211,7 @@ fun BoxPurchaseItemsComponent(
                                 }
 
                                 Text(
-                                    text = FormatDateUtils().getNameDay(purchase.date, false)
-                                        .uppercase(),
+                                    text = purchaseAndCategory.dateFormat,
                                     fontFamily = LatoBlack,
                                     fontSize = 12.sp,
                                     color = text_primary_light,
@@ -247,41 +231,32 @@ fun BoxPurchaseItemsComponent(
                 }
             }
             item {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            top = 6.dp,
-                            end = 6.dp,
-                            bottom = if (indexInfo == (purchaseInfoCollection.size - 1)) 56.dp else 8.dp
-                        ),
+                Card(
+                    shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp),
+                    backgroundColor = secondary,
+                    elevation = 1.dp,
+                    modifier = Modifier.padding(bottom = if (indexInfo == (purchaseInfoCollection.size - 1)) 56.dp else 3.dp)
                 ) {
-                    Text(text = "Total", fontFamily = LatoBlack, color = text_title_secondary)
-                    Text(
-                        text = "- R$ ${
-                            MaskUtils.maskValue(
-                                MaskUtils.convertValueDoubleToString(
-                                    purchaseInfo.value
-                                )
-                            )
-                        }",
-                        fontFamily = LatoBlack,
-                        modifier = Modifier.padding(start = 8.dp, end = 6.dp),
-                        color = primary_dark
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                top = 8.dp,
+                                end = 8.dp, bottom = 8.dp
+                            ),
+                    ) {
+                        Text(text = "Total", fontFamily = LatoBlack, color = text_title_secondary)
+                        Text(
+                            text = "- R$ ${MaskUtils.maskValue(String.format("%.2f", purchaseInfo.value))}",
+                            fontFamily = LatoBlack,
+                            modifier = Modifier.padding(start = 8.dp, end = 6.dp),
+                            color = primary_dark
+                        )
+                    }
                 }
-
-                Divider(
-                    color = divider,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                )
-
             }
-
         }
     }
 }

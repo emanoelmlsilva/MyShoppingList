@@ -1,4 +1,4 @@
-package com.example.myshoppinglist.ui.viewModel
+package com.example.myshoppinglist.services.viewModel
 
 import ResultData
 import android.util.Log
