@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.services
 
-import com.example.myshoppinglist.database.entities.relations.UserWithCategory
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import retrofit2.Call
 import retrofit2.http.*

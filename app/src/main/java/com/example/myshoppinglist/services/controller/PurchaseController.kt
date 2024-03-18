@@ -38,7 +38,7 @@ class PurchaseController {
             )
 
             lifecycleOwner.lifecycleScope.launch {
-                UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observeForever {
+                UserInstanceImpl.getInstance(context).getUserViewModelCurrent().findUserByName(email).observeForever {
                     try {
                         userDTO = it
                     } catch (nullPoint: NullPointerException) {
@@ -76,23 +76,12 @@ class PurchaseController {
         return purchaseViewModel.getPurchaseAllByIdCard(idCard)
     }
 
-    fun getPurchasesOfSearchDB(
-        arguments: MutableList<Any>,
-        condition: String
-    ): Flow<List<PurchaseAndCategory>> {
-        return getPurchasesOfSearchDB(arguments, condition, null)
+    fun getPurchasesOfSearchDB(arguments: String): Flow<List<PurchaseAndCategory>> {
+        return purchaseViewModel.getPurchasesOfSearchDB(arguments)
     }
 
-    fun getPurchasesOfSearchDB(
-        arguments: MutableList<Any>,
-        condition: String,
-        valueGroupBy: String?
-    ): Flow<List<PurchaseAndCategory>> {
-        return purchaseViewModel.getPurchasesOfSearchDB(arguments, condition, valueGroupBy)
-    }
-
-    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Flow<Double> {
-        return purchaseViewModel.getPurchasesSumOfSearchDB(arguments, condition)
+    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double> {
+        return purchaseViewModel.getPurchasesSumOfSearchDB(arguments)
     }
 
     fun savePurchases(purchaseCollection: List<PurchaseDTO>, callback: Callback) {

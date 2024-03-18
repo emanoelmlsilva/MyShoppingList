@@ -25,28 +25,34 @@ class CategoryController {
         private lateinit var categoryViewModel: CategoryViewModel
         private lateinit var lifecycleOwner: LifecycleOwner
         private lateinit var userDTO: UserDTO
+        private var instance: CategoryController? = null
         private val email = UserLoggedShared.getEmailUserCurrent()
         val TAG = "CategoryController"
 
         fun getData(context: Context, newLifecycleOwner: LifecycleOwner): CategoryController {
-            lifecycleOwner = newLifecycleOwner;
 
-            categoryViewModel = CategoryViewModel(
-                CategoryRepository(CategoryService.getCategoryService()),
-                CategoryViewModelDB(context, lifecycleOwner)
-            )
+            if(instance == null){
+                lifecycleOwner = newLifecycleOwner;
 
-            lifecycleOwner.lifecycleScope.launch {
-                UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observeForever {
-                    try {
-                        userDTO = it
-                    } catch (nullPoint: NullPointerException) {
-                        Log.d(TAG, "getData " + nullPoint.message)
-                    }
+                categoryViewModel = CategoryViewModel(
+                    CategoryRepository(CategoryService.getCategoryService()),
+                    CategoryViewModelDB(context, lifecycleOwner)
+                )
+
+            UserInstanceImpl.getInstance(context).getUserViewModelCurrent().findUserByName(email).observe(
+                lifecycleOwner
+            ) {
+                try {
+                    userDTO = it
+                } catch (nullPoint: NullPointerException) {
+                    Log.d(TAG, "getData " + nullPoint.message)
                 }
             }
 
-            return CategoryController()
+                instance = CategoryController()
+            }
+
+            return this.instance as CategoryController
         }
     }
 

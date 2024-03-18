@@ -25,16 +25,20 @@ class UserWithCategory(
     var id: Long = 0L,
     @SerializedName("idCategory")
     @ColumnInfo(name = "idCategory")
-    var idCategory: Long = 0L
+    var idCategory: Long = 0L,
+    @SerializedName("dayClosedInvoice")
+    @ColumnInfo(name = "dayClosedInvoice")
+    var dayClosedInvoice: Int = 0
 ) {
 
     constructor() : this(User(), category = "", idImage = "", color = 0) {}
 
-    constructor(user: User, idMyShoppingApi: Long, category: String, idImage: String, color: Int) : this(user = user, category = category, idImage =  idImage, color = color) {
+    constructor(user: User, idMyShoppingApi: Long, category: String, idImage: String, color: Int, dayClosedInvoice: Int) : this(user = user, category = category, idImage =  idImage, color = color) {
         this.idMyShoppingApi = idMyShoppingApi
+        this.dayClosedInvoice = dayClosedInvoice
     }
 
-    constructor(user: User, idCategory: Long, idMyShoppingApi: Long, category: String, idImage: String, color: Int) : this(
+    constructor(user: User, idCategory: Long, idMyShoppingApi: Long, category: String, idImage: String, color: Int, dayClosedInvoice: Int) : this(
         user,
         idMyShoppingApi,
         category,
@@ -42,6 +46,7 @@ class UserWithCategory(
         color
     ) {
         this.idCategory = idCategory
+        this.dayClosedInvoice = dayClosedInvoice
     }
 
     fun toCategory(): Category {
@@ -50,7 +55,8 @@ class UserWithCategory(
             idMyShoppingApi,
             category,
             idImage,
-            color
+            color,
+            dayClosedInvoice
         )
     }
 
@@ -61,7 +67,8 @@ class UserWithCategory(
             idCategory,
             category,
             idImage,
-            color
+            color,
+            dayClosedInvoice
         )
     }
 

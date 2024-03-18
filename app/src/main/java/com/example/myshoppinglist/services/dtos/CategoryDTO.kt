@@ -17,7 +17,9 @@ class CategoryDTO(
     @SerializedName("color")
     var color: Int = card_red_dark.toArgb(),
     @SerializedName("user")
-    var userDTO: UserDTO = UserDTO()
+    var userDTO: UserDTO = UserDTO(),
+    @SerializedName("dayClosedInvoice")
+    var dayClosedInvoice: Int = 0
 ) {
 
     fun toCategoryApi(): Category{
@@ -27,6 +29,6 @@ class CategoryDTO(
     }
 
     fun toCategory(): Category{
-        return Category(userDTO.email, id, idCategory, category, idImage, color)
+        return Category(userDTO.email, id, idCategory, category, idImage, color, dayClosedInvoice)
     }
 }

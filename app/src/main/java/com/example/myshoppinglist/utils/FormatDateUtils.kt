@@ -55,6 +55,72 @@ class FormatDateUtils {
         return formatter.format(Date())
     }
 
+    fun getCurrentMonth(): Int{
+        val formatter = SimpleDateFormat("MM", localeBr)
+        return formatter.format(Date()).toInt()
+    }
+
+    fun getCurrentYear(): Int{
+        val formatter = SimpleDateFormat("yyyy", localeBr)
+        return formatter.format(Date()).toInt()
+    }
+
+    fun getCurrentDay(): Int{
+        val formatter = SimpleDateFormat("dd", localeBr)
+        return formatter.format(Date()).toInt()
+    }
+
+    fun getDateDayClosedInvoiceCurrent(dayClosedInvoice: Int): String{
+        val monthCurrent = getCurrentMonth()
+        val yearCurrent = getCurrentYear()
+
+        return "$yearCurrent-${if (monthCurrent < 10) "0$monthCurrent" else monthCurrent}-${if (dayClosedInvoice < 10) "0$dayClosedInvoice" else dayClosedInvoice}"
+    }
+
+    fun getYearAndMonthCurrent(): String{
+        val monthCurrent = getCurrentMonth()
+        val yearCurrent = getCurrentYear()
+
+        return "$yearCurrent-${if (monthCurrent < 10) "0$monthCurrent" else monthCurrent}-"
+    }
+
+    fun getDateLastMonth(dayClosedInvoice: Int): String{
+        var lastDayClosedInvoice = dayClosedInvoice - 1
+
+        var monthLast = getCurrentMonth()
+        var yearLast = getCurrentYear()
+
+        if(dayClosedInvoice < 0){
+            lastDayClosedInvoice = 31
+            yearLast = if(monthLast == 1) yearLast - 1 else yearLast
+            monthLast = if(monthLast == 1) 12 else monthLast - 1
+        } else {
+            monthLast = if(monthLast + 1 > 12) 1 else monthLast + 1
+            yearLast = if(monthLast + 1 > 12) yearLast + 1 else yearLast
+        }
+
+        return "$yearLast-${if (monthLast < 10) "0$monthLast" else monthLast}-${if (lastDayClosedInvoice < 10) "0$lastDayClosedInvoice" else lastDayClosedInvoice}"
+    }
+
+    fun getNextMonthAndYear(month: Int, year: Int): String{
+
+        var monthLast = month
+        var yearLast = year
+
+        monthLast = if(monthLast + 1 > 12) 1 else monthLast + 1
+        yearLast = if(monthLast + 1 > 12) yearLast + 1 else yearLast
+
+        return "$yearLast-${if (monthLast < 10) "0$monthLast" else monthLast}-"
+    }
+
+    fun getNextMonthAndYear(): String{
+
+        val monthLast = getCurrentMonth()
+        val yearLast = getCurrentYear()
+
+        return getNextMonthAndYear(monthLast, yearLast)
+    }
+
     fun getFormatValue(value: Float): String {
         return NumberFormat.getCurrencyInstance(localeBr).format(value)
     }

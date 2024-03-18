@@ -12,6 +12,7 @@ import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategor
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -33,23 +34,12 @@ class PurchaseViewModel(
         return purchaseViewModelDB.getPurchasesAndCategoryWeek()
     }
 
-    fun getPurchasesSumOfSearchDB(arguments: MutableList<Any>, condition: String): Flow<Double> {
-        return purchaseViewModelDB.getPurchasesSumOfSearch(arguments, condition)
+    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double> {
+        return purchaseViewModelDB.getPurchasesSumOfSearch(arguments)
     }
 
-    fun getPurchasesOfSearchDB(
-        arguments: MutableList<Any>,
-        condition: String,
-        valueGroupBy: String?
-    ): Flow<List<PurchaseAndCategory>> {
-        return purchaseViewModelDB.getPurchasesOfSearch(arguments, condition, valueGroupBy)
-    }
-
-    fun getPurchasesOfSearchDB(
-        arguments: MutableList<Any>,
-        condition: String
-    ): Flow<List<PurchaseAndCategory>> {
-        return purchaseViewModelDB.getPurchasesOfSearch(arguments, condition)
+    fun getPurchasesOfSearchDB(arguments: String): Flow<List<PurchaseAndCategory>> {
+        return purchaseViewModelDB.getPurchasesOfSearch(arguments)
     }
 
     fun getPurchaseByMonthDB(idCard: Long, month: String): LiveData<List<PurchaseAndCategory>> {

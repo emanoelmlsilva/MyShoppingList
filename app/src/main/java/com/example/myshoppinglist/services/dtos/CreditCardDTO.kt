@@ -25,9 +25,11 @@ class CreditCardDTO(
     @SerializedName("user")
     var userDTO: UserDTO = UserDTO(),
     @SerializedName("flag")
-    var flag: Int = CardCreditFlag.MONEY.flag,
+    var flag: Int = CardCreditFlag.MASTER.flagBlack,
     @SerializedName("position")
-    var position: Int = 0
+    var position: Int = 0,
+    @SerializedName("dayClosedInvoice")
+    var dayClosedInvoice:Int = 0
 ) {
 
     fun toCreditCardIdApi() : CreditCard{
@@ -47,6 +49,7 @@ class CreditCardDTO(
             TypeCard.getTypeCard(typeCard),
             userDTO.email,
             flag,
-            position)
+            position,
+            dayClosedInvoice)
     }
 }

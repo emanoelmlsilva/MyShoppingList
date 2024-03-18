@@ -39,12 +39,12 @@ interface PurchaseDAO {
     @Query("SELECT * FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId ORDER BY date DESC")
     fun getPurchaseAllByIdCard(emailUser: String, idCard: Long): LiveData<List<Purchase>>
 
-    @Transaction
-    @Query("SELECT * FROM purchases, category WHERE category.myShoppingIdCategory = purchases.categoryOwnerId AND category.categoryUserId = :emailUser AND purchaseCardId = :idCard AND date LIKE '%' || :date || '%' ORDER BY date DESC ")
-    fun getPurchaseByMonth(date: String, emailUser: String, idCard: Long): LiveData<List<PurchaseAndCategory>>
-
     @Query("SELECT date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId GROUP BY date ORDER BY date DESC ")
     fun getMonthByIdCard(emailUser: String, idCard: Long): LiveData<List<String>>
+
+    @Transaction
+    @Query("SELECT * FROM purchases, category, credit_cards WHERE category.myShoppingIdCategory = purchases.categoryOwnerId AND category.categoryUserId = :emailUser AND purchaseCardId = :idCard AND purchaseCardId = credit_cards.myShoppingId AND purchases.date BETWEEN :dateCurrent || (CASE  WHEN  credit_cards.dayClosedInvoice > 9 THEN credit_cards.dayClosedInvoice ELSE '0' || credit_cards.dayClosedInvoice END) AND :nextMonthAndYear || (CASE  WHEN  (credit_cards.dayClosedInvoice - 1) > 9 THEN (credit_cards.dayClosedInvoice - 1) ELSE '0' || (credit_cards.dayClosedInvoice - 1) END) GROUP BY purchases.myShoppingIdPurchase ORDER BY date DESC ")
+    fun getPurchaseByMonth(emailUser: String, idCard: Long, dateCurrent: String, nextMonthAndYear: String): LiveData<List<PurchaseAndCategory>>
 
     @Query("SELECT DISTINCT(SUBSTR(date, 1, LENGTH(date) - 3)) as date FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId GROUP BY date ORDER BY date ASC")
     fun getMonthDistinctByIdCard(emailUser: String, idCard: Long):List<String>
@@ -55,8 +55,8 @@ interface PurchaseDAO {
     @Query("SELECT COALESCE(SUM(CASE :typeProduct WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) FROM credit_cards LEFT JOIN purchases ON credit_cards.myShoppingId = purchases.purchaseCardId AND cardUserId = :emailUser AND purchases.date LIKE '%' || :date || '%'")
     fun sumPriceAllCard(emailUser: String, date : String = FormatDateUtils().getMonthAndYear(), typeProduct: TypeProduct = TypeProduct.QUANTITY): Double
 
-    @Query("SELECT SUM(COALESCE(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END , 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId AND date LIKE '%' || :date || '%'")
-    fun sumPriceByMonth(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String): Double
+    @Query("SELECT SUM(COALESCE(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END , 1) * CASE :typeProduct WHEN typeProduct THEN CAST(quantiOrKilo AS INT) ELSE 1 END) FROM purchases, credit_cards WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = :idCard AND credit_cards.myShoppingId = purchaseCardId AND purchases.date BETWEEN :date || (CASE  WHEN  credit_cards.dayClosedInvoice > 9 THEN credit_cards.dayClosedInvoice ELSE '0' || credit_cards.dayClosedInvoice END) AND :nextDate || (CASE  WHEN (credit_cards.dayClosedInvoice - 1) > 9 THEN (credit_cards.dayClosedInvoice - 1) ELSE '0' || (credit_cards.dayClosedInvoice - 1) END) GROUP BY credit_cards.myShoppingId ORDER BY date DESC")
+    fun sumPriceByMonth(emailUser: String, idCard: Long, typeProduct: TypeProduct = TypeProduct.QUANTITY, date: String, nextDate: String): Double
 
     @Transaction
     @Query("SELECT * FROM purchases, credit_cards, category WHERE purchases.categoryOwnerId = category.myShoppingIdCategory AND credit_cards.cardUserId = :emailUser AND credit_cards.myShoppingId = purchases.purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) GROUP BY purchases.myShoppingIdPurchase ORDER BY date DESC")
