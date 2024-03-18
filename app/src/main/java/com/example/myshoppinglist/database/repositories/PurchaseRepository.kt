@@ -60,7 +60,13 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         date: String,
         idCard: Long
     ): LiveData<List<PurchaseAndCategory>> {
-        return purchaseDAO.getPurchaseByMonth(date, email, idCard)
+
+        val dateSplit = date.split("-")
+
+        val month = dateSplit[1].toInt()
+        val year = dateSplit[0].toInt()
+
+        return purchaseDAO.getPurchaseByMonth(email, idCard, date, FormatDateUtils().getNextMonthAndYear(month, year))
     }
 
     fun getPurchaseAllByIdCard(idCard: Long): LiveData<List<Purchase>> {
@@ -84,13 +90,19 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     }
 
     fun sumPriceByMonth(idCard: Long, date: String): Double {
-        return purchaseDAO.sumPriceByMonth(email, idCard, date = date)
+        val dateSplit = date.split("-")
+
+        val month = dateSplit[1].toInt()
+        val year = dateSplit[0].toInt()
+
+        return purchaseDAO.sumPriceByMonth(email, idCard, date = date, nextDate = FormatDateUtils().getNextMonthAndYear(month, year))
     }
 
     fun getPurchasesAndCategoryWeek(): LiveData<List<PurchaseAndCategory>> {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)
         val limitWeek = FormatDateUtils().getDateString(calendar.time)
+
         return purchaseDAO.getPurchasesAndCategoryWeek(limitWeek, email)
     }
 

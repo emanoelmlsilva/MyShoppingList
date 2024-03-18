@@ -38,7 +38,7 @@ class ItemListController {
             )
 
             lifecycleOwner.lifecycleScope.launch {
-                UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
+                UserInstanceImpl.getInstance(context).getUserViewModelCurrent().findUserByName(email)
                     .observeForever {
                         try {
                             userDTO = it

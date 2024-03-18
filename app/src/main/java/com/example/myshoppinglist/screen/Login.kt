@@ -223,7 +223,7 @@ fun Login(navController: NavController) {
 
                                             errorLogin = false
 
-                                            UserInstanceImpl.reset()
+                                            UserInstanceImpl.getInstance(context).reset()
                                             UserInstanceImpl.getInstance(context)
                                             UserLoggedShared.insertUserLogged(email)
 

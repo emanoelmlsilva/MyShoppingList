@@ -80,7 +80,7 @@ fun BoxCardCreditCustom(
                             fontSize = 24.sp
                         )
                         Image(
-                            painter = painterResource(id = creditCardDTO.fromFlagBlack()),
+                            painter = painterResource(id = creditCardDTO.flagBlack),
                             contentDescription = null,
                             modifier = Modifier.size(36.dp),
                         )

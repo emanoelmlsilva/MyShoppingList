@@ -205,6 +205,7 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                                 "${Screen.CreateCards.name}?hasToolbar=${true}?holderName=${creditCardDTO.holderName}?isUpdate=${true}?creditCardDTO=${
                                                     ConversionUtils<CreditCardDTODB>(CreditCardDTODB::class.java).toJsonList(
                                                         listOf(creditCardDTO)
+
                                                     )
                                                 }"
                                             )
@@ -238,7 +239,7 @@ fun BoxItemCard(creditCardDTO: CreditCardDTODB, state: ReorderableState?, callBa
         ) {
             Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
                 Image(
-                    painter = painterResource(id = creditCardDTO.fromFlagBlack()),
+                    painter = painterResource(id = creditCardDTO.flagBlack),
                     contentDescription = null,
                     modifier = Modifier.size(30.dp)
                 )

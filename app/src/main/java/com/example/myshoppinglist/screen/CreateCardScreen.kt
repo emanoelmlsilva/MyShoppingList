@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,10 +34,7 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
-import com.example.myshoppinglist.components.ButtonsFooterContent
-import com.example.myshoppinglist.components.CardCreditComponent
-import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.components.WaitingProcessComponent
+import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
@@ -69,14 +67,13 @@ fun CreateCardScreen(
     val holderName: String by createCardCreditViewModel.name.observeAsState(initial = holderNameUser)
     val nameCard: String by createCardCreditViewModel.nameCard.observeAsState(initial = "")
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_red_light)
-    val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MONEY.flag)
-    val userDTO by createCardCreditViewModel.getUser().observeAsState(initial = UserDTO())
+    val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MASTER.flagBlack)
+    val userDTO by createCardCreditViewModel.getUser(context).observeAsState(initial = UserDTO())
 
     val creditCardViewModel = CreditCardViewModel(
         CreditCardRepository(CreditCardService.getCreditCardService()),
         creditCardViewModelDB
     )
-    val typeCard = if (hasToolbar) TypeCard.CREDIT else TypeCard.MONEY
 
     var visibleWaiting by remember { mutableStateOf(false) }
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
@@ -84,19 +81,19 @@ fun CreateCardScreen(
     val callback = object : CallbackObject<CreditCardDTO> {
         override fun onSuccess() {
 
-            if(!isUpdate){
-                if (typeCard == TypeCard.MONEY) {
+            if (!isUpdate) {
+                if (hasToolbar) {
                     navController?.navigate(Screen.Home.name) {
                         popUpTo(Screen.Home.name) { inclusive = false }
                     }
                 } else {
                     navController?.popBackStack()
                 }
-            }else{
+            } else {
                 navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${userDTO.idAvatar}?nickName=${userDTO.nickName}")
-                            {
-                                popUpTo(Screen.Home.name) { inclusive = false }
-                            }
+                {
+                    popUpTo(Screen.Home.name) { inclusive = false }
+                }
             }
             visibleWaiting = false
 
@@ -135,11 +132,12 @@ fun CreateCardScreen(
             createCardCreditViewModel.onChangeNameCard(creditCardDTO.cardName)
             createCardCreditViewModel.onChangeValue(creditCardDTO.value)
             createCardCreditViewModel.onChangeColorCurrent(Color(creditCardDTO.colorCard))
-            createCardCreditViewModel.onChangeFlagCurrent(creditCardDTO.flag)
+            createCardCreditViewModel.onChangeFlagCurrent(creditCardDTO.flagBlack)
             createCardCreditViewModel.onChangeTypeCard(creditCardDTO.typeCard)
             createCardCreditViewModel.onChangeIdCreditCard(creditCardDTO.myShoppingId)
             createCardCreditViewModel.onChangeLastPosition(creditCardDTO.position)
             createCardCreditViewModel.onChangeIdCardApi(creditCardDTO.idMyShoppingApi)
+            createCardCreditViewModel.onChangeDayClosedInvoice(creditCardDTO.dayClosedInvoice)
         }
     }
 
@@ -150,6 +148,7 @@ fun CreateCardScreen(
             val typeCardRecover = createCardCreditViewModel.typeCard.value
             val idCreditCard = createCardCreditViewModel.idCreditCard.value
             val idCreditCardApi = createCardCreditViewModel.idCardApi.value
+            val dayClosedInvoice = createCardCreditViewModel.dayClosedInvoice.value
 
             val creditCardDTO = CreditCardDTO(
                 idCreditCardApi!!,
@@ -158,10 +157,11 @@ fun CreateCardScreen(
                 nameCard.trim(),
                 valueCreditCard!!,
                 colorCurrent.toArgb(),
-                (if (!isUpdate) typeCard.ordinal else typeCardRecover?.ordinal)!!,
+                typeCardRecover?.ordinal!!,
                 userDTO,
                 flagCurrent,
-                lastPosition!!
+                lastPosition!!,
+                dayClosedInvoice!!
             )
 
 
@@ -198,27 +198,10 @@ fun CreateCardScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Column() {
-                    if (typeCard == TypeCard.MONEY) {
-                        Column(
-                            modifier = Modifier.padding(vertical = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(R.string.message_info),
-                                fontSize = 13.sp,
-                                fontFamily = LatoRegular,
-                            )
-                            Divider(
-                                color = secondary_dark, modifier = Modifier
-                                    .padding(horizontal = 34.dp)
-                            )
-                        }
-                    }
-
                     CardCreditComponent(
                         isClicable = false,
                         isDefault = false,
-                        typeCard = typeCard,
+                        typeCard = TypeCard.CREDIT,
                         isChoiceColor = true,
                         cardCreditDTO = CreditCardDTODB(
                             colorCard = card_blue.toArgb(),
@@ -255,19 +238,25 @@ fun CreateCardScreen(
                                     saveCreditCard()
                                 }
                             })
-                        if (typeCard != TypeCard.MONEY) {
-                            ChoiceFlag(flagCurrent, object : Callback {
-                                override fun onClick() {
+                        ChoiceFlag(flagCurrent, object : Callback {
+                            override fun onClick() {
 
-                                }
+                            }
 
-                                override fun onChangeValue(value: Int) {
-                                    createCardCreditViewModel.onChangeFlagCurrent(value)
-                                }
-                            })
-                        }
+                            override fun onChangeValue(value: Int) {
+                                createCardCreditViewModel.onChangeFlagCurrent(value)
+                            }
+                        })
+
                     }
                 }
+
+                DayClosedInvoiceComponent(createCardCreditViewModel.dayClosedInvoice.observeAsState().value, object : Callback {
+                    override fun onChangeValue(value: Int) {
+                        createCardCreditViewModel.onChangeDayClosedInvoice(value)
+                    }
+
+                })
 
                 if (!hasToolbar) {
                     ButtonsFooterContent(
@@ -287,13 +276,12 @@ fun CreateCardScreen(
 @Composable
 fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
     val flagCollection = arrayOf(
-        CardCreditFlag.MONEY.flag,
-        CardCreditFlag.AMEX.flag,
-        CardCreditFlag.MASTER.flag,
-        CardCreditFlag.ELO.flag,
-        CardCreditFlag.PAY_PAL.flag,
-        CardCreditFlag.HIPER.flag,
-        CardCreditFlag.VISA.flag
+        CardCreditFlag.AMEX.flagBlack,
+        CardCreditFlag.MASTER.flagBlack,
+        CardCreditFlag.ELO.flagBlack,
+        CardCreditFlag.PAY_PAL.flagBlack,
+        CardCreditFlag.HIPER.flagBlack,
+        CardCreditFlag.VISA.flagBlack
     )
 
     Column(

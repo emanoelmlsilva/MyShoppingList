@@ -37,9 +37,12 @@ class UserWithCreditCard(
     @SerializedName("typeCard")
     @ColumnInfo(name = "typeCard")
     val typeCard: Int = 0,
-    @SerializedName("flag")
-    @ColumnInfo(name = "flag")
-    val flag: Int = CardCreditFlag.MONEY.flag,
+    @SerializedName("flagBlack")
+    @ColumnInfo(name = "flagBlack")
+    val flag: Int = CardCreditFlag.MASTER.flagBlack,
+    @SerializedName("dayClosedInvoice")
+    @ColumnInfo(name = "dayClosedInvoice")
+    val dayClosedInvoice: Int = 0,
     @SerializedName("position")
     @ColumnInfo(name = "position", defaultValue = 0.toString())
     val position: Int = 0
@@ -58,7 +61,8 @@ class UserWithCreditCard(
             TypeCard.getTypeCard(typeCard),
             user.email,
             flag,
-            position
+            position,
+            dayClosedInvoice
         )
     }
 

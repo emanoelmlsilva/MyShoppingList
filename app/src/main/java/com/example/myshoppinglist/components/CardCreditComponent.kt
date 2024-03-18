@@ -35,7 +35,7 @@ fun CardCreditComponent(
     isClicable: Boolean,
     isDefault: Boolean,
     isChoiceColor: Boolean,
-    flagCardCredit: Int = CardCreditFlag.MONEY.flag,
+    flagCardCredit: Int = CardCreditFlag.MASTER.flagBlack,
     typeCard: TypeCard,
     cardCreditDTO: CreditCardDTODB,
     createCardCreditViewModel: CreateCardCreditFieldViewModel,
@@ -145,7 +145,7 @@ fun CustomCardCredit(
                             painter = painterResource(id = flagCardCredit),
                             contentDescription = "tipo de cartao",
                             modifier = Modifier
-                                .shadow(21.dp, CircleShape)
+//                                .shadow(21.dp, CircleShape)
                                 .size(if (typeCard == TypeCard.MONEY) 20.dp else 35.dp)
                         )
 

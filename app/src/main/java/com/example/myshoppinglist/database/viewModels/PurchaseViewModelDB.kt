@@ -29,71 +29,17 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
     }
 
     fun getPurchasesOfSearch(
-        arguments: MutableList<Any>,
-        condition: String
+        arguments: String
     ): Flow<List<PurchaseAndCategory>> {
-        return getPurchasesOfSearch(arguments, condition, null)
-    }
 
-    fun getPurchasesOfSearch(
-        arguments: MutableList<Any>,
-        condition: String,
-        valueGroupBy: String?
-    ): Flow<List<PurchaseAndCategory>> {
-        val email = UserLoggedShared.getEmailUserCurrent()
+        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT * FROM purchases, category, credit_cards WHERE category.myShoppingIdCategory = categoryOwnerId AND $arguments")
 
-        val query: SimpleSQLiteQuery = if (arguments.size == 0 || condition.isBlank()) {
-            val monthAndYearNumber =
-                FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
-
-            SimpleSQLiteQuery(
-                "SELECT * FROM purchases, category WHERE category.myShoppingIdCategory = categoryOwnerId AND date LIKE '%' || ? || '%' AND purchaseUserId = ?",
-                arrayOf(monthAndYearNumber, email)
-            )
-        } else {
-            val argumentsToJson = arguments.map { it }.toMutableList()
-            var conditionGroupBy = ""
-
-            argumentsToJson.add(email)
-
-            if (valueGroupBy != null) {
-                conditionGroupBy = valueGroupBy
-            }
-
-            SimpleSQLiteQuery(
-                "SELECT * FROM purchases, category WHERE category.myShoppingIdCategory = categoryOwnerId AND $condition AND purchaseUserId = ? $conditionGroupBy",
-                argumentsToJson.toTypedArray()
-            )
-        }
         return repository.getPurchasesOfSearch(query)
     }
 
-    fun getPurchasesSumOfSearch(arguments: MutableList<Any>, condition: String): Flow<Double> {
+    fun getPurchasesSumOfSearch(arguments: String): Flow<Double> {
 
-        val email = UserLoggedShared.getEmailUserCurrent()
-
-        arguments.add(0, "QUANTITY")
-
-        val monthAndYearNumber =
-            FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
-
-        if (arguments.size == 0 || condition.isBlank()) {
-            arguments.add(monthAndYearNumber)
-        }
-
-        arguments.add(email)
-
-        val query: SimpleSQLiteQuery = if (arguments.size == 0 || condition.isBlank()) {
-            SimpleSQLiteQuery(
-                "SELECT COALESCE(SUM(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE date LIKE '%' || ? || '%' AND purchaseUserId = ?",
-                arguments.toTypedArray()
-            )
-        } else {
-            SimpleSQLiteQuery(
-                "SELECT COALESCE(SUM(CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CASE ? WHEN typeProduct THEN CAST(quantiOrKilo AS NUMBER) ELSE 1 END), 0) as value FROM purchases WHERE $condition AND purchaseUserId = ? ",
-                arguments.toTypedArray()
-            )
-        }
+        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 'QUANTITY' WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) as value FROM purchases, credit_cards WHERE $arguments")
 
         return repository.getPurchasesSearchSum(query)
     }
