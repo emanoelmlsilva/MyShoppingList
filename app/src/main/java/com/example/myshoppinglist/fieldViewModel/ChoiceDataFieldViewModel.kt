@@ -22,6 +22,7 @@ class ChoiceDataFieldViewModel(context: Context, val lifecycleOwner: LifecycleOw
     val monthCollection = MutableStateFlow(emptyList<String>())
 
     fun updateMonthCollection() {
+        monthCollection.value = emptyList()
         if (yearCurrent.value.isNotBlank() && dateMonthAndYear.value.isNotEmpty()) {
             val monthOfYearCollection = dateMonthAndYear.value[yearCurrent.value]!!.toList()
             monthCollection.value = (if (monthOfYearCollection.isNotEmpty()) monthOfYearCollection else listOf())
@@ -41,6 +42,8 @@ class ChoiceDataFieldViewModel(context: Context, val lifecycleOwner: LifecycleOw
     @RequiresApi(Build.VERSION_CODES.N)
     fun updateMonths(idCard: Long){
         viewModelScope.launch {
+            dateMonthAndYear.value = emptyMap()
+
             purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { dates ->
                 val mothsAndYearCollection = SeparateDateUtils.separateMonthAndYear(dates)
                 dateMonthAndYear.value = mothsAndYearCollection

@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.screen
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -70,6 +71,15 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
         }, onError = { throwable -> {} }, onComplete = { })
     }
 
+    fun popBackStack(){
+        navController.navigate(Screen.Home.name)
+        {
+            popUpTo(0) {
+                inclusive = false
+            }
+        }
+    }
+
     LaunchedEffect(key1 = idAvatar) {
         creditCardController.findAllDB().observe(lifecycleOwner) {
             creditCardCollection?.addAll(it.map { creditCard ->
@@ -101,12 +111,16 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
         visibilityBackHandler = false
     }, "Sair", "Deseja sair do aplicativo?")
 
+    BackHandler {
+        popBackStack()
+    }
+
     TopAppBarScreen(hasToolbar = true,
         hasDoneButton = true,
         colorDoneButton = text_primary_light,
         iconDone = R.drawable.ic_baseline_logout_24,
         onClickIcon = {
-            navController.popBackStack()
+            popBackStack()
         },
         onClickIconDone = {
             visibilityBackHandler = true
@@ -193,7 +207,8 @@ fun SettingsScreen(navController: NavHostController, idAvatar: Int, nickName: St
                                         creditCardCollection, fromPos, toPos
                                     )
                                 })
-                                .detectReorderAfterLongPress(state)) {
+                                .detectReorderAfterLongPress(state)
+                        ) {
                             items(creditCardCollection,
                                 key = { creditCard -> creditCard.myShoppingId }) { creditCardDTO ->
                                 BoxItemCard(

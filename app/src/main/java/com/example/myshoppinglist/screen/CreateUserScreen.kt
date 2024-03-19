@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -112,7 +113,7 @@ fun CreateUserScreen(
         if (isUpdate!!) {
             navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
             {
-                popUpTo(0) { inclusive = false }
+                popUpTo(Screen.CreateUser.name) { inclusive = true }
             }
         } else {
             navController?.navigate("${Screen.CreateCards.name}?hasToolbar=${false}?holderName=${name}?isUpdate=${false}?creditCardDTO=${""}")
@@ -146,9 +147,9 @@ fun CreateUserScreen(
 
     LaunchedEffect(Unit) {
 
-        if(isUpdate!!){
-            createUserViewModel.getUser().observe(lifecycleOwner){ userDTO ->
-                if(userDTO != null){
+        if (isUpdate!!) {
+            createUserViewModel.getUser().observe(lifecycleOwner) { userDTO ->
+                if (userDTO != null) {
                     createUserViewModel.onChangeName(userDTO.name)
                     createUserViewModel.onChangeNickName(userDTO.nickName)
                     createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
@@ -183,12 +184,25 @@ fun CreateUserScreen(
         }
     }
 
+    fun popBackStack(){
+        navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
+        {
+            popUpTo(Screen.CreateUser.name) { inclusive = true }
+        }
+    }
+
+    BackHandler {
+        popBackStack()
+    }
+
     TopAppBarScreen(
         enableScroll = true,
         hasBackButton = !hasToolbar!!,
         hasToolbar = hasToolbar,
         hasDoneButton = hasToolbar,
-        onClickIcon = { navController?.popBackStack() },
+        onClickIcon = {
+            popBackStack()
+        },
         onClickIconDone = { saveUser() },
         content = {
             Column(
