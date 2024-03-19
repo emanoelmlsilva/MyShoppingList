@@ -71,7 +71,7 @@ fun CreateUserScreen(
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    val user by createUserViewModel.getUser().observeAsState(initial = UserDTO())
+    val user by createUserViewModel.getUser(context).observeAsState(initial = UserDTO())
 
     val categoryCollections = listOf(
         CategoryDTO(
@@ -107,7 +107,7 @@ fun CreateUserScreen(
     var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     fun save() {
-        UserInstanceImpl.reset()
+        UserInstanceImpl.getInstance(context).reset()
         UserInstanceImpl.getInstance(context)
 
         if (isUpdate!!) {
@@ -147,9 +147,9 @@ fun CreateUserScreen(
 
     LaunchedEffect(Unit) {
 
-        if (isUpdate!!) {
-            createUserViewModel.getUser().observe(lifecycleOwner) { userDTO ->
-                if (userDTO != null) {
+        if(isUpdate!!){
+            createUserViewModel.getUser(context).observe(lifecycleOwner){ userDTO ->
+                if(userDTO != null){
                     createUserViewModel.onChangeName(userDTO.name)
                     createUserViewModel.onChangeNickName(userDTO.nickName)
                     createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
@@ -394,7 +394,8 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
         Modifier
             .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TextInputComponent(modifier = Modifier.fillMaxWidth(),
+        TextInputComponent(modifier = Modifier .fillMaxWidth()
+            .padding(top = 16.dp),
             value = name,
             label = "Nome",
             isMandatory = true,

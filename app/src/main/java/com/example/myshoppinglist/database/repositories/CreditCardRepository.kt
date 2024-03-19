@@ -39,9 +39,10 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
     }
 
     fun getAllWithSum(emailUser: String): LiveData<List<CreditCard>> {
-        val dateMonth = FormatDateUtils().getMonthAndYear()
+        val dateCurrent = FormatDateUtils().getYearAndMonthCurrent()
+        val nextMonthAndYear = FormatDateUtils().getNextMonthAndYear()
 
-        return cardCreditCardDAO.getAllWithSum(emailUser, dateMonth)
+        return cardCreditCardDAO.getAllWithSum(emailUser, dateCurrent, nextMonthAndYear)
     }
 
     fun getAutoIncrement(): Int{

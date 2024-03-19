@@ -37,7 +37,7 @@ class SplashScreenActivity : ComponentActivity() {
 
             delay(3000)
 
-            userDTOLiveData = UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
+            userDTOLiveData = UserInstanceImpl.getInstance(applicationContext).getUserViewModelCurrent().findUserByName(email)
 
             userDTOObserver = Observer<UserDTO> { userDTO ->
                 val route =

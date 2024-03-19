@@ -23,13 +23,15 @@ class CreditCardDTODB(
     @SerializedName("typeCard")
     var typeCard: TypeCard = TypeCard.CREDIT,
     @SerializedName("flag")
-    var flag: Int = CardCreditFlag.MONEY.flag,
+    var flag: Int = CardCreditFlag.MASTER.flagBlack,
     @SerializedName("flagBlack")
-    var flagBlack: Int = CardCreditFlag.MONEY.flagBlack,
+    var flagBlack: Int = CardCreditFlag.MASTER.flagBlack,
     @SerializedName("position")
     var position: Int = 0,
     @SerializedName("email")
-    var email: String = ""){
+    var email: String = "",
+    @SerializedName("dayClosedInvoice")
+    var dayClosedInvoice: Int = 0){
 
     @SerializedName("user")
     var userDTO: UserDTO = UserDTO()
@@ -37,12 +39,12 @@ class CreditCardDTODB(
     var typeCardApi: Int = 0
 
     fun fromCreditCardDTO(): CreditCardDTO {
-        return CreditCardDTO(this.idMyShoppingApi, this.myShoppingId, this.cardName, this.holderName, this.value, this.colorCard, this.typeCard.ordinal, userDTO, this.flag, this.position)
+        return CreditCardDTO(this.idMyShoppingApi, this.myShoppingId, this.cardName, this.holderName, this.value, this.colorCard, this.typeCard.ordinal, userDTO, this.flagBlack, this.position, this.dayClosedInvoice)
     }
 
     fun fromCreditCardDTODB(creditCard: CreditCard): CreditCardDTODB{
          typeCardApi = creditCard.typeCard.ordinal
-        return CreditCardDTODB(creditCard.idMyShoppingApi, creditCard.myShoppingId, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, fromFlagBlack(creditCard.flag), creditCard.position, creditCard.cardUserId)
+        return CreditCardDTODB(creditCard.idMyShoppingApi, creditCard.myShoppingId, creditCard.cardName, creditCard.holderName, creditCard.value, creditCard.colorCard, creditCard.typeCard, creditCard.flag, creditCard.flag, creditCard.position, creditCard.cardUserId, creditCard.dayClosedInvoice)
     }
 
     fun fromFlagBlack(): Int{
@@ -65,7 +67,7 @@ class CreditCardDTODB(
         typeCardApi = typeCard.ordinal
         val creditCard = CreditCard(idMyShoppingApi, holderName, cardName, value, colorCard, typeCard, if(email.isBlank()) userDTO.email else email, flag, position)
         creditCard.myShoppingId = myShoppingId
-
+        creditCard.dayClosedInvoice = dayClosedInvoice
         return creditCard
     }
 

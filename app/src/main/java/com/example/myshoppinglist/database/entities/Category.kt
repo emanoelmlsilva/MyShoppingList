@@ -35,6 +35,9 @@ class Category{
     @ColumnInfo(name = "isSynchronized")
     var isSynchronized: Boolean = false
 
+    @ColumnInfo(name = "dayClosedInvoice")
+    var dayClosedInvoice: Int = 0
+
     constructor(): super(){
     }
 
@@ -51,16 +54,17 @@ class Category{
         this.categoryUserId = emailUser
     }
 
-    constructor(emailUser: String, idApi: Long, category: String, idImage: String, color: Int):this(category, idImage, color){
+    constructor(emailUser: String, idApi: Long, category: String, idImage: String, color: Int, dayClosedInvoice: Int):this(category, idImage, color){
         this.categoryUserId = emailUser
         this.idMyShoppingApi = idApi
+        this.dayClosedInvoice = dayClosedInvoice
     }
 
-    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int):this(emailUser, idMyShoppingApi, category, idImage, color){
+    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int, dayClosedInvoice: Int):this(emailUser, idMyShoppingApi, category, idImage, color, dayClosedInvoice){
         this.myShoppingId = id
     }
 
-    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int, isSynchronized: Boolean):this(emailUser, idMyShoppingApi, id, category, idImage, color){
+    constructor(emailUser: String, idMyShoppingApi: Long, id: Long, category: String, idImage: String, color: Int, dayClosedInvoice: Int, isSynchronized: Boolean):this(emailUser, idMyShoppingApi, id, category, idImage, color, dayClosedInvoice){
         this.isSynchronized = isSynchronized
     }
 

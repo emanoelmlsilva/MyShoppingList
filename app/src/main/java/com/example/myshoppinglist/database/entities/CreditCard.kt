@@ -49,7 +49,7 @@ class CreditCard {
 
     @SerializedName("flag")
     @ColumnInfo(name = "flag")
-    var flag: Int = CardCreditFlag.MONEY.flag
+    var flag: Int = CardCreditFlag.MASTER.flagBlack
 
     @SerializedName("position")
     @ColumnInfo(name = "position", defaultValue = 0.toString())
@@ -57,6 +57,9 @@ class CreditCard {
 
     @ColumnInfo(name = "isSynchronized")
     var isSynchronized: Boolean = false
+
+    @ColumnInfo(name = "dayClosedInvoice")
+    var dayClosedInvoice: Int = 0
 
     constructor()
 
@@ -90,7 +93,8 @@ class CreditCard {
         typeCard: TypeCard,
         cardUserId: String,
         flag: Int,
-        position: Int
+        position: Int,
+        dayClosedInvoice: Int
     ) : this(
         holderName,
         cardName,
@@ -103,6 +107,7 @@ class CreditCard {
     ) {
         this.myShoppingId = myShoppingId
         this.idMyShoppingApi = idMyShoppingApi
+        this.dayClosedInvoice = dayClosedInvoice
     }
 
     constructor(

@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.fieldViewModel
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -52,9 +53,9 @@ open class BaseFieldViewModel: ViewModel() {
         return true
     }
 
-    fun getUser(): LiveData<UserDTO> {
+    fun getUser(context: Context): LiveData<UserDTO> {
         val email = UserLoggedShared.getEmailUserCurrent()
 
-        return UserInstanceImpl.getUserViewModelCurrent().findUserByName(email)
+        return UserInstanceImpl.getInstance(context).getUserViewModelCurrent().findUserByName(email)
     }
 }

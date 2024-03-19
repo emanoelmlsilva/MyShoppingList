@@ -7,7 +7,6 @@ import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.ui.theme.card_blue
-import org.burnoutcrew.reorderable.ItemPosition
 
 class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var name: MutableLiveData<String> = MutableLiveData("")
@@ -15,14 +14,15 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
     var colorCurrent: MutableLiveData<Color> = MutableLiveData(card_blue)
     var isErrorName: MutableLiveData<Boolean> = MutableLiveData(false)
     var isErrorNameCard: MutableLiveData<Boolean> = MutableLiveData(false)
-    var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MONEY.flag)
+    var flagCurrent: MutableLiveData<Int> = MutableLiveData(CardCreditFlag.MASTER.flagBlack)
     var creditCardCollection: MutableLiveData<MutableList<CreditCardDTODB>> =
         MutableLiveData(mutableListOf())
     var value: MutableLiveData<Float> = MutableLiveData(0F)
-    var typeCard: MutableLiveData<TypeCard> = MutableLiveData(TypeCard.MONEY)
+    var typeCard: MutableLiveData<TypeCard> = MutableLiveData(TypeCard.CREDIT)
     var idCreditCard: MutableLiveData<Long> = MutableLiveData()
     var lastPosition: MutableLiveData<Int> = MutableLiveData(0)
     var idCardApi: MutableLiveData<Long> = MutableLiveData(0)
+    var dayClosedInvoice: MutableLiveData<Int> = MutableLiveData(1)
 
     fun onChangeIdCardApi(newIdCardApi: Long){
         idCardApi.value = newIdCardApi
@@ -68,6 +68,10 @@ class CreateCardCreditFieldViewModel : BaseFieldViewModel() {
 
     fun onChangeIsErrorNameCard(newIsError: Boolean) {
         isErrorNameCard.value = newIsError
+    }
+
+    fun onChangeDayClosedInvoice(newDayClosedInvoice: Int){
+        dayClosedInvoice.value = newDayClosedInvoice
     }
 
     override fun checkFields(): Boolean {

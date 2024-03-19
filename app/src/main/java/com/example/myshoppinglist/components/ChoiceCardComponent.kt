@@ -48,7 +48,7 @@ fun ChoiceCardComponent(
                     CustomerChip(
                         paddingVertical = 0.dp,
                         label = cardCredit.cardName,
-                        iconId = cardCredit.flag,
+                        iconId = cardCredit.flagBlack,
                         isEnabled = true,
                         isBackgroundCircle = true,
                         isChoice = isChoiceCurrent,

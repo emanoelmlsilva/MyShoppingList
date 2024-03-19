@@ -17,16 +17,15 @@ class UserInstanceImpl{
             }
             return this.instance!!
         }
+    }
 
+    fun getUserViewModelCurrent(): UserViewModelDB{
+        return userViewModel!!
+    }
 
-        fun getUserViewModelCurrent(): UserViewModelDB{
-            return userViewModel!!
-        }
-
-        fun reset(){
-            instance = null
-            userViewModel = null
-        }
+    fun reset(){
+        instance = null
+        userViewModel = null
     }
 
 }

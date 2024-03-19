@@ -19,6 +19,7 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
+import com.example.myshoppinglist.utils.FormatDateUtils
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
@@ -52,7 +53,7 @@ fun CreditCollectionScreen(navController: NavController?) {
                     isClicable = card.holderName.isBlank(),
                     isDefault = card.holderName.isBlank(),
                     typeCard = card.typeCard,
-                    flagCardCredit = card.flag,
+                    flagCardCredit = card.flagBlack,
                     isChoiceColor = false,
                     cardCreditDTO = card,
                     createCardCreditViewModel = createCardCreditViewModel,

@@ -14,6 +14,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,8 +38,9 @@ fun HomeScreen(
     homeFieldViewModel: HomeFieldViewModel
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
 
-    val userDTO by homeFieldViewModel.getUser().observeAsState(UserDTO())
+    val userDTO by homeFieldViewModel.getUser(context).observeAsState(UserDTO())
     val purchaseCollection by homeFieldViewModel.purchaseCollection.observeAsState(emptyList())
     val creditCardCollection by homeFieldViewModel.creditCardCollection.observeAsState(emptyList())
 
