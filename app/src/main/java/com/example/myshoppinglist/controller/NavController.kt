@@ -64,7 +64,8 @@ fun NavController(
 
     NavHost(navController = navHostController, startDestination = routeInitial) {
         composable(Screen.CreateUser.name) { navBackStack ->
-            val arguments = navBackStack.arguments
+
+            val arguments = navHostController.previousBackStackEntry?.arguments
 
             val isUpdate = arguments?.getBoolean("isUpdate") ?: true
             val hasToolbar = arguments?.getBoolean("hasToolbar") ?: true

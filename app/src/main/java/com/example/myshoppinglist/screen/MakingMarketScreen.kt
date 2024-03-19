@@ -322,19 +322,12 @@ fun MakingMarketScreen(
                         }
 
                         override fun onUpdate(itemList: ItemListDTO) {
-//                            val marketItem =
-//                                MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, itemList)
-//                            marketItemCollection.add(marketItem)
                         }
 
                         override fun onUpdate(itemList: List<ItemListDTO>) {
                             marketItemFieldViewModel.startLoading()
                             marketItemFieldViewModel.updateJoinMarketItemCollection(itemList)
-//                            itemListCollection.forEach { itemList ->
-//                                val marketItem =
-//                                    MarketItem(0F, 0F, "0", TypeProduct.QUANTITY, false, itemList)
-//                                marketItemCollection.add(marketItem)
-//                            }
+
                         }
                     })
 
