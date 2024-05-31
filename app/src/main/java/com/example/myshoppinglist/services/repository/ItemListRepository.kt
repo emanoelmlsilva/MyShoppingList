@@ -53,4 +53,17 @@ class ItemListRepository(private val itemListService: ItemListService) {
 
     }
 
+    suspend fun delete(itemList: ItemListDTO): ResultData<ItemListDTO>{
+        return withContext(Dispatchers.IO){
+            val itemListExecute = itemListService.delete(itemList).execute()
+
+            return@withContext if(itemListExecute.isSuccessful){
+                val itemListResponse = itemListExecute.body()?:ItemListDTO()
+                ResultData.Success(itemListResponse)
+            }else{
+                Log.d(TAG, "message error ${itemListExecute.message()}")
+                ResultData.Error(Exception("ERROR DELETE ${itemListExecute.errorBody()}"))
+            }
+        }
+    }
 }

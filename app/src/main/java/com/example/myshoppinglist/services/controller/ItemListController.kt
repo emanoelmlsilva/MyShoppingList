@@ -52,20 +52,12 @@ class ItemListController {
         }
     }
 
-    fun deleteItemListDB(itemList: ItemList, callback: Callback) {
-        itemListViewModel.deleteItemListDB(itemList, callback)
+    fun deleteItemList(itemList: ItemListDTO, callback: Callback) {
+        itemListViewModel.deleteItemList(itemList, callback)
     }
 
     fun getAllWithCategoryDB(idCard: Long): LiveData<List<ItemListAndCategory>> {
         return itemListViewModel.getAllWithCategoryDB(idCard)
-    }
-
-    fun updateItemListDB(itemList: ItemList, callback: Callback) {
-        itemListViewModel.updateItemListDB(itemList, callback)
-    }
-
-    fun saveItemListDB(itemList: ItemList, callback: com.example.myshoppinglist.callback.Callback) {
-        itemListViewModel.insertItemListDB(itemList, callback)
     }
 
     fun saveItemList(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
@@ -76,12 +68,10 @@ class ItemListController {
     }
 
     fun updateItemList(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
-//        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(lifecycleOwner){
         itemList.categoryDTO.userDTO = userDTO
         itemList.creditCardDTO.userDTO = userDTO
 
         itemListViewModel.update(itemList, callback)
-//        }
     }
 
     fun saveItemListAll(

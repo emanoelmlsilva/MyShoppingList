@@ -3,18 +3,9 @@ package com.example.myshoppinglist.utils
 import android.os.Handler
 import android.os.Looper
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.enums.StatusSaveData
 
 object MeasureTimeService {
-
-    @JvmStatic
-    val messageWaitService = "Tentando comunicação com o servidor."
-
-    @JvmStatic
-    val messageNoService = "Não foi possivel conectar. \n\n Tente atualizar mais tarde!"
-
-    @JvmStatic
-    val messageNoConnection = "Sem conexão com internet. \n\n Tente atualizar mais tarde!"
-
     @JvmStatic
     val TIME_DELAY_CONNECTION = 7000L
 
@@ -51,7 +42,6 @@ object MeasureTimeService {
     }
 
     fun resetMeasureTimeErrorConnection(callback: Callback){
-        callback.onChangeValue(messageNoConnection)
         cancelHandler()
         startMeasureTime(0L, callback)
     }

@@ -14,7 +14,7 @@ interface ItemListDAO {
     fun insertItemAll(itemListCollection: List<ItemList>)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insertItem(itemList: ItemList)
+    fun insertItem(itemList: ItemList): Long
 
     @Update
     fun updateItemList(itemList: ItemList)

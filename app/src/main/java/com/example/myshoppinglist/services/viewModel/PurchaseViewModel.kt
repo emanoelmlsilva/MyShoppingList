@@ -10,10 +10,11 @@ import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.services.repository.PurchaseRepository
-import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
@@ -64,18 +65,19 @@ class PurchaseViewModel(
 
     fun save(purchase: PurchaseDTO, callback: CallbackObject<PurchaseDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
-                purchaseRepository.save(purchase)
+                purchaseRepository.save(purchase, callback)
             } catch (e: Exception) {
+
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
+
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(purchase)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(purchase)
                     }
                     else -> {
@@ -87,6 +89,8 @@ class PurchaseViewModel(
             when (result) {
                 is ResultData.Success -> {
                     val purchaseResponse = result.data
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(1000L)
 
                     purchaseResponse.creditCard = purchase.creditCard
                     purchaseResponse.category = purchase.category
@@ -108,19 +112,15 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(1000L)
 
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.insertPurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
-                                MeasureTimeService.resetMeasureTime(
-                                    MeasureTimeService.TIME_DELAY_CONNECTION,
-                                    object : Callback {
-                                        override fun onChangeValue(newValue: Boolean) {
-                                            callback.onSuccess()
-                                        }
-                                    })
+                                callback.onSuccess()
                             }
 
                             override fun onFailed(messageError: String) {
@@ -144,16 +144,16 @@ class PurchaseViewModel(
         }
     }
 
-    fun update(purchase: PurchaseDTO, callback: CallbackObject<PurchaseDTO>) {
+    fun update(isTransfer: Boolean, purchase: PurchaseDTO, callback: CallbackObject<PurchaseDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
-                purchaseRepository.update(purchase)
+                purchaseRepository.update(purchase, callback)
             } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(purchase)
                     }
                     is SocketTimeoutException -> {
@@ -167,6 +167,8 @@ class PurchaseViewModel(
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(if(isTransfer) StatusSaveData.TRANSFER else StatusSaveData.UPDATE)
+                    delay(2500L)
                     val purchaseResponse = result.data
 
                     purchaseResponse.creditCard = purchase.creditCard
@@ -189,19 +191,15 @@ class PurchaseViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(if(isTransfer) StatusSaveData.TRANSFER else StatusSaveData.UPDATE)
+                    delay(2500L)
 
                     val purchaseData = result.data.toPurchase()
 
                     purchaseViewModelDB.updatePurchase(purchaseData,
                         object : Callback {
                             override fun onSuccess() {
-                                MeasureTimeService.resetMeasureTime(
-                                    MeasureTimeService.TIME_DELAY_CONNECTION,
-                                    object : Callback {
-                                        override fun onChangeValue(newValue: Boolean) {
-                                            callback.onSuccess()
-                                        }
-                                    })
+                                callback.onSuccess()
                             }
 
                             override fun onFailed(messageError: String) {
@@ -269,18 +267,17 @@ class PurchaseViewModel(
 
     fun deletePurchase(idPurchaseApi: Long, idPurchase: Long, callback: CallbackObject<Any>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
-                purchaseRepository.delete(idPurchaseApi)
+                purchaseRepository.delete(idPurchaseApi, callback)
             } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(idPurchaseApi)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(idPurchaseApi)
                     }
                     else -> {
@@ -291,6 +288,9 @@ class PurchaseViewModel(
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.DELETE)
+                    delay(1500L)
+
                     purchaseViewModelDB.deletePurchaseByIdApi(idPurchaseApi, object : Callback {
                         override fun onSuccess() {
                             callback.onSuccess()
@@ -306,16 +306,13 @@ class PurchaseViewModel(
                     })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.DELETE)
+                    delay(1500L)
 
                     purchaseViewModelDB.deletePurchaseByI(idPurchase, object : Callback {
                         override fun onSuccess() {
-                            MeasureTimeService.resetMeasureTime(
-                                MeasureTimeService.TIME_DELAY_CONNECTION,
-                                object : Callback {
-                                    override fun onChangeValue(newValue: Boolean) {
-                                        callback.onSuccess()
-                                    }
-                                })
+                            callback.onSuccess()
+
                         }
 
                         override fun onFailed(messageError: String) {

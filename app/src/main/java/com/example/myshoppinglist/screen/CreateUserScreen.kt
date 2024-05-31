@@ -45,6 +45,7 @@ import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.CategoryController
@@ -104,7 +105,7 @@ fun CreateUserScreen(
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
     var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+    var messageError by remember { mutableStateOf("MeasureTimeService.messageWaitService") }
 
     fun save() {
         UserInstanceImpl.getInstance(context).reset()
@@ -171,6 +172,10 @@ fun CreateUserScreen(
                         override fun onFailed(messageError: String) {
 
                         }
+
+//                        override fun onChangeStatus(newStatus: StatusSaveData) {
+//                            status = newStatus
+//                        }
                     })
                 }, onError = { throwable -> {} }, onComplete = {})
 

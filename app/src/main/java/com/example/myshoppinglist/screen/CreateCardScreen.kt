@@ -41,6 +41,7 @@ import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewM
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.enums.TypeCard
 import com.example.myshoppinglist.services.CreditCardService
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
@@ -69,6 +70,7 @@ fun CreateCardScreen(
     val colorCurrent: Color by createCardCreditViewModel.colorCurrent.observeAsState(initial = card_red_light)
     val flagCurrent: Int by createCardCreditViewModel.flagCurrent.observeAsState(initial = CardCreditFlag.MASTER.flagBlack)
     val userDTO by createCardCreditViewModel.getUser(context).observeAsState(initial = UserDTO())
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
 
     val creditCardViewModel = CreditCardViewModel(
         CreditCardRepository(CreditCardService.getCreditCardService()),
@@ -76,18 +78,13 @@ fun CreateCardScreen(
     )
 
     var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     val callback = object : CallbackObject<CreditCardDTO> {
         override fun onSuccess() {
 
             if (!isUpdate) {
-                if (hasToolbar) {
-                    navController?.navigate(Screen.Home.name) {
-                        popUpTo(Screen.Home.name) { inclusive = false }
-                    }
-                } else {
-                    navController?.popBackStack()
+                navController?.navigate(Screen.Home.name) {
+                    popUpTo(Screen.Home.name) { inclusive = false }
                 }
             } else {
                 navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${userDTO.idAvatar}?nickName=${userDTO.nickName}")
@@ -112,7 +109,10 @@ fun CreateCardScreen(
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -143,6 +143,8 @@ fun CreateCardScreen(
 
     fun saveCreditCard() {
         if (createCardCreditViewModel.checkFields()) {
+            status = StatusSaveData.WAITING
+
             val lastPosition = createCardCreditViewModel.lastPosition.value
             val valueCreditCard = createCardCreditViewModel.value.value
             val typeCardRecover = createCardCreditViewModel.typeCard.value
@@ -187,7 +189,13 @@ fun CreateCardScreen(
         hasToolbar = hasToolbar,
         content = {
 
-            WaitingProcessComponent(visibleWaiting, messageError, callback)
+            status?.let {
+                StatusSaveDataComponent(
+                    visibility = true,
+                    status = it,
+                    statusMain = if (isUpdate) R.raw.update_full else R.raw.save
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -251,12 +259,14 @@ fun CreateCardScreen(
                     }
                 }
 
-                DayClosedInvoiceComponent(createCardCreditViewModel.dayClosedInvoice.observeAsState().value, object : Callback {
-                    override fun onChangeValue(value: Int) {
-                        createCardCreditViewModel.onChangeDayClosedInvoice(value)
-                    }
+                DayClosedInvoiceComponent(
+                    createCardCreditViewModel.dayClosedInvoice.observeAsState().value,
+                    object : Callback {
+                        override fun onChangeValue(value: Int) {
+                            createCardCreditViewModel.onChangeDayClosedInvoice(value)
+                        }
 
-                })
+                    })
 
                 if (!hasToolbar) {
                     ButtonsFooterContent(
@@ -311,20 +321,20 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
 
 @Composable
 fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback) {
-    var isFlagChoice = flagId == flagIdCurrent
+//    var isFlagChoice = flagId == flagIdCurrent
 
     Card(elevation = 2.dp,
         shape = RoundedCornerShape(8.dp),
-        backgroundColor = if (isFlagChoice) primary_dark else secondary_light,
+//        backgroundColor = if (isFlagChoice) primary_dark else secondary_light,
         modifier = Modifier
             .width(45.dp)
             .height(30.dp)
             .clickable {
-                isFlagChoice = true
-                callback.onChangeValue(flagId)
+//                isFlagChoice = true
+//                callback.onChangeValue(flagId)
             }) {
         Image(
-            painter = painterResource(id = flagId),
+            painter = painterResource(id = R.drawable.master),
             contentDescription = null,
             modifier = Modifier.padding(8.dp)
         )

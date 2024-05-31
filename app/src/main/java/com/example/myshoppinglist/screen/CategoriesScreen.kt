@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -38,13 +40,8 @@ fun CategoriesScreen(
     val context = LocalContext.current
     val categoryCollection by categoryFieldViewModel.categoryCollection.observeAsState(emptyList())
 
-    var activeItem by remember { mutableStateOf(-1) }
-    var currentDraggedItem by remember { mutableStateOf(-1) }
-
     fun onClick(idCategory: Long? = null) {
-        if ((currentDraggedItem != -1 && idCategory != null) || idCategory == null ) {
-            navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory ?: 0}")
-        }
+        navController!!.navigate("${Screen.RegisterCategory.name}?idCategory=${idCategory ?: 0}")
     }
 
     TopAppBarScreen(
@@ -118,64 +115,65 @@ fun CategoriesScreen(
                                         bottom = if (index == (size - 1)) 56.dp else 0.dp
                                     )
                             ) {
-                                SwipeComponent(
-                                    index = index,
-                                    onSwipe = { activeItem = it },
-                                    onDragStart = { currentDraggedItem = it },
-                                    onDragEnd = { currentDraggedItem = -1 },
-                                    colorBackground = secondary,
-                                    callback = object : CallbackSwipe {
-                                        override fun onHandlerLeftAction() {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(.9f)
+                                        .background(secondary)
+                                        .padding(top = 16.dp)
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
 
-                                        }
-
-                                        override fun onHandlerHighAction() {
-                                            onClick(category.myShoppingId)
-                                        }
-                                    },
-                                    dismissBackground = {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(secondary)
-                                                .padding(
-                                                    top = 16.dp
-                                                )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceAround,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
+                                            IconCategoryComponent(
+                                                iconCategory = AssetsUtils.readIconBitmapById(
+                                                    context,
+                                                    category.idImage
+                                                )!!
+                                                    .asImageBitmap(),
+                                                colorIcon = Color(category.color),
+                                                size = 36.dp,
+                                                enableClick = false
+                                            )
+
                                             Row(
-                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(.8f),
-                                                    horizontalArrangement = Arrangement.SpaceAround,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    IconCategoryComponent(
-                                                        iconCategory = AssetsUtils.readIconBitmapById(
-                                                            context,
-                                                            category.idImage
-                                                        )!!
-                                                            .asImageBitmap(),
-                                                        colorIcon = Color(category.color),
-                                                        size = 36.dp,
-                                                        enableClick = true
-                                                    )
-
-                                                    Text(
-                                                        text = category.category,
-                                                        modifier = Modifier.fillMaxWidth()
+                                                Text(
+                                                    text = category.category,
+                                                    modifier = Modifier.fillMaxWidth(.9f)
+                                                )
+                                                IconButton(onClick = {
+                                                    onClick(category.myShoppingId)
+                                                })
+                                                {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Edit,
+                                                        contentDescription = null,
+                                                        tint = text_primary,
+                                                        modifier = Modifier.size(16.dp)
                                                     )
                                                 }
+
                                             }
-                                            Divider(
-                                                color = divider,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(1.dp)
-                                            )
+
                                         }
-                                    })
+                                    }
+                                    Divider(
+                                        color = divider,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(1.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -34,7 +34,7 @@ class LoginViewModel(
                         ResultData.NotConnectionService(userDTO)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
+                        callback.onChangeValue("MeasureTimeService.messageWaitService")
                         ResultData.NotConnectionService(userDTO)
                     }
                     else -> {

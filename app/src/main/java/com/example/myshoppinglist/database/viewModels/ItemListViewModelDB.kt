@@ -4,15 +4,20 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
 import com.example.myshoppinglist.database.repositories.ItemListRepository
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 class ItemListViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel() {
 
@@ -41,12 +46,13 @@ class ItemListViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : Ba
             })
     }
 
-    fun insertItemList(itemList: ItemList, callback: Callback) {
+    fun insertItemList(itemList: ItemList, callback: CallbackObject<ItemList>) {
+
         val action = Action {
-            repository.insertItemList(itemList)
+            itemList.myShoppingId = repository.insertItemList(itemList)
         }
 
-        Completable.fromAction(action).subscribe({ callback.onSuccess() }, { throwable ->
+        Completable.fromAction(action).subscribe({ callback.onSuccess(itemList) }, { throwable ->
             Log.d(TAG, "ERROR " + throwable.message)
             callback.onFailed(throwable.message.toString())
         })

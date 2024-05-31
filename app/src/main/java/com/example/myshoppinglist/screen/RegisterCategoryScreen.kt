@@ -23,11 +23,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackColor
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.fieldViewModel.RegisterCategoryFieldViewModel
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
@@ -48,6 +50,7 @@ fun RegisterCategoryScreen(
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val scope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
 
     val isErrorName: Boolean by registerCategoryFieldViewModel.isErrorCategory.observeAsState(false)
 
@@ -55,14 +58,12 @@ fun RegisterCategoryScreen(
         navController.popBackStack()
     }
 
-    var visibleWaiting by remember { mutableStateOf(false) }
     var visibleLoading by remember { mutableStateOf(true) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
 
     val callback = object : CallbackObject<CategoryDTO> {
         override fun onSuccess() {
             goBackNavigation()
-            visibleWaiting = false
+            status = null
         }
 
         override fun onFailed(messageError: String) {
@@ -70,15 +71,16 @@ fun RegisterCategoryScreen(
         }
 
         override fun onClick() {
-            visibleWaiting = false
         }
 
         override fun onChangeValue(newValue: Boolean) {
-            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -112,6 +114,8 @@ fun RegisterCategoryScreen(
         )
 
         if (newCategory.category.isNotBlank() && newCategory.idImage.isNotBlank()) {
+            status = StatusSaveData.WAITING
+
             if (idCategory > 0) {
                 newCategory.id = registerCategoryFieldViewModel.idMyShoppingApi.value!!
                 updateCategory(newCategory, callback)
@@ -123,7 +127,7 @@ fun RegisterCategoryScreen(
 
         LoadingComposable(visibleLoading)
 
-        WaitingProcessComponent(visibleWaiting, messageError, callback)
+        status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = if(idCategory > 0) R.raw.update_full else R.raw.save) }
 
         Column(
             modifier = Modifier

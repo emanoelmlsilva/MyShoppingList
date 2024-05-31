@@ -9,9 +9,11 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.repository.CategoryRepository
 import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -70,18 +72,18 @@ class CategoryViewModel(
 
     fun save(categoryDTO: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
                 categoryRepository.save(categoryDTO)
             } catch (e: Exception) {
+
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(categoryDTO)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(categoryDTO)
                     }
                     else -> {
@@ -92,6 +94,9 @@ class CategoryViewModel(
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(1000L)
+
                     val categoryResponse = result.data
 
                     Log.d(TAG, "categoryResponse $categoryResponse")
@@ -101,6 +106,8 @@ class CategoryViewModel(
                     callback.onSuccess()
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(1000L)
 
                     val categoryData = result.data.toCategory()
 
@@ -108,11 +115,8 @@ class CategoryViewModel(
 
                     categoryViewModelDB.insertCategory(categoryData)
 
-                    MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
-                        override fun onChangeValue(newValue: Boolean) {
-                            callback.onSuccess()
-                        }
-                    })
+                    callback.onSuccess()
+
                 }
                 else -> {
                     val messageError = (result as ResultData.Error).exception.message
@@ -127,18 +131,17 @@ class CategoryViewModel(
 
     fun update(categoryDTO: CategoryDTO, callback: CallbackObject<CategoryDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
                 categoryRepository.update(categoryDTO)
             } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(categoryDTO)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(categoryDTO)
                     }
                     else -> {
@@ -149,6 +152,9 @@ class CategoryViewModel(
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(2500L)
+
                     val categoryResponse = result.data
 
                     Log.d(TAG, "categoryResponse $categoryResponse")
@@ -158,6 +164,8 @@ class CategoryViewModel(
                     callback.onSuccess()
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(2500L)
 
                     val categoryData = result.data.toCategory()
 
@@ -165,11 +173,8 @@ class CategoryViewModel(
 
                     categoryViewModelDB.updateCategory(categoryData)
 
-                    MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
-                        override fun onChangeValue(newValue: Boolean) {
-                            callback.onSuccess()
-                        }
-                    })
+                    callback.onSuccess()
+
                 }
                 else -> {
                     val messageError = (result as ResultData.Error).exception.message

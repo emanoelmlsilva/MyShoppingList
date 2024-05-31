@@ -2,23 +2,34 @@ package com.example.myshoppinglist.services.repository
 
 import ResultData
 import android.util.Log
+import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.PurchaseService
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class PurchaseRepository(private val purchaseService: PurchaseService) {
 
     private val TAG = "PurchaseRepository"
 
-    suspend fun delete(idPurchaseApi: Long): ResultData<PurchaseDTO>{
+    suspend fun delete(idPurchaseApi: Long, callback: Callback): ResultData<PurchaseDTO>{
         return withContext(Dispatchers.IO){
             val purchaseExecute = purchaseService.delete(idPurchaseApi).execute()
 
             return@withContext if(purchaseExecute.isSuccessful){
+                delay(1000L)
+
+                callback.onChangeStatus(StatusSaveData.SEND)
+                delay(2500L)
+
                 val purchaseResponse = purchaseExecute.body()?: PurchaseDTO()
                 ResultData.Success(purchaseResponse)
             }else{
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 Log.d(TAG, "message error ${purchaseExecute.message()}")
 
                 ResultData.Error(Exception("ERROR DELETE ${purchaseExecute.errorBody()}"))
@@ -26,14 +37,22 @@ class PurchaseRepository(private val purchaseService: PurchaseService) {
         }
     }
 
-    suspend fun save(purchase: PurchaseDTO): ResultData<PurchaseDTO>{
+    suspend fun save(purchase: PurchaseDTO, callback: Callback): ResultData<PurchaseDTO>{
         return withContext(Dispatchers.IO){
             val purchaseExecute = purchaseService.save(purchase).execute()
 
             return@withContext if(purchaseExecute.isSuccessful){
+                delay(1000L)
+
+                callback.onChangeStatus(StatusSaveData.SEND)
+                delay(2500L)
+
                 val purchaseResponse = purchaseExecute.body()?: PurchaseDTO()
                 ResultData.Success(purchaseResponse)
             }else{
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 Log.d(TAG, "message error ${purchaseExecute.message()}")
 
                 ResultData.Error(Exception("ERROR SAVE ${purchaseExecute.errorBody()}"))
@@ -42,15 +61,22 @@ class PurchaseRepository(private val purchaseService: PurchaseService) {
 
     }
 
-    suspend fun update(purchase: PurchaseDTO): ResultData<PurchaseDTO>{
+    suspend fun update(purchase: PurchaseDTO, callback: Callback): ResultData<PurchaseDTO>{
         return withContext(Dispatchers.IO){
             val purchaseExecute = purchaseService.update(purchase).execute()
 
             return@withContext if(purchaseExecute.isSuccessful){
+                delay(1000L)
+
+                callback.onChangeStatus(StatusSaveData.SEND)
+                delay(2500L)
+
                 val purchaseResponse = purchaseExecute.body()?:PurchaseDTO()
 
                 ResultData.Success(purchaseResponse)
             }else{
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
                 Log.d(TAG, "message error ${purchaseExecute.message()}")
 
                 ResultData.Error(Exception("ERROR UPDATE ${purchaseExecute.errorBody()}"))

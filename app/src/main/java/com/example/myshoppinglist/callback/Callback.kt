@@ -1,5 +1,7 @@
 package com.example.myshoppinglist.callback
 
+import com.example.myshoppinglist.enums.StatusSaveData
+
 interface Callback {
 
     fun onClick(){}
@@ -29,4 +31,7 @@ interface Callback {
     fun onFailed(messageError: String){}
 
     fun onCancel(){}
+
+    fun onChangeStatus(status: StatusSaveData) {}
+
 }

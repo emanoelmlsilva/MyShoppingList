@@ -12,6 +12,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.PurchaseService
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
@@ -85,10 +86,6 @@ class PurchaseController {
     }
 
     fun savePurchases(purchaseCollection: List<PurchaseDTO>, callback: Callback) {
-//        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
-//            lifecycleOwner
-//        ) {
-//
             val indexObservable = Observable.range(0, purchaseCollection.size)
 
             Observable.fromIterable(purchaseCollection)
@@ -122,19 +119,20 @@ class PurchaseController {
                             Log.d(TAG, "saveItemList - onChangeValue")
                             callback.onChangeValue(newValue)
                         }
+
+                        override fun onChangeStatus(status: StatusSaveData) {
+                            Log.d(TAG, "saveItemList - onChangeStatus")
+                            callback.onChangeStatus(status)
+                        }
                     })
                 }
-//        }
     }
 
-    fun updatePurchase(purchaseDTO: PurchaseDTO, callback: Callback) {
-//        UserInstanceImpl.getUserViewModelCurrent().findUserByName(email).observe(
-//            lifecycleOwner
-//        ) {
+    fun updatePurchase(isTransfer: Boolean = false, purchaseDTO: PurchaseDTO, callback: Callback) {
             purchaseDTO.category.userDTO = userDTO
             purchaseDTO.creditCard.userDTO = userDTO
 
-            purchaseViewModel.update(purchaseDTO, object : CallbackObject<PurchaseDTO> {
+            purchaseViewModel.update(isTransfer, purchaseDTO, object : CallbackObject<PurchaseDTO> {
                 override fun onSuccess() {
                     Log.d(TAG, "updatePurchase - onSuccess")
                     callback.onSuccess()
@@ -151,11 +149,15 @@ class PurchaseController {
                 }
 
                 override fun onChangeValue(newValue: Boolean) {
-                    Log.d(TAG, "saveItemList - onChangeValue")
+                    Log.d(TAG, "updatePurchase - onChangeValue")
                     callback.onChangeValue(newValue)
                 }
+
+                override fun onChangeStatus(status: StatusSaveData) {
+                    Log.d(TAG, "updatePurchase - onChangeStatus")
+                    callback.onChangeStatus(status)
+                }
             })
-//        }
     }
 
     fun savePurchaseAll(idCard: Long, callback: Callback) {
@@ -191,8 +193,13 @@ class PurchaseController {
             }
 
             override fun onChangeValue(newValue: Boolean) {
-                Log.d(TAG, "saveItemList - onChangeValue")
+                Log.d(TAG, "delete Purchase By Id - onChangeValue")
                 callback.onChangeValue(newValue)
+            }
+
+            override fun onChangeStatus(status: StatusSaveData) {
+                Log.d(TAG, "delete Purchase By Id - onChangeStatus")
+                callback.onChangeStatus(status)
             }
         })
     }
