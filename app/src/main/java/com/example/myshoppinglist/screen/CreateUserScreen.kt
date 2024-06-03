@@ -39,13 +39,14 @@ import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.ButtonsFooterContent
+import com.example.myshoppinglist.components.StatusSaveDataComponent
 import com.example.myshoppinglist.components.TextInputComponent
-import com.example.myshoppinglist.components.WaitingProcessComponent
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.StatusSaveData
+import com.example.myshoppinglist.enums.TypeStatus
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.controller.CategoryController
@@ -53,7 +54,6 @@ import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.services.viewModel.LoginViewModel
-import com.example.myshoppinglist.utils.MeasureTimeService
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.kotlin.toObservable
 
@@ -73,6 +73,8 @@ fun CreateUserScreen(
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val user by createUserViewModel.getUser(context).observeAsState(initial = UserDTO())
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
+    var typeStatus by remember { mutableStateOf(TypeStatus.UPDATE) }
 
     val categoryCollections = listOf(
         CategoryDTO(
@@ -104,12 +106,10 @@ fun CreateUserScreen(
     val loginViewModel =
         LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
 
-    var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf("MeasureTimeService.messageWaitService") }
-
     fun save() {
         UserInstanceImpl.getInstance(context).reset()
         UserInstanceImpl.getInstance(context)
+        status = null
 
         if (isUpdate!!) {
             navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
@@ -134,15 +134,16 @@ fun CreateUserScreen(
         }
 
         override fun onClick() {
-            visibleWaiting = false
         }
 
         override fun onChangeValue(newValue: Boolean) {
-            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -173,12 +174,14 @@ fun CreateUserScreen(
 
                         }
 
-//                        override fun onChangeStatus(newStatus: StatusSaveData) {
-//                            status = newStatus
-//                        }
+                        override fun onChangeStatus(newStatus: StatusSaveData) {
+                            status = newStatus
+                        }
                     })
                 }, onError = { throwable -> {} }, onComplete = {})
 
+            }else{
+                status = StatusSaveData.WAITING
             }
 
             user!!.name = name.trim()
@@ -218,7 +221,7 @@ fun CreateUserScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                WaitingProcessComponent(visibleWaiting, messageError, callback)
+                status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = typeStatus.getRawStatus()) }
 
                 Column(modifier = Modifier) {
                     if (!hasToolbar!!) {

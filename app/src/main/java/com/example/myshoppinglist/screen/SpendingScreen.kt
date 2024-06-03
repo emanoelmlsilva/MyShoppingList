@@ -40,7 +40,6 @@ import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
 import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi

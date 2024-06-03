@@ -3,7 +3,6 @@ package com.example.myshoppinglist.screen
 import DialogRegisterItemList
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -27,7 +26,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackItemList
 import com.example.myshoppinglist.callback.CallbackObject
@@ -42,7 +40,6 @@ import com.example.myshoppinglist.services.controller.ItemListController
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.*
 
 @OptIn(ExperimentalAnimationApi::class)

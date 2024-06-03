@@ -35,7 +35,6 @@ import com.example.myshoppinglist.services.dtos.CategoryDTO
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.AssetsUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

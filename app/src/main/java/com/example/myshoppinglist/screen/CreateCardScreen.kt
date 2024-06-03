@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,10 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -49,7 +46,6 @@ import com.example.myshoppinglist.services.repository.CreditCardRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.services.viewModel.CreditCardViewModel
 import com.example.myshoppinglist.utils.ConversionUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
 
 @ExperimentalComposeUiApi
 @Composable

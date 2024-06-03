@@ -5,13 +5,11 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
-import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.ConnectException

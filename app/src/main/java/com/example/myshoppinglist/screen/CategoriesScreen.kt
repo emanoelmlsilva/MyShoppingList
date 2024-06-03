@@ -117,7 +117,7 @@ fun CategoriesScreen(
                             ) {
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxWidth(.9f)
+                                        .fillMaxWidth(.99f)
                                         .background(secondary)
                                         .padding(top = 16.dp)
                                 ) {
