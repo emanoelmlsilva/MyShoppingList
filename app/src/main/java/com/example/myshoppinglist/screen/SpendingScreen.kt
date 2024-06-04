@@ -180,7 +180,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = if(isTransfer) R.raw.transfer_full else R.raw.delete_full) }
+                status?.let { StatusSaveDataComponent(isFlowDelete = !isTransfer, visibility = true, status = it, statusMain = if(isTransfer) R.raw.transfer_full else R.raw.delete_full) }
 
                 DialogBackCustom(
                     visibilityBackHandler,

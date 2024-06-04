@@ -35,6 +35,7 @@ private fun customStatusBar(color: Int = secondary.hashCode(), view: View) {
 @OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun StatusSaveDataComponent(
+    isFlowDelete: Boolean = false,
     visibility: Boolean,
     status: StatusSaveData,
     statusMain: Int = R.raw.save
@@ -57,7 +58,7 @@ fun StatusSaveDataComponent(
 
     SideEffect {
         customStatusBar(
-            (if (status.icon != StatusSaveData.DELETE.icon && status.icon != StatusSaveData.ERROR_DELETE.icon) primary_dark else message_error).hashCode(),
+            (if ((status.icon != StatusSaveData.DELETE.icon && status.icon != StatusSaveData.ERROR_DELETE.icon) && !isFlowDelete) primary_dark else message_error).hashCode(),
             view
         )
     }
@@ -71,7 +72,7 @@ fun StatusSaveDataComponent(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth()
-                        .background(if (status.icon != StatusSaveData.DELETE.icon && status.icon != StatusSaveData.ERROR_DELETE.icon) primary_dark else message_error),
+                        .background(if ((status.icon != StatusSaveData.DELETE.icon && status.icon != StatusSaveData.ERROR_DELETE.icon) && !isFlowDelete) primary_dark else message_error),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
