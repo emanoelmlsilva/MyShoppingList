@@ -33,6 +33,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SwipeComponent(
+    blockSwipeable: Boolean = false,
     iconLeft: ImageVector = Icons.Outlined.Delete,
     iconRight: ImageVector = Icons.Outlined.Edit,
     colorBackground: Color = Color.Transparent,
@@ -86,52 +87,58 @@ fun SwipeComponent(
                 false
             }
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .swipeable(
-                    state = swipeableState,
-                    anchors = mapOf(
-                        0f to 0,
-                        -dipToPx(context, 60f) to 1,
-                        dipToPx(context, 60f) to 2
-                    ),
-                    orientation = androidx.compose.foundation.gestures.Orientation.Horizontal,
-                )
-                .background(if (directionDefault || !isBeingManipulated) colorBackground else if (directionLeft) primary_dark else message_error)
-        ) {
 
-            Icon(
-                iconRight,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 16.dp),
-                contentDescription = "Archive"
-            )
-
-            Icon(
-                iconLeft,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp),
-                contentDescription = "delete"
-            )
-
+        if(blockSwipeable){
+            dismissBackground()
+        }else{
             Box(
                 modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            if (isBeingManipulated) swipeableState.offset.value.roundToInt() else 0,
-                            0
-                        )
-                    }
                     .fillMaxWidth()
                     .wrapContentHeight()
+                    .swipeable(
+                        state = swipeableState,
+                        anchors = mapOf(
+                            0f to 0,
+                            -dipToPx(context, 60f) to 1,
+                            dipToPx(context, 60f) to 2
+                        ),
+                        orientation = androidx.compose.foundation.gestures.Orientation.Horizontal,
+                    )
+                    .background(if (directionDefault || !isBeingManipulated) colorBackground else if (directionLeft) primary_dark else message_error)
             ) {
-                dismissBackground()
+
+                Icon(
+                    iconRight,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 16.dp),
+                    contentDescription = "Archive"
+                )
+
+                Icon(
+                    iconLeft,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp),
+                    contentDescription = "delete"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                if (isBeingManipulated) swipeableState.offset.value.roundToInt() else 0,
+                                0
+                            )
+                        }
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                ) {
+                    dismissBackground()
+                }
             }
         }
+
     }
 
 }

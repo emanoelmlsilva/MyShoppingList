@@ -69,7 +69,7 @@ object MaskUtils {
     @JvmStatic
     fun maskKiloGram(value: String): String {
 
-        val formattedValue = replaceAll(value).toDouble() / 1000
+        val formattedValue = replaceAll(if(value.isBlank()) "0" else value).toDouble() / 1000
         return String.format("%.3f", formattedValue).replace(',', '.')
 
     }

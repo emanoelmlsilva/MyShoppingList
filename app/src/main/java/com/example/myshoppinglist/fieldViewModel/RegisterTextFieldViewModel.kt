@@ -194,6 +194,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         index.value = -1
         quantOrKilo.value = ""
         discount.value = ""
+        typeProduct.value = TypeProduct.QUANTITY
 
         if (!isBlock.value!!) {
             locale.value = ""
@@ -232,9 +233,19 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     }
 
     fun onChangeQuantOrKilo(newQuantOrKilo: String) {
-        quantOrKilo.value = newQuantOrKilo
+
         quantOrKiloError.value =
             newQuantOrKilo.isBlank() || MaskUtils.replaceAll(newQuantOrKilo).toInt() == 0
+        quantOrKilo.value = if(!quantOrKiloError.value!!) {
+            if(typeProduct.value == TypeProduct.KILO){
+                MaskUtils.maskKiloGram(MaskUtils.replaceAll(newQuantOrKilo))
+            } else{
+                newQuantOrKilo
+            }
+        } else {
+            "0"
+        }
+
         enableButtonAdd.value = checkFields(true)
     }
 

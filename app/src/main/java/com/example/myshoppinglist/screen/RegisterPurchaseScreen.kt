@@ -102,6 +102,7 @@ fun RegisterPurchaseScreen(
     var visibilityRemoveProduct by remember {mutableStateOf(false)}
     var productRemove by remember {mutableStateOf("")}
     var status by remember { mutableStateOf<StatusSaveData?>(null) }
+    var blockSwipeable by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = idCardCurrent) {
         creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner) {
@@ -327,7 +328,7 @@ fun RegisterPurchaseScreen(
                                         purchaseAndCategoryDTOCollection[index]
 
                                     if (typeState == TypeState.EDIT) {
-
+                                        blockSwipeable = true
                                         registerTextFieldViewModel.updateData(
                                             purchaseUpdateData.purchaseDTO.toPurchase(
                                                 registerTextFieldViewModel.email
@@ -348,7 +349,8 @@ fun RegisterPurchaseScreen(
                                         productRemove = purchaseUpdateData.purchaseDTO.name
                                     }
                                 }
-                            })
+                            },
+                            blockSwipeable)
                     }
                 }
 
@@ -535,6 +537,8 @@ fun RegisterPurchaseScreen(
                             ).value,
                             onClick = {
                                 if (registerTextFieldViewModel.checkFields() && ((isCheck && registerTextFieldViewModel.discount.value?.isNotBlank()!!) || !isCheck)) {
+                                    blockSwipeable = false
+
                                     registerTextFieldViewModel.addPurchase()
                                     registerTextFieldViewModel.onChangeResetDate()
                                     isCheck = false
@@ -686,10 +690,10 @@ fun CustomButton(callback: Callback, icon: Int, modifier: Modifier = Modifier) {
 fun BoxChoiceValue(
     registerTextFieldViewModel: RegisterTextFieldViewModel
 ) {
-    var isMoney by remember { mutableStateOf(true) }
     var convertedValue = 0
     val focusRequester by remember { mutableStateOf(FocusRequester()) }
     val valueAmount by registerTextFieldViewModel.quantOrKilo.observeAsState("")
+    val typeProduct by registerTextFieldViewModel.typeProduct.observeAsState(TypeProduct.QUANTITY)
 
     val customOnClick = object : CustomTextFieldOnClick {
         override fun onChangeValue(newValue: String) {
@@ -697,7 +701,6 @@ fun BoxChoiceValue(
         }
 
         override fun onClick() {
-            isMoney = !isMoney
         }
 
         override fun onChangeTypeProduct(newProduct: TypeProduct) {
@@ -719,6 +722,7 @@ fun BoxChoiceValue(
             NumberInputComponent(
                 maxChar = 11,
                 hasIcon = true,
+                isKilogram = typeProduct == TypeProduct.KILO,
                 value = valueAmount,
                 focusRequester = focusRequester,
                 error = registerTextFieldViewModel.quantOrKiloError.value,
@@ -726,7 +730,7 @@ fun BoxChoiceValue(
                 modifier = Modifier
                     .padding(vertical = 1.dp)
                     .fillMaxWidth(0.79f),
-                label = if (isMoney) "Quantidade" else "Quilograma",
+                label = if (typeProduct == TypeProduct.QUANTITY) "Quantidade" else "Quilograma",
                 customOnClick = customOnClick
             )
 
