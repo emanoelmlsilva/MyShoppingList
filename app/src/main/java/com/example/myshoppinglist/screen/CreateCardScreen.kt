@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -282,12 +283,12 @@ fun CreateCardScreen(
 @Composable
 fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
     val flagCollection = arrayOf(
-        CardCreditFlag.AMEX.flagBlack,
-        CardCreditFlag.MASTER.flagBlack,
-        CardCreditFlag.ELO.flagBlack,
-        CardCreditFlag.PAY_PAL.flagBlack,
-        CardCreditFlag.HIPER.flagBlack,
-        CardCreditFlag.VISA.flagBlack
+        CardCreditFlag.AMEX,
+        CardCreditFlag.MASTER,
+        CardCreditFlag.ELO,
+        CardCreditFlag.PAY_PAL,
+        CardCreditFlag.HIPER,
+        CardCreditFlag.VISA
     )
 
     Column(
@@ -316,21 +317,22 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
 }
 
 @Composable
-fun ItemFlag(flagIdCurrent: Int, flagId: Int, callback: Callback) {
-//    var isFlagChoice = flagId == flagIdCurrent
+fun ItemFlag(flagIdCurrent: Int, cardCreditFlag: CardCreditFlag, callback: Callback) {// flagId: Int
+    var isFlagChoice = cardCreditFlag.flag == flagIdCurrent
+    val flagId = if(isFlagChoice) cardCreditFlag.flag else cardCreditFlag.flagBlack
 
     Card(elevation = 2.dp,
         shape = RoundedCornerShape(8.dp),
-//        backgroundColor = if (isFlagChoice) primary_dark else secondary_light,
+        backgroundColor = if (isFlagChoice) primary_dark else secondary_light,
         modifier = Modifier
             .width(45.dp)
             .height(30.dp)
             .clickable {
-//                isFlagChoice = true
-//                callback.onChangeValue(flagId)
+                isFlagChoice = true
+                callback.onChangeValue(cardCreditFlag.flag)
             }) {
         Image(
-            painter = painterResource(id = R.drawable.master),
+            painter = painterResource(id = flagId),
             contentDescription = null,
             modifier = Modifier.padding(8.dp)
         )
