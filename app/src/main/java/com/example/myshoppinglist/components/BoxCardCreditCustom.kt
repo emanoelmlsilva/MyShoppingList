@@ -1,17 +1,22 @@
 package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.runtime.Composable
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -20,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,6 +35,8 @@ import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.MaskUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun BoxCardCreditCustom(
@@ -102,7 +110,7 @@ fun BoxCardCreditCustom(
                 ) {
                     CustomButtonRounded(
                         icon = ImageVector.vectorResource(id = R.drawable.shopping_bag),
-                        backgroundColor = text_primary.copy(alpha = 0.2f),
+                        backgroundColor = background_card.copy(alpha = 0.2f),
                         text = "Comprar",
                         callback = object : CallbackCreditCard {
                             override fun onClick() {
@@ -169,6 +177,7 @@ fun CustomButtonRounded(
     callback: CallbackCreditCard
 ) {
     val painter = rememberVectorPainter(icon)
+    val scope = rememberCoroutineScope()
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -176,7 +185,10 @@ fun CustomButtonRounded(
     ) {
         Card(modifier = Modifier.defaultMinSize(90.dp, 50.dp),
             onClick = {
-                callback.onClick()
+                scope.launch {
+                    delay(150L)
+                    callback.onClick()
+                }
             },
             elevation = 0.dp,
             shape = RoundedCornerShape(28.dp),

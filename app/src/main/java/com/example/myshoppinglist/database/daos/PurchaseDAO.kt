@@ -62,6 +62,10 @@ interface PurchaseDAO {
     @Query("SELECT * FROM purchases, credit_cards, category WHERE purchases.categoryOwnerId = category.myShoppingIdCategory AND credit_cards.cardUserId = :emailUser AND credit_cards.myShoppingId = purchases.purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) GROUP BY purchases.myShoppingIdPurchase ORDER BY myShoppingIdPurchase DESC")
     fun getPurchasesAndCategoryWeek(week: String, emailUser: String): LiveData<List<PurchaseAndCategory>>
 
+    @Transaction
+    @Query("SELECT * FROM purchases, credit_cards, category WHERE purchases.categoryOwnerId = category.myShoppingIdCategory AND credit_cards.cardUserId = :emailUser AND credit_cards.myShoppingId = purchases.purchaseCardId AND credit_cards.myShoppingId = :idCard AND strftime('%J',date) >= strftime('%J',:week) GROUP BY purchases.myShoppingIdPurchase ORDER BY myShoppingIdPurchase DESC")
+    fun getPurchasesAndCategoryWeekByIdCardCredit(week: String, emailUser: String, idCard: Long): LiveData<List<PurchaseAndCategory>>
+
     @Query("SELECT * FROM purchases, credit_cards  WHERE cardUserId = :emailUser AND credit_cards.myShoppingId = purchaseCardId AND strftime('%J',date) >= strftime('%J',:week) ORDER BY date, purchases.myShoppingIdPurchase")
     fun getPurchasesWeek(week: String, emailUser: String): List<Purchase>
 

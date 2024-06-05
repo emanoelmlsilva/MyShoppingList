@@ -6,7 +6,7 @@ interface Callback {
 
     fun onClick(){}
 
-    fun onChangeValue(idCard: Long){
+    fun onChangeValue(value: Long){
 
     }
 

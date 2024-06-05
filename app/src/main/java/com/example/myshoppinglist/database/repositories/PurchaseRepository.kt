@@ -106,6 +106,14 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
         return purchaseDAO.getPurchasesAndCategoryWeek(limitWeek, email)
     }
 
+    fun getPurchasesAndCategoryWeekByIdCardCredit(idCard: Long): LiveData<List<PurchaseAndCategory>> {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        val limitWeek = FormatDateUtils().getDateString(calendar.time)
+
+        return purchaseDAO.getPurchasesAndCategoryWeekByIdCardCredit(limitWeek, email, idCard)
+    }
+
     fun getPurchasesWeek(): List<Purchase> {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -7)

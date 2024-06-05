@@ -34,6 +34,10 @@ class PurchaseViewModel(
         return purchaseViewModelDB.getPurchasesAndCategoryWeek()
     }
 
+    fun getPurchasesAndCategoryWeekByIdCardCredit(idCard: Long): LiveData<List<PurchaseAndCategory>> {
+        return purchaseViewModelDB.getPurchasesAndCategoryWeekByIdCardCredit(idCard)
+    }
+
     fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double> {
         return purchaseViewModelDB.getPurchasesSumOfSearch(arguments)
     }

@@ -61,6 +61,10 @@ class PurchaseController {
         return purchaseViewModel.getPurchasesAndCategoryWeekDB()
     }
 
+    fun getPurchasesAndCategoryWeekByIdCardCredit(idCard: Long): LiveData<List<PurchaseAndCategory>> {
+        return purchaseViewModel.getPurchasesAndCategoryWeekByIdCardCredit(idCard)
+    }
+
     fun savePurchaseDB(purchases: List<Purchase>, callback: Callback) {
         purchaseViewModel.insertPurchasesDB(purchases, callback)
     }

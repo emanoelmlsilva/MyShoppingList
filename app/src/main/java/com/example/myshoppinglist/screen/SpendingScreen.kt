@@ -40,6 +40,8 @@ import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi
@@ -49,6 +51,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val context = LocalContext.current
     val view = LocalView.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val scope = rememberCoroutineScope()
 
     val purchaseController: PurchaseController = PurchaseController.getData(context, lifecycleOwner)
     val creditCardController: CreditCardController =
@@ -242,7 +245,12 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}") }) {
+                                        onClick = {
+                                            scope.launch {
+                                                delay(50L)
+                                                navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}")
+                                            }
+                                        }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                             contentDescription = null,
@@ -270,7 +278,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
                                         onClick = {
-                                            navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                            scope.launch {
+                                                delay(50L)
+                                                navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                            }
                                         }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.list_view),
