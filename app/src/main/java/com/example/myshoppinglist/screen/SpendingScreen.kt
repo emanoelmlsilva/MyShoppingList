@@ -1,5 +1,7 @@
 package com.example.myshoppinglist.screen
 
+import android.app.Activity
+import android.os.Build
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -11,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
@@ -26,19 +30,18 @@ import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.dtos.PurchaseDTO
-import com.example.myshoppinglist.ui.theme.LatoBlack
-import com.example.myshoppinglist.ui.theme.background_card
-import com.example.myshoppinglist.ui.theme.divider
-import com.example.myshoppinglist.ui.theme.text_title_secondary
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 
 @ExperimentalAnimationApi
@@ -46,7 +49,9 @@ import com.example.myshoppinglist.database.dtos.PurchaseDTO as PurchaseDaoDTO
 @Composable
 fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     val context = LocalContext.current
+    val view = LocalView.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    val scope = rememberCoroutineScope()
 
     val purchaseController: PurchaseController = PurchaseController.getData(context, lifecycleOwner)
     val creditCardController: CreditCardController =
@@ -67,24 +72,24 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
     var visibilityBackHandler by remember { mutableStateOf(false) }
     val categoryCollection = remember { mutableListOf<Category>() }
     var resetMonth by remember { mutableStateOf(false) }
-    var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
+    var isTransfer by remember { mutableStateOf(false) }
+
 
     fun reset() {
         idPurchaseEdit = 0L
         price = 0.0
         purchaseInfoCollection.removeAll(purchaseInfoCollection)
         monthsCollection.removeAll(monthsCollection)
-        messageError = MeasureTimeService.messageWaitService
     }
 
     val callback = object : CallbackObject<ItemListDTO> {
         override fun onSuccess() {
             resetMonth = false
             visibilityBackHandler = false
-            visibleWaiting = false
             reset()
             reload = true
+            status = null
         }
 
         override fun onCancel() {
@@ -95,15 +100,16 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         }
 
         override fun onClick() {
-            visibleWaiting = false
         }
 
         override fun onChangeValue(newValue: Boolean) {
-            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -133,6 +139,18 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
             }
 
         price = purchaseController.sumPriceByMonthDB(idCard, "$monthAndYearNumber-")
+    }
+
+    if (!view.isInEditMode) {
+        val activity  = view.context as Activity
+        val window = activity.window
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity.window.statusBarColor = secondary.hashCode()
+            WindowInsetsControllerCompat(window, window.decorView).run {
+                isAppearanceLightStatusBars = true
+            }
+        }
     }
 
     LaunchedEffect(key1 = idCard, key2 = reload) {
@@ -165,12 +183,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
         onClickIcon = { navController?.popBackStack() },
         content = {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-
-                WaitingProcessComponent(visibleWaiting, messageError, callback)
+                status?.let { StatusSaveDataComponent(isFlowDelete = !isTransfer, visibility = true, status = it, statusMain = if(isTransfer) R.raw.transfer_full else R.raw.delete_full) }
 
                 DialogBackCustom(
                     visibilityBackHandler,
                     {
+                        isTransfer = false
+                        status = StatusSaveData.WAITING
                         resetMonth = true
                         purchaseController.deletePurchase(
                             purchaseCurrent.idPurchaseApi,
@@ -226,7 +245,12 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .size(62.dp)
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
-                                        onClick = { navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}") }) {
+                                        onClick = {
+                                            scope.launch {
+                                                delay(50L)
+                                                navController!!.navigate("${Screen.RegisterPurchase.name}?idCardCurrent=${currentCreditCard?.myShoppingId}?isEditable=${false}?purchaseEdit=${""}")
+                                            }
+                                        }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_outline_shopping_bag_24),
                                             contentDescription = null,
@@ -254,7 +278,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .clip(CircleShape),
                                         backgroundColor = background_card,
                                         onClick = {
-                                            navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                            scope.launch {
+                                                delay(50L)
+                                                navController?.navigate("${Screen.ListPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                            }
                                         }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.list_view),
@@ -295,8 +322,10 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         purchase: Purchase,
                                         idCardCurrent: Long
                                     ) {
-                                        visibilityDialog = false
                                         if (idCardCurrent != 0L && purchase.purchaseCardId != idCardCurrent) {
+
+                                            isTransfer = true
+                                            status = StatusSaveData.WAITING
 
                                             val creditCard =
                                                 creditCardCollection.find { it.myShoppingId == idCardCurrent }
@@ -311,12 +340,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                                 creditCard!!
                                             )
 
-                                            purchaseController.updatePurchase(
+                                            purchaseController.updatePurchase(true,
                                                 purchaseDTO,
                                                 callback
                                             )
 
                                         }
+                                        visibilityDialog = false
 
                                     }
 

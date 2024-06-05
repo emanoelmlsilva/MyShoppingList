@@ -22,4 +22,7 @@ interface ItemListService {
 
     @GET("item_list/credit_card/{id}")
     fun findAllByCardId(@Path("id") id: Long) : Call<List<ItemListDTO>>
+
+    @GET("item_list")
+    fun delete(@Body itemListDTO: ItemListDTO): Call<ItemListDTO>
 }

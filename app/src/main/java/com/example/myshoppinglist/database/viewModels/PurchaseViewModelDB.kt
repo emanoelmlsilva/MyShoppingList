@@ -160,4 +160,9 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
     fun getPurchasesAndCategoryWeek(): LiveData<List<PurchaseAndCategory>> {
         return repository.getPurchasesAndCategoryWeek()
     }
+
+    fun getPurchasesAndCategoryWeekByIdCardCredit(idCard: Long): LiveData<List<PurchaseAndCategory>> {
+        return repository.getPurchasesAndCategoryWeekByIdCardCredit(idCard)
+    }
+
 }

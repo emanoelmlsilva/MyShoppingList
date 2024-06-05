@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
@@ -12,7 +13,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
+import com.example.myshoppinglist.fieldViewModel.HomeFieldViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.VerticalPager
 import com.google.accompanist.pager.calculateCurrentOffsetForPage
@@ -24,13 +27,30 @@ import kotlin.math.*
 @OptIn(ExperimentalAnimationApi::class, ExperimentalPagerApi::class)
 @Composable
 fun CarouselComponent(
+    fieldViewModel: HomeFieldViewModel,
     list: List<CreditCardDTODB>,
     visibleAnimation: Boolean = true,
     parentModifier: Modifier = Modifier,
     contentHeight: Dp,
-    navController: NavController
+    navController: NavController,
+    callback: Callback
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
+
+    LaunchedEffect(Unit){
+        if(list.isNotEmpty()){
+            val creditCardCurrentDTO = list[0]
+            callback.onChangeValue(creditCardCurrentDTO.myShoppingId)
+        }
+    }
+
+    LaunchedEffect(key1 = pagerState.currentPage){
+        if(list.isNotEmpty()){
+            val creditCardCurrentDTO = list[pagerState.currentPage]
+            callback.onChangeValue(creditCardCurrentDTO.myShoppingId)
+        }
+
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -76,7 +96,10 @@ fun CarouselComponent(
                                 .offset {
                                     val pageOffset =
                                         this@VerticalPager.calculateCurrentOffsetForPage(page)
-                                    // Then use it as a multiplier to apply an offset
+
+                                    if(pageOffset == -1F && list.isNotEmpty()){
+                                        fieldViewModel.setIdCardCreditCurrent(list[page - 1].myShoppingId)
+                                    }
                                     IntOffset(
                                         x = (40.dp * pageOffset).roundToPx(),
                                         y = 0,

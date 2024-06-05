@@ -1,24 +1,12 @@
 package com.example.myshoppinglist.fieldViewModel
 
 import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.myshoppinglist.callback.Callback
-import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Category
-import com.example.myshoppinglist.database.repositories.CategoryRepository
 import com.example.myshoppinglist.services.controller.CategoryController
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.functions.Action
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class CategoryFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) : BaseFieldViewModel(){
@@ -42,3 +30,7 @@ class CategoryFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) :
     }
 
 }
+
+data class CategoryState(
+    val categorySize: Int = 0,
+    val categoryCollectionFlowUI: List<Category> = emptyList())

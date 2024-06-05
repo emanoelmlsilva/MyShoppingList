@@ -1,6 +1,5 @@
 package com.example.myshoppinglist.screen
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -39,7 +38,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
@@ -50,7 +48,7 @@ import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
@@ -63,7 +61,6 @@ import com.example.myshoppinglist.services.dtos.PurchaseDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.MaskUtils
-import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.launch
 
 @ExperimentalAnimationApi
@@ -101,10 +98,11 @@ fun RegisterPurchaseScreen(
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
     var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
     var visibilityLocationAndDate by remember { mutableStateOf(false) }
     var visibilityRemoveProduct by remember {mutableStateOf(false)}
     var productRemove by remember {mutableStateOf("")}
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
+    var blockSwipeable by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = idCardCurrent) {
         creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner) {
@@ -167,7 +165,7 @@ fun RegisterPurchaseScreen(
         val category = categoryCollections.find {
             registerTextFieldViewModel.category.value == it.myShoppingId
         }
-        purchaseController.updatePurchase(
+        purchaseController.updatePurchase(false,
             PurchaseDTO(
                 purchase, category!!,
                 registerTextFieldViewModel.creditCard.value!!
@@ -195,10 +193,8 @@ fun RegisterPurchaseScreen(
     val callback = object : CallbackObject<ItemListDTO> {
         override fun onSuccess() {
             visibilityLocationAndDate = false
-
             navController!!.popBackStack()
             visibleWaiting = false
-            messageError = MeasureTimeService.messageWaitService
 
         }
 
@@ -206,7 +202,6 @@ fun RegisterPurchaseScreen(
         }
 
         override fun onFailed(messageError: String) {
-
         }
 
         override fun onClick() {
@@ -218,7 +213,12 @@ fun RegisterPurchaseScreen(
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+            status = StatusSaveData.ERROR
+
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -239,6 +239,7 @@ fun RegisterPurchaseScreen(
     }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
 
     Box {
+        status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = if (isEditable != null && isEditable) R.raw.update_full else R.raw.save) }
         DialogLocationAndDate(
             context,
             visibilityLocationAndDate,
@@ -251,6 +252,7 @@ fun RegisterPurchaseScreen(
                 }
 
                 override fun onSuccess(locationAndDate: LocationAndDate) {
+                    status = StatusSaveData.WAITING
 
                     if (isEditable != null && isEditable) {
                         updatePurchase(locationAndDate.location, locationAndDate.date, callback)
@@ -326,7 +328,7 @@ fun RegisterPurchaseScreen(
                                         purchaseAndCategoryDTOCollection[index]
 
                                     if (typeState == TypeState.EDIT) {
-
+                                        blockSwipeable = true
                                         registerTextFieldViewModel.updateData(
                                             purchaseUpdateData.purchaseDTO.toPurchase(
                                                 registerTextFieldViewModel.email
@@ -347,7 +349,8 @@ fun RegisterPurchaseScreen(
                                         productRemove = purchaseUpdateData.purchaseDTO.name
                                     }
                                 }
-                            })
+                            },
+                            blockSwipeable)
                     }
                 }
 
@@ -413,8 +416,6 @@ fun RegisterPurchaseScreen(
                         registerTextFieldViewModel.index.value = -1
                         visibilityRemoveProduct = false
                     }, "Deletar", "Deseja remover o item $productRemove da lista?")
-
-                    WaitingProcessComponent(visibleWaiting, messageError, callback)
 
                     TextInputComponent(
                         label = "Produto",
@@ -536,6 +537,8 @@ fun RegisterPurchaseScreen(
                             ).value,
                             onClick = {
                                 if (registerTextFieldViewModel.checkFields() && ((isCheck && registerTextFieldViewModel.discount.value?.isNotBlank()!!) || !isCheck)) {
+                                    blockSwipeable = false
+
                                     registerTextFieldViewModel.addPurchase()
                                     registerTextFieldViewModel.onChangeResetDate()
                                     isCheck = false
@@ -687,10 +690,10 @@ fun CustomButton(callback: Callback, icon: Int, modifier: Modifier = Modifier) {
 fun BoxChoiceValue(
     registerTextFieldViewModel: RegisterTextFieldViewModel
 ) {
-    var isMoney by remember { mutableStateOf(true) }
     var convertedValue = 0
     val focusRequester by remember { mutableStateOf(FocusRequester()) }
     val valueAmount by registerTextFieldViewModel.quantOrKilo.observeAsState("")
+    val typeProduct by registerTextFieldViewModel.typeProduct.observeAsState(TypeProduct.QUANTITY)
 
     val customOnClick = object : CustomTextFieldOnClick {
         override fun onChangeValue(newValue: String) {
@@ -698,7 +701,6 @@ fun BoxChoiceValue(
         }
 
         override fun onClick() {
-            isMoney = !isMoney
         }
 
         override fun onChangeTypeProduct(newProduct: TypeProduct) {
@@ -720,6 +722,7 @@ fun BoxChoiceValue(
             NumberInputComponent(
                 maxChar = 11,
                 hasIcon = true,
+                isKilogram = typeProduct == TypeProduct.KILO,
                 value = valueAmount,
                 focusRequester = focusRequester,
                 error = registerTextFieldViewModel.quantOrKiloError.value,
@@ -727,7 +730,7 @@ fun BoxChoiceValue(
                 modifier = Modifier
                     .padding(vertical = 1.dp)
                     .fillMaxWidth(0.79f),
-                label = if (isMoney) "Quantidade" else "Quilograma",
+                label = if (typeProduct == TypeProduct.QUANTITY) "Quantidade" else "Quilograma",
                 customOnClick = customOnClick
             )
 

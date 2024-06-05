@@ -31,6 +31,7 @@ import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
@@ -256,6 +257,9 @@ fun DialogRegisterItemList(
                     itemListDTO.categoryDTO = categoryChoice
 
                     if(itemListDTO.item.isNotBlank() && itemListDTO.categoryDTO.category.isNotBlank()){
+
+                        callback.onChangeStatus(StatusSaveData.WAITING)
+
                         if (itemListUpdate != null) {
                             itemListDTO.myShoppingId = itemListUpdate.myShoppingId
                             itemListDTO.id = itemListUpdate.id

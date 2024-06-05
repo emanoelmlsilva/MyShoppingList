@@ -4,12 +4,12 @@ import ResultData
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.repository.LoginRepository
-import com.example.myshoppinglist.utils.MeasureTimeService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -23,18 +23,18 @@ class LoginViewModel(
 
     fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val resultUpdate = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
                 loginRepository.updateUser(userDTO)
             } catch (exception: Exception) {
+
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (exception) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(userDTO)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(userDTO)
                     }
                     else -> {
@@ -45,23 +45,24 @@ class LoginViewModel(
 
             when (resultUpdate) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(1000L)
+
                     userViewModel.updateUser(userDTO.fromUser())
 
                     callback.onSuccess(userDTO)
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(1000L)
+
                     val userData = resultUpdate.data
 
                     Log.d(TAG, "updateUser $userData")
 
                     userViewModel.updateUser(userData.fromUser())
 
-                    MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object :
-                        Callback {
-                        override fun onChangeValue(newValue: Boolean) {
-                            callback.onSuccess(userData)
-                        }
-                    })
+                    callback.onSuccess(userData)
                 }
                 else -> {
                     val messageError = (resultUpdate as ResultData.Error).exception.message

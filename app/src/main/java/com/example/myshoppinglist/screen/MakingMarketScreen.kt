@@ -2,6 +2,7 @@ package com.example.myshoppinglist.screen
 
 import DialogRecoveryItemList
 import DialogRegisterItemList
+import android.app.Activity
 import android.content.Context
 import android.os.Parcelable
 import androidx.activity.compose.BackHandler
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,6 +47,7 @@ import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.enums.FilterFabState
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.fieldViewModel.MarketItemFieldViewModel
 import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
@@ -67,7 +70,6 @@ fun MakingMarketScreen(
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
-
     val itemCheckCollection = remember { mutableStateListOf<Long>() }
     val marketItemCollection by marketItemFieldViewModel.marketItemCollection.observeAsState(
         emptyList()
@@ -80,6 +82,8 @@ fun MakingMarketScreen(
     var filterFabState by rememberSaveable() {
         mutableStateOf(FilterFabState.DEFAULT)
     }
+
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
 
     var checkAll by remember { mutableStateOf(false) }
 
@@ -108,17 +112,13 @@ fun MakingMarketScreen(
         mutableStateOf(true)
     }
 
-    var visibleWaiting by remember { mutableStateOf(false) }
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
-
     val callback = object : CallbackObject<ItemListDTO> {
         override fun onSuccess() {
             navController.popBackStack()
         }
 
         override fun onSuccess(objects: ItemListDTO) {
-            messageError = MeasureTimeService.messageWaitService
-            visibleWaiting = false
+            status = null
             marketItemFieldViewModel.startLoading()
             marketItemFieldViewModel.updateJoinMarketItemCollection(listOf(objects))
             enabledDialog = false
@@ -134,15 +134,16 @@ fun MakingMarketScreen(
         }
 
         override fun onClick() {
-            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: Boolean) {
-            visibleWaiting = newValue
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -286,7 +287,7 @@ fun MakingMarketScreen(
                                         tint = primary_dark
                                     )
                                 },
-                                text = { Text("adicionar".capitalize(), color = text_primary) })
+                                text = { Text("Listar itens".capitalize(), color = text_primary) })
                         })
 
                 FilterMultipleFabMenuButton(
@@ -303,7 +304,13 @@ fun MakingMarketScreen(
 
                 LoadingComposable(visibleLoading)
 
-                WaitingProcessComponent(visibleWaiting, messageError, callback)
+                status?.let {
+                    StatusSaveDataComponent(
+                        visibility = true,
+                        status = it,
+                        statusMain = R.raw.save
+                    )
+                }
 
                 DialogRecoveryItemList(
                     context,
@@ -329,6 +336,10 @@ fun MakingMarketScreen(
                             marketItemFieldViewModel.updateJoinMarketItemCollection(itemList)
 
                         }
+
+                        override fun onChangeStatus(newStatus: StatusSaveData) {
+                            status = newStatus
+                        }
                     })
 
                 DialogShowPurchase(context,
@@ -338,6 +349,7 @@ fun MakingMarketScreen(
                     object : Callback {
                         override fun onSuccess() {
                             visibility = true
+                            visibilityShowDialog = false
                         }
 
                         override fun onCancel() {
@@ -352,16 +364,22 @@ fun MakingMarketScreen(
                     visibilityBackHandler = false
                 }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
 
-                DialogLocationAndDate(context = context, visibility = visibility, callback = object : CallbackObject<LocationAndDate>{
+                DialogLocationAndDate(
+                    context = context,
+                    visibility = visibility,
+                    callback = object : CallbackObject<LocationAndDate> {
 
-                    override fun onCancel() {
-                        visibility = false
-                    }
+                        override fun onCancel() {
+                            visibility = false
+                        }
 
-                    override fun onSuccess(locationAndDate: LocationAndDate) {
-                        savePurchases(locationAndDate.location, locationAndDate.date, callback)
-                    }
-                })
+                        override fun onSuccess(locationAndDate: LocationAndDate) {
+                            status = StatusSaveData.WAITING
+
+                            savePurchases(locationAndDate.location, locationAndDate.date, callback)
+                        }
+
+                    })
 
                 DialogRegisterItemList(
                     context,
@@ -375,10 +393,13 @@ fun MakingMarketScreen(
 
                         override fun onInsert(itemList: ItemListDTO) {
 
+                            status = StatusSaveData.WAITING
+
                             if (itemList.creditCardDTO.idCard == 0L) {
                                 itemList.creditCardDTO.idCard = idCard
                             }
                             itemListController.saveItemList(itemList, callback)
+
                         }
 
                         override fun onClick() {
@@ -391,6 +412,10 @@ fun MakingMarketScreen(
 
                         override fun onChangeValue(newValue: String) {
                             callback.onChangeValue(newValue)
+                        }
+
+                        override fun onChangeStatus(status: StatusSaveData) {
+                            callback.onChangeStatus(status)
                         }
                     })
 
@@ -514,6 +539,7 @@ fun DialogShowPurchase(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { },
             content = {
+
                 Surface(
                     color = MaterialTheme.colors.background,
                     contentColor = contentColorFor(text_secondary),
@@ -608,7 +634,9 @@ fun DialogShowPurchase(
                                                             color = text_primary_light,
                                                             text = "R$ ${
                                                                 MaskUtils.maskValue(
-                                                                    MaskUtils.convertValueDoubleToString(marketItem.price.toDouble())
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        marketItem.price.toDouble()
+                                                                    )
                                                                 )
                                                             }",
                                                             modifier = Modifier
@@ -635,7 +663,9 @@ fun DialogShowPurchase(
                                                             fontSize = 12.sp,
                                                             text = "R$ -${
                                                                 MaskUtils.maskValue(
-                                                                    MaskUtils.convertValueDoubleToString(marketItem.discount.toDouble())
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        marketItem.discount.toDouble()
+                                                                    )
                                                                 )
                                                             }"
                                                         )
@@ -643,7 +673,13 @@ fun DialogShowPurchase(
                                                             modifier = Modifier.padding(start = 10.dp),
                                                             fontFamily = LatoBold,
                                                             color = text_primary_light,
-                                                            text = "R$ ${MaskUtils.maskValue(MaskUtils.convertValueDoubleToString((marketItem.price - marketItem.discount).toDouble()))}",
+                                                            text = "R$ ${
+                                                                MaskUtils.maskValue(
+                                                                    MaskUtils.convertValueDoubleToString(
+                                                                        (marketItem.price - marketItem.discount).toDouble()
+                                                                    )
+                                                                )
+                                                            }",
                                                         )
 
                                                     }

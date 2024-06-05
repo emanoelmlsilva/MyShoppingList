@@ -3,7 +3,6 @@ package com.example.myshoppinglist.screen
 import DialogRegisterItemList
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -34,12 +33,13 @@ import com.example.myshoppinglist.callback.CallbackSwipe
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.enums.FilterFabState
 import com.example.myshoppinglist.enums.Screen
+import com.example.myshoppinglist.enums.StatusSaveData
+import com.example.myshoppinglist.enums.TypeStatus
 import com.example.myshoppinglist.fieldViewModel.ListItemFieldViewModel
 import com.example.myshoppinglist.services.controller.ItemListController
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.ui.theme.*
-import com.example.myshoppinglist.utils.MeasureTimeService
 import kotlinx.coroutines.*
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -51,11 +51,10 @@ fun ListItemPurchaseScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    var visibleWaiting by remember { mutableStateOf(false) }
     val visibleLoading by listItemFieldViewModel.visibleLoading.observeAsState(false)
     var enabledDeleteDialog by remember { mutableStateOf(false) }
-
-    var messageError by remember { mutableStateOf(MeasureTimeService.messageWaitService) }
+    var status by remember { mutableStateOf<StatusSaveData?>(null) }
+    var typeStatus by remember { mutableStateOf(TypeStatus.SAVE) }
 
     var filterFabState by rememberSaveable() {
         mutableStateOf(FilterFabState.DEFAULT)
@@ -108,9 +107,7 @@ fun ListItemPurchaseScreen(
 
             listItemFieldViewModel.updateItemListAll(idCard)
             enabledDialog = false
-            visibleWaiting = false
-            messageError = MeasureTimeService.messageWaitService
-
+            status = null
         }
 
         override fun onCancel() {
@@ -122,15 +119,16 @@ fun ListItemPurchaseScreen(
         }
 
         override fun onClick() {
-            visibleWaiting = false
         }
 
         override fun onChangeValue(newValue: Boolean) {
-            visibleWaiting = true
         }
 
         override fun onChangeValue(newValue: String) {
-            messageError = newValue
+        }
+
+        override fun onChangeStatus(newStatus: StatusSaveData) {
+            status = newStatus
         }
     }
 
@@ -244,16 +242,24 @@ fun ListItemPurchaseScreen(
 
                 if (itemListUpdate != null) {
                     DialogBackCustom(enabledDeleteDialog, {
-                        itemListController.deleteItemListDB(
-                            itemListUpdate!!.toItemList(),
+                        status = StatusSaveData.DELETE
+                        typeStatus = TypeStatus.DELETE
+                        itemListController.deleteItemList(
+                            itemListUpdate!!,
                             object : Callback {
                                 override fun onSuccess() {
                                     listItemFieldViewModel.updateItemListAll(
                                         idCard
                                     )
+                                    status = null
+
                                 }
 
                                 override fun onFailed(messageError: String) {
+                                }
+
+                                override fun onChangeStatus(status: StatusSaveData) {
+                                    callback.onChangeStatus(status)
                                 }
                             })
                         itemListUpdate = null
@@ -266,7 +272,7 @@ fun ListItemPurchaseScreen(
 
                 LoadingComposable(visibleLoading)
 
-                WaitingProcessComponent(visibleWaiting, messageError, callback)
+                status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = typeStatus.getRawStatus())}
 
                 DialogRegisterItemList(
                     context,
@@ -275,6 +281,7 @@ fun ListItemPurchaseScreen(
                     itemListUpdate,
                     object : CallbackItemList {
                         override fun onInsert(itemList: ItemListDTO) {
+                            typeStatus = TypeStatus.SAVE
                             itemList.creditCardDTO =
                                 creditCardDTO?.fromCreditCardDTO() ?: CreditCardDTO()
 
@@ -282,6 +289,8 @@ fun ListItemPurchaseScreen(
                         }
 
                         override fun onUpdate(itemList: ItemListDTO) {
+                            itemListUpdate = null
+                            typeStatus = TypeStatus.UPDATE
                             itemList.creditCardDTO =
                                 creditCardDTO?.fromCreditCardDTO() ?: CreditCardDTO()
 
@@ -294,6 +303,10 @@ fun ListItemPurchaseScreen(
 
                         override fun onChangeValue(newValue: Boolean) {
                             callback.onChangeValue(newValue)
+                        }
+
+                        override fun onChangeStatus(newStatus: StatusSaveData) {
+                            status = newStatus
                         }
                     })
 
@@ -426,8 +439,8 @@ fun ListItemPurchaseScreen(
                                                         }
 
                                                         override fun onDelete() {
-                                                            itemListController.deleteItemListDB(
-                                                                itemList.toItemList(),
+                                                            itemListController.deleteItemList(
+                                                                itemList,
                                                                 object : Callback {
                                                                     override fun onSuccess() {
                                                                         listItemFieldViewModel.updateItemListAll(

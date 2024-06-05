@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 4,
-    "identityHash": "9638cdc8174398a7f164e001516e0de7",
+    "version": 5,
+    "identityHash": "36ca5abff5348f77823cc2fea971ed2a",
     "entities": [
       {
         "tableName": "users",
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "credit_cards",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `holderName` TEXT NOT NULL, `cardName` TEXT NOT NULL, `value` REAL NOT NULL, `colorCard` INTEGER NOT NULL, `typeCard` TEXT NOT NULL, `cardUserId` TEXT NOT NULL, `flag` INTEGER NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `isSynchronized` INTEGER NOT NULL, `dayClosedInvoice` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `holderName` TEXT NOT NULL, `cardName` TEXT NOT NULL, `value` REAL NOT NULL, `colorCard` INTEGER NOT NULL, `typeCard` TEXT NOT NULL, `cardUserId` TEXT NOT NULL, `flag` INTEGER NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `isSynchronized` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "myShoppingId",
@@ -116,12 +116,6 @@
           {
             "fieldPath": "isSynchronized",
             "columnName": "isSynchronized",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "dayClosedInvoice",
-            "columnName": "dayClosedInvoice",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -229,7 +223,7 @@
       },
       {
         "tableName": "category",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingIdCategory` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `category` TEXT NOT NULL, `idImage` TEXT NOT NULL, `color` INTEGER NOT NULL, `categoryUserId` TEXT NOT NULL, `isSynchronized` INTEGER NOT NULL, `dayClosedInvoice` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myShoppingIdCategory` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idMyShoppingApi` INTEGER NOT NULL, `category` TEXT NOT NULL, `idImage` TEXT NOT NULL, `color` INTEGER NOT NULL, `categoryUserId` TEXT NOT NULL, `isSynchronized` INTEGER NOT NULL, `dayClosed` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "myShoppingId",
@@ -275,7 +269,7 @@
           },
           {
             "fieldPath": "dayClosedInvoice",
-            "columnName": "dayClosedInvoice",
+            "columnName": "dayClosed",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -349,7 +343,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9638cdc8174398a7f164e001516e0de7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '36ca5abff5348f77823cc2fea971ed2a')"
     ]
   }
 }

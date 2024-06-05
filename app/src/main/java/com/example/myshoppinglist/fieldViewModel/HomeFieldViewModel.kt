@@ -23,6 +23,11 @@ class HomeFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Bas
     val purchaseCollection: MutableLiveData<List<PurchaseAndCategoryDTO>> =
         MutableLiveData(emptyList())
     var creditCardCollection = MutableLiveData(emptyList<CreditCardDTODB>())
+    var idCarCreditCurrent: MutableLiveData<Long> = MutableLiveData(-1L)
+
+    fun setIdCardCreditCurrent(newValue: Long){
+        idCarCreditCurrent.value = newValue
+    }
 
     fun updateCreditCards(){
         viewModelScope.launch(Dispatchers.Main) {
@@ -42,6 +47,33 @@ class HomeFieldViewModel(context: Context, lifecycleOwner: LifecycleOwner) : Bas
     fun updatePurchases() {
         viewModelScope.launch(Dispatchers.Main) {
             purchaseController.getPurchasesAndCategoryWeekDB().observeForever{ list->
+                purchaseCollection.value = list.map { purchaseAndCategory ->
+                    val purchaseFormatData = PurchaseDTO(purchaseAndCategory.purchase)
+                    val categoryFormatData = CategoryDTO()
+                    categoryFormatData.toCategoryDTO(purchaseAndCategory.category)
+
+                    val purchaseAndCategoryDTO =
+                        PurchaseAndCategoryDTO(purchaseFormatData, categoryFormatData)
+
+                    purchaseAndCategoryDTO.dateFormat =
+                        FormatDateUtils().getNameDay(purchaseFormatData.date).uppercase()
+
+                    purchaseAndCategoryDTO.priceFormat = MaskUtils.maskValue(String.format("%.2f", purchaseAndCategory.purchase.price))
+
+                    purchaseAndCategoryDTO.discountFormat = MaskUtils.maskValue(String.format("%.2f", purchaseAndCategory.purchase.discount))
+
+                    purchaseAndCategoryDTO.totalWithoutDiscountFormat = MaskUtils.maskValue(String.format("%.2f", (purchaseAndCategory.purchase.price - purchaseAndCategory.purchase.discount)).toString())
+
+                    purchaseAndCategoryDTO
+                }
+            }
+        }
+
+    }
+
+    fun updatePurchasesByIdCardCredit(idCardCredit: Long) {
+        viewModelScope.launch(Dispatchers.Main) {
+            purchaseController.getPurchasesAndCategoryWeekByIdCardCredit(idCardCredit).observeForever{ list->
                 purchaseCollection.value = list.map { purchaseAndCategory ->
                     val purchaseFormatData = PurchaseDTO(purchaseAndCategory.purchase)
                     val categoryFormatData = CategoryDTO()

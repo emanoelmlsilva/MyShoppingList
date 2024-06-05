@@ -7,12 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
+import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
+import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.services.dtos.ItemListDTO
 import com.example.myshoppinglist.services.repository.ItemListRepository
-import com.example.myshoppinglist.utils.MeasureTimeService
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -24,56 +25,43 @@ class ItemListViewModel(
 
     private val TAG = "ItemListViewModel"
 
-    fun deleteItemListDB(itemList: ItemList, callback: Callback) {
-        itemListViewModelDB.deleteItemList(itemList, callback)
-    }
-
-    fun getAllWithCategoryDB(idCard: Long): LiveData<List<ItemListAndCategory>> {
-        return itemListViewModelDB.getAllWithCategory(idCard)
-    }
-
-    fun updateItemListDB(itemListDB: ItemList, callback: Callback) {
-        itemListViewModelDB.updateItemList(itemListDB, callback)
-    }
-
-    fun insertItemListDB(itemListDB: ItemList, callback: Callback) {
-        itemListViewModelDB.insertItemList(itemListDB, callback)
-    }
-
-    fun save(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
+    fun deleteItemList(itemList: ItemListDTO, callback: Callback) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
-                itemListRepository.save(itemList)
+                itemListRepository.delete(itemList)
             } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR_DELETE)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(itemList)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(itemList)
                     }
                     else -> {
-                        ResultData.Error(e)
+                        //TODO: deixar por enquanto não tem o endpoint no servidor
+                        ResultData.NotConnectionService(itemList)
+
+//                        ResultData.Error(e)
                     }
                 }
             }
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.DELETE)
+                    delay(2500L)
+
                     val itemListResponse = result.data
+                    itemListResponse.myShoppingId = itemList.myShoppingId
 
-                    itemListResponse.creditCardDTO = itemList.creditCardDTO
-                    itemListResponse.categoryDTO = itemList.categoryDTO
-
-                    itemListViewModelDB.insertItemList(
+                    itemListViewModelDB.deleteItemList(
                         itemListResponse.toItemList(),
                         object : Callback {
                             override fun onSuccess() {
-                                callback.onSuccess(itemListResponse)
+                                callback.onSuccess()
                             }
 
                             override fun onFailed(messageError: String) {
@@ -87,19 +75,117 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.DELETE)
+                    delay(2500L)
+                    val itemListData = result.data.toItemList()
+
+                    itemListViewModelDB.deleteItemList(
+                        itemListData,
+                        object : Callback {
+                            override fun onSuccess() {
+                                callback.onSuccess()
+
+                            }
+                            override fun onFailed(messageError: String) {
+                                val messageError =
+                                    (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                else -> {
+                    val messageError =
+                        (result as ResultData.Error).exception.message
+
+                    Log.d(TAG, "error $messageError")
+
+                    callback.onFailed(messageError.toString())
+                }
+            }
+        }
+    }
+
+    fun getAllWithCategoryDB(idCard: Long): LiveData<List<ItemListAndCategory>> {
+        return itemListViewModelDB.getAllWithCategory(idCard)
+    }
+
+    fun updateItemListDB(itemListDB: ItemList, callback: Callback) {
+        itemListViewModelDB.updateItemList(itemListDB, callback)
+    }
+
+    fun insertItemListDB(itemListDB: ItemList, callback: CallbackObject<ItemList>) {
+        itemListViewModelDB.insertItemList(itemListDB, callback)
+    }
+
+    fun save(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
+        viewModelScope.launch {
+            val result = try {
+                itemListRepository.save(itemList)
+            } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
+                when (e) {
+                    is ConnectException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    is SocketTimeoutException -> {
+                        ResultData.NotConnectionService(itemList)
+                    }
+                    else -> {
+                        ResultData.Error(e)
+                    }
+                }
+            }
+
+            when (result) {
+                is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(2500L)
+
+                    val itemListResponse = result.data
+
+                    itemListResponse.creditCardDTO = itemList.creditCardDTO
+                    itemListResponse.categoryDTO = itemList.categoryDTO
+
+                    itemListViewModelDB.insertItemList(
+                        itemListResponse.toItemList(),
+                        object : CallbackObject<ItemList> {
+                            override fun onSuccess(itemList: ItemList) {
+                                callback.onSuccess(ItemListDTO(itemList, Category()))
+                            }
+
+                            override fun onFailed(messageError: String) {
+                                val messageError =
+                                    (result as ResultData.Error).exception.message
+
+                                Log.d(TAG, "error $messageError")
+
+                                callback.onFailed(messageError.toString())
+                            }
+                        })
+                }
+                is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.SAVE)
+                    delay(2500L)
+
                     val itemListData = result.data.toItemList()
                     itemListData.creditCardOwnerIdItem = itemList.creditCardDTO.idCard
                     itemListData.categoryOwnerIdItem = itemList.categoryDTO.myShoppingId
 
                     itemListViewModelDB.insertItemList(
                         itemListData,
-                        object : Callback {
+                        object : CallbackObject<ItemList> {
                             override fun onSuccess() {
-                                MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
-                                    override fun onChangeValue(newValue: Boolean) {
-                                        callback.onSuccess(result.data)
-                                    }
-                                })
+                                super.onSuccess(itemListData)
+
+                            }
+
+                            override fun onSuccess(itemList: ItemList) {
+                                callback.onSuccess(ItemListDTO(itemList, result.data.categoryDTO.toCategoryApi()))
                             }
 
                             override fun onFailed(messageError: String) {
@@ -126,18 +212,17 @@ class ItemListViewModel(
 
     fun update(itemList: ItemListDTO, callback: CallbackObject<ItemListDTO>) {
         viewModelScope.launch {
-            MeasureTimeService.init()
             val result = try {
-                MeasureTimeService.startMeasureTime(callback = callback)
                 itemListRepository.update(itemList)
             } catch (e: Exception) {
+                callback.onChangeStatus(StatusSaveData.ERROR)
+                delay(2000L)
+
                 when (e) {
                     is ConnectException -> {
-                        MeasureTimeService.resetMeasureTimeErrorConnection(callback)
                         ResultData.NotConnectionService(itemList)
                     }
                     is SocketTimeoutException -> {
-                        callback.onChangeValue(MeasureTimeService.messageNoService)
                         ResultData.NotConnectionService(itemList)
                     }
                     else -> {
@@ -148,6 +233,9 @@ class ItemListViewModel(
 
             when (result) {
                 is ResultData.Success -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(2500L)
+
                     val itemListResponse = result.data
 
                     itemListResponse.creditCardDTO = itemList.creditCardDTO
@@ -172,17 +260,16 @@ class ItemListViewModel(
                         })
                 }
                 is ResultData.NotConnectionService -> {
+                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    delay(2500L)
                     val itemListData = result.data.toItemList()
 
                     itemListViewModelDB.updateItemList(
                         itemListData,
                         object : Callback {
                             override fun onSuccess() {
-                                MeasureTimeService.resetMeasureTime(MeasureTimeService.TIME_DELAY_CONNECTION, object : Callback {
-                                    override fun onChangeValue(newValue: Boolean) {
-                                        callback.onSuccess()
-                                    }
-                                })
+                                callback.onSuccess()
+
                             }
                             override fun onFailed(messageError: String) {
                                 val messageError =

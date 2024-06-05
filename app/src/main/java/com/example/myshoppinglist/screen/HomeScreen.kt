@@ -6,10 +6,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.contentColorFor
-import androidx.compose.material.icons.Icons
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -39,12 +36,11 @@ fun HomeScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val context = LocalContext.current
-
     val userDTO by homeFieldViewModel.getUser(context).observeAsState(UserDTO())
     val purchaseCollection by homeFieldViewModel.purchaseCollection.observeAsState(emptyList())
     val creditCardCollection by homeFieldViewModel.creditCardCollection.observeAsState(emptyList())
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         keyboardController?.hide()
     }
 
@@ -69,12 +65,18 @@ fun HomeScreen(
                 })
 
             CarouselComponent(
+                fieldViewModel = homeFieldViewModel,
                 list = creditCardCollection,
                 parentModifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(.4f),
                 contentHeight = 265.dp,
-                navController = navController!!
+                navController = navController,
+                callback = object : Callback {
+                    override fun onChangeValue(idCard: Long) {
+                        homeFieldViewModel.updatePurchasesByIdCardCredit(idCard)
+                    }
+                }
             )
 
             Spacer(Modifier.size(32.dp))

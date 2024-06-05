@@ -33,7 +33,8 @@ import com.example.myshoppinglist.utils.MaskUtils
 fun BoxProductRegisterComponent(
     context: Context,
     purchaseAndCategoryDTOCollection: MutableList<PurchaseAndCategoryDTO>,
-    callbackPurchase: CallbackPurchase
+    callbackPurchase: CallbackPurchase,
+    isEditable: Boolean = false
 ) {
     LazyColumn(
         modifier = Modifier
@@ -44,6 +45,7 @@ fun BoxProductRegisterComponent(
             val purchase = purchaseAndCategory.purchaseDTO
 
             SwipeComponent(
+                blockSwipeable = isEditable,
                 index = index,
                 onSwipe = {  },
                 onDragStart = {  },
@@ -104,7 +106,7 @@ fun BoxProductRegisterComponent(
                                                     Text(
                                                         fontFamily = LatoRegular,
                                                         fontSize = 12.sp,
-                                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
+                                                        text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${if (purchase.typeProduct == TypeProduct.QUANTITY) MaskUtils.replaceAll(purchase.quantiOrKilo).toInt() else purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
                                                     )
                                                     Text(
                                                         fontFamily = LatoBold,

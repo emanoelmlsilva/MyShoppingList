@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
             MyShoppingListTheme(darkTheme = false) {
                 val navController = rememberNavController()
                 val route = intent.getStringExtra(ROUTE_INITIAL)
-                var bottomBarState by rememberSaveable { (mutableStateOf(true)) }
+                var bottomBarState by rememberSaveable { (mutableStateOf(false)) }
 
                 val screenBarCollection = listOf(
                     Screen.Home,

@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.controller
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.os.Build
 import android.util.Log
 import android.view.Window
@@ -10,9 +11,13 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,6 +30,7 @@ import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.fieldViewModel.*
 import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.screen.*
+import com.example.myshoppinglist.ui.theme.secondary
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.delay
@@ -44,6 +50,7 @@ fun NavController(
     callback: VisibleCallback
 ) {
 
+    val view = LocalView.current
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
 
@@ -54,11 +61,24 @@ fun NavController(
     val listItemFieldViewModel = ListItemFieldViewModel(context, lifecycleOwner)
     val marketItemFieldViewModel = MarketItemFieldViewModel(context, lifecycleOwner)
 
+
     fun softInputMode(isKeyBoard: Boolean) {
         window.setSoftInputMode(if (isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     }
 
     LaunchedEffect(key1 = navHostController.currentDestination) {
+        if (!view.isInEditMode) {
+            val activity = view.context as Activity
+            val window = activity.window
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity.window.statusBarColor = secondary.hashCode()
+                WindowInsetsControllerCompat(window, window.decorView).run {
+                    isAppearanceLightStatusBars = true
+                }
+            }
+        }
+
         callback.onChangeVisible(Screen.enableScreenBottomBarState(navHostController.currentDestination!!.route!!))
     }
 
@@ -67,7 +87,7 @@ fun NavController(
 
             var arguments = navHostController.previousBackStackEntry?.arguments
 
-            if(arguments == null){
+            if (arguments == null) {
                 arguments = navBackStack.arguments
             }
 
@@ -98,17 +118,18 @@ fun NavController(
         composable(Screen.Home.name) {
 
             val creditCardCollection = homeFieldViewModel.creditCardCollection.value
-            val purchaseCollection = homeFieldViewModel.purchaseCollection.value
 
             if (creditCardCollection != null) {
                 if (creditCardCollection.isEmpty()) {
                     homeFieldViewModel.updateCreditCards()
-                }
-            }
+                } else {
 
-            if (purchaseCollection != null) {
-                if (purchaseCollection.isEmpty()) {
-                    homeFieldViewModel.updatePurchases()
+                    val currentCardCredit = homeFieldViewModel.idCarCreditCurrent.observeAsState().value
+
+                    val idCard = if (currentCardCredit != null && currentCardCredit != -1L) { currentCardCredit } else { creditCardCollection[0].myShoppingId }
+
+                    homeFieldViewModel.updatePurchasesByIdCardCredit(idCard)
+
                 }
             }
 
@@ -202,7 +223,7 @@ fun NavController(
             Screen.MakingMarketScreen.name
         ) { navBackStack ->
 
-            val arguments = navBackStack.arguments
+            val arguments = navHostController.previousBackStackEntry?.arguments
 
             val idCard = arguments?.getLong("idCard") ?: 0L
 

@@ -4,10 +4,8 @@ import androidx.lifecycle.LiveData
 import com.example.myshoppinglist.database.daos.ItemListDAO
 import com.example.myshoppinglist.database.entities.ItemList
 import com.example.myshoppinglist.database.entities.relations.ItemListAndCategory
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
 class ItemListRepository(private val itemListDAO: ItemListDAO) {
 
@@ -19,10 +17,9 @@ class ItemListRepository(private val itemListDAO: ItemListDAO) {
         }
     }
 
-    fun insertItemList(itemList: ItemList){
-        coroutineScope.launch(Dispatchers.IO) {
-            itemListDAO.insertItem(itemList)
-        }
+    fun insertItemList(itemList: ItemList): Long{
+        return itemListDAO.insertItem(itemList)
+
     }
 
     fun updateItemList(itemList: ItemList){
