@@ -122,15 +122,22 @@ fun NavController(
             if (creditCardCollection != null) {
                 if (creditCardCollection.isEmpty()) {
                     homeFieldViewModel.updateCreditCards()
-                } else {
-
-                    val currentCardCredit = homeFieldViewModel.idCarCreditCurrent.observeAsState().value
-
-                    val idCard = if (currentCardCredit != null && currentCardCredit != -1L) { currentCardCredit } else { creditCardCollection[0].myShoppingId }
-
-                    homeFieldViewModel.updatePurchasesByIdCardCredit(idCard)
-
                 }
+
+                val currentCardCredit = homeFieldViewModel.idCarCreditCurrent.observeAsState().value
+
+                val idCard = if (currentCardCredit != null && currentCardCredit != -1L) {
+                    currentCardCredit
+                } else if(creditCardCollection.isNotEmpty() && currentCardCredit == -1L) {
+                    creditCardCollection[0].myShoppingId
+                } else {
+                    -1L
+                }
+
+                if(idCard != -1L){
+                    homeFieldViewModel.updatePurchasesByIdCardCredit(idCard)
+                }
+
             }
 
             HomeScreen(

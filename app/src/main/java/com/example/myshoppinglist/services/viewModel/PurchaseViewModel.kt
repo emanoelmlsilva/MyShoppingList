@@ -38,7 +38,7 @@ class PurchaseViewModel(
         return purchaseViewModelDB.getPurchasesAndCategoryWeekByIdCardCredit(idCard)
     }
 
-    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double> {
+    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double?> {
         return purchaseViewModelDB.getPurchasesSumOfSearch(arguments)
     }
 

@@ -10,12 +10,10 @@ import com.example.myshoppinglist.database.MyShopListDataBase
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.repositories.PurchaseRepository
-import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.utils.FormatDateUtils
+import com.example.myshoppinglist.utils.SintaxQueryUtils
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.functions.Action
 import kotlinx.coroutines.flow.Flow
-import java.util.*
 
 class PurchaseViewModelDB(context: Context) : ViewModel() {
 
@@ -32,14 +30,22 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         arguments: String
     ): Flow<List<PurchaseAndCategory>> {
 
-        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT * FROM purchases, category, credit_cards WHERE category.myShoppingIdCategory = categoryOwnerId AND $arguments")
+        var existSyntaxAnd = arguments.trimStart().startsWith(SintaxQueryUtils.AND.name, true)
+
+        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT * FROM purchases, category, credit_cards WHERE category.myShoppingIdCategory = categoryOwnerId ${if (existSyntaxAnd) "" else SintaxQueryUtils.AND} $arguments")
 
         return repository.getPurchasesOfSearch(query)
     }
 
-    fun getPurchasesSumOfSearch(arguments: String): Flow<Double> {
+    fun getPurchasesSumOfSearch(arguments: String): Flow<Double?> {
 
-        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 'QUANTITY' WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) as value FROM purchases, credit_cards WHERE $arguments")
+        var initWithSyntaxAnd = arguments.trimStart().split(" ")[0] == SintaxQueryUtils.AND.name
+        var newArguments: String? = null
+        if (initWithSyntaxAnd){
+            newArguments = " " + arguments.substring(SintaxQueryUtils.AND.name.length + 1)
+        }
+
+        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 'QUANTITY' WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) as value FROM purchases, credit_cards WHERE ${newArguments ?: arguments}")
 
         return repository.getPurchasesSearchSum(query)
     }

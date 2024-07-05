@@ -78,5 +78,5 @@ interface PurchaseDAO {
     fun getPurchasesSearch(query: SupportSQLiteQuery): Flow<List<PurchaseAndCategory>>
 
     @RawQuery(observedEntities = [Purchase::class])
-    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Flow<Double>
+    fun getPurchasesSearchSum(query: SupportSQLiteQuery): Flow<Double?>
 }

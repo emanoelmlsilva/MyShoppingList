@@ -85,7 +85,7 @@ class PurchaseController {
         return purchaseViewModel.getPurchasesOfSearchDB(arguments)
     }
 
-    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double> {
+    fun getPurchasesSumOfSearchDB(arguments: String): Flow<Double?> {
         return purchaseViewModel.getPurchasesSumOfSearchDB(arguments)
     }
 
