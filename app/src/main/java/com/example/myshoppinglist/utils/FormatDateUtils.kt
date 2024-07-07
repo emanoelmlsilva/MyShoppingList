@@ -13,7 +13,20 @@ class FormatDateUtils {
     private val patternNameDate = "EEEE"
     private val dayOfWeek = 3
     private val localeBr = Locale("pt", "BR")
-
+    private val months = mapOf(
+        "janeiro" to 1,
+        "fevereiro" to 2,
+        "março" to 3,
+        "abril" to 4,
+        "maio" to 5,
+        "junho" to 6,
+        "julho" to 7,
+        "agosto" to 8,
+        "setembro" to 9,
+        "outubro" to 10,
+        "novembro" to 11,
+        "dezembro" to 12
+    )
     fun getDateFormatted(date: Date): String {
         val calendar = Calendar.getInstance()
         calendar.time = date
@@ -197,26 +210,16 @@ class FormatDateUtils {
     @RequiresApi(Build.VERSION_CODES.N)
     fun getYearCurrent(): String {
         val cal = Calendar.getInstance()
-//        val format = SimpleDateFormat("yyyy", Locale("pt", "BR"))
         return cal.weekYear.toString()
     }
 
     fun getNumberMonth(month: String): Int? {
-        val meses = mapOf(
-            "janeiro" to 1,
-            "fevereiro" to 2,
-            "março" to 3,
-            "abril" to 4,
-            "maio" to 5,
-            "junho" to 6,
-            "julho" to 7,
-            "agosto" to 8,
-            "setembro" to 9,
-            "outubro" to 10,
-            "novembro" to 11,
-            "dezembro" to 12
-        )
+        return months[month.toLowerCase()]
+    }
 
-        return meses[month.toLowerCase()]
+    fun getMonthYearAllAtCurrent(): List<String>{
+        var monthCurrent = getCurrentMonth()
+        var yearCurrent = getCurrentYear()
+        return months.entries.map { item -> "$yearCurrent-${if (item.value > 9) item.value else "0${ item.value }"}" }.subList(0, monthCurrent).reversed()
     }
 }

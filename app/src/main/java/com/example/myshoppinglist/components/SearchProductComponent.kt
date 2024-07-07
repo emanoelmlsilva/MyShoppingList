@@ -174,7 +174,7 @@ fun SearchProductComponent(
                                     listProductText.add("%month%, ${value.month}")
                                 }
 
-                                if (value.idCard != 0L) {
+                                if (value.idCard != 0L && value.idCard != -1L) {
                                     listProductText.add("%card%, ${value.idCard}, ${value.cardFilter.avatar}, ${value.cardFilter.nickName}")
                                 }
 

@@ -9,6 +9,7 @@ import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.SeparateDateUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -24,8 +25,8 @@ class ChoiceDataFieldViewModel(context: Context, val lifecycleOwner: LifecycleOw
     fun updateMonthCollection() {
         monthCollection.value = emptyList()
         if (yearCurrent.value.isNotBlank() && dateMonthAndYear.value.isNotEmpty()) {
-            val monthOfYearCollection = dateMonthAndYear.value[yearCurrent.value]!!.toList()
-            monthCollection.value = (if (monthOfYearCollection.isNotEmpty()) monthOfYearCollection else listOf())
+            val monthOfYearCollection = if (dateMonthAndYear.value.size > 1) dateMonthAndYear.value[yearCurrent.value]!!.toList() else dateMonthAndYear.value.values.first().map { it.trim() }
+            monthCollection.value = (monthOfYearCollection.ifEmpty { listOf() })
         } else {
             monthCollection.value = emptyList()
         }
@@ -44,10 +45,18 @@ class ChoiceDataFieldViewModel(context: Context, val lifecycleOwner: LifecycleOw
         viewModelScope.launch {
             dateMonthAndYear.value = emptyMap()
 
-            purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { dates ->
-                val mothsAndYearCollection = SeparateDateUtils.separateMonthAndYear(dates)
-                dateMonthAndYear.value = mothsAndYearCollection
+            if(idCard == -1L){
+                val mothsAndYearCollection = SeparateDateUtils.separateMonthAndYear(FormatDateUtils().getMonthYearAllAtCurrent())
+                delay(100L)
                 updateYear(FormatDateUtils().getYearCurrent())
+                dateMonthAndYear.value = mothsAndYearCollection
+            }else {
+
+                purchaseController.getMonthByIdCardDB(idCard).observe(lifecycleOwner) { dates ->
+                    val mothsAndYearCollection = SeparateDateUtils.separateMonthAndYear(dates)
+                    dateMonthAndYear.value = mothsAndYearCollection
+                    updateYear(FormatDateUtils().getYearCurrent())
+                }
             }
         }
     }

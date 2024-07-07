@@ -108,7 +108,7 @@ fun ChoiceDataComponent(
             ) {
                 if (yearCurrent.isNotBlank() && monthCollection.isNotEmpty()) {
                     items(monthCollection) { month ->
-                        val isChoiceCurrent = monthCurrent == month
+                        val isChoiceCurrent = monthCurrent.trim() == month.trim()
                         CustomerChip(
                             paddingVertical = 0.dp,
                             label = FormatDateUtils().getNameMonth(month)
@@ -120,7 +120,7 @@ fun ChoiceDataComponent(
                             callback = object : Callback {
                                 override fun onClick() {
                                     var monthDate = ""
-                                    var monthChoice = month
+                                    var monthChoice = month.trim()
 
                                     if (monthCurrent != month) {
                                         monthDate = "$yearCurrent-$month"

@@ -55,7 +55,7 @@ fun ChoiceCardComponent(
                         color = background_card_light,
                         callback = object : Callback {
                             override fun onClick() {
-                                cardCreditChoice = if(cardCreditChoice.myShoppingId == cardCredit.myShoppingId && disability) CreditCardDTODB(myShoppingId = 0L, flag = 0) else cardCredit
+                                cardCreditChoice = if(cardCreditChoice.myShoppingId == cardCredit.myShoppingId && disability) CreditCardDTODB(myShoppingId = -1L, flag = 0) else cardCredit
 
                                 callbackCard.onChangeValue(cardCreditChoice.myShoppingId)
                                 callbackCard.onChangeFilterCreditCard(

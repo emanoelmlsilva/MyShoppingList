@@ -61,7 +61,7 @@ fun AlertDialogFilterComponent(
     var priceMin by remember { mutableStateOf(priceMinDefault) }
     var priceMax by remember { mutableStateOf(priceMaxDefault) }
     var month by remember { mutableStateOf("") }
-    var idCardCredit by remember { mutableStateOf(0L) }
+    var idCardCredit by remember { mutableStateOf(-1L) }
     var currentCardCreditFilter by remember { mutableStateOf(CardCreditFilter()) }
 
     val callbackChoiceData = object : Callback {
@@ -275,9 +275,10 @@ fun AlertDialogFilterComponent(
                     cardCreditCollection = creditCardDTOCollection,
                     callbackCard = object : CallbackCreditCard {
                         override fun onChangeFilterCreditCard(cardCreditFilter: CardCreditFilter) {
+                            choiceDataFieldViewModel.updateMonth("")
+                            month = ""
                             idCardCredit = cardCreditFilter.id
                             currentCardCreditFilter = cardCreditFilter
-                            choiceDataFieldViewModel.updateMonth("")
                         }
                     })
 

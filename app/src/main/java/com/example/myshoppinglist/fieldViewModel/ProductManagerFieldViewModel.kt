@@ -88,12 +88,15 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
         TODO("Not yet implemented")
     }
 
-    private fun mountArgumentsQuerySearchDatabase(objectFilter: ObjectFilter, isSumSearch: Boolean? = false): String {
+    private fun mountArgumentsQuerySearchDatabase(
+        objectFilter: ObjectFilter,
+        isSumSearch: Boolean? = false
+    ): String {
 
         var argumentsQuery: String = ""
 
         if (objectFilter.textCollection.isNotEmpty()) {
-
+            argumentsQuery += "("
             objectFilter.textCollection.forEachIndexed { index, product ->
                 argumentsQuery += "name ${SintaxQueryUtils.LIKE} '%' || '${product.trim()}' || '%'"
 
@@ -101,6 +104,7 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
                     argumentsQuery += " ${SintaxQueryUtils.OR} "
                 }
             }
+            argumentsQuery += ")"
         }
 
         if (objectFilter.priceMin != null && objectFilter.priceMin!! >= 0) {
@@ -113,14 +117,19 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
 
         if (objectFilter.idCard > 0 || objectFilter.cardFilter.nickName.isNotBlank()) {
 
-            argumentsQuery += " ${if(argumentsQuery.isNotEmpty()) SintaxQueryUtils.AND else ""} purchaseCardId = ${if (objectFilter.idCard > 0) objectFilter.idCard else objectFilter.cardFilter.id}"
+            argumentsQuery += " ${if (argumentsQuery.isNotEmpty()) SintaxQueryUtils.AND else ""} purchaseCardId = ${if (objectFilter.idCard > 0) objectFilter.idCard else objectFilter.cardFilter.id}"
 
             argumentsQuery += " ${SintaxQueryUtils.AND} credit_cards.myShoppingId = purchaseCardId "
         } else {
             argumentsQuery += " ${SintaxQueryUtils.AND} purchases.purchaseCardId = credit_cards.myShoppingId "
         }
 
-        if (objectFilter.month.isNotBlank()) {
+        if (objectFilter.idCard <= 0) {
+            val monthAndYearNumber =
+                FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
+
+            argumentsQuery += "${if (argumentsQuery.isNotEmpty()) " ${SintaxQueryUtils.AND} " else " "} date ${SintaxQueryUtils.LIKE} '%' || '$monthAndYearNumber' || '%' "
+        } else if (objectFilter.month.isNotBlank()) {
 
             val dateCurrent = objectFilter.month.split("-")
             val monthCurrent = dateCurrent[1].toInt()
@@ -130,27 +139,25 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
 
             argumentsQuery += " ${SintaxQueryUtils.AND} purchases.date ${SintaxQueryUtils.BETWEEN} '${objectFilter.month}-' || (${SintaxQueryUtils.CASE} ${SintaxQueryUtils.WHEN} (credit_cards.dayClosedInvoice) > 9 ${SintaxQueryUtils.THEN} (credit_cards.dayClosedInvoice) ${SintaxQueryUtils.ELSE} '0' || (credit_cards.dayClosedInvoice) ${SintaxQueryUtils.END}) ${SintaxQueryUtils.AND} '$nextMonthAndYear' || (${SintaxQueryUtils.CASE} ${SintaxQueryUtils.WHEN} (credit_cards.dayClosedInvoice - 1) > 9 ${SintaxQueryUtils.THEN} (credit_cards.dayClosedInvoice - 1) ${SintaxQueryUtils.ELSE} '0' || (credit_cards.dayClosedInvoice - 1) ${SintaxQueryUtils.END})"
 
-        } else{
-            val monthAndYearNumber =
-                FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
-
-            argumentsQuery += "${if(argumentsQuery.isNotEmpty()) " ${SintaxQueryUtils.AND} " else " "} date ${SintaxQueryUtils.LIKE} '%' || '$monthAndYearNumber' || '%' "
         }
 
         if (objectFilter.categoryCollection.size > 0) {
 
+            argumentsQuery += " ${SintaxQueryUtils.AND} ("
             objectFilter.categoryCollection.forEachIndexed { index, category ->
-                argumentsQuery += " ${SintaxQueryUtils.AND} categoryOwnerId = ${category.myShoppingId}"
+                argumentsQuery += "categoryOwnerId = ${category.myShoppingId}"
 
                 if (objectFilter.categoryCollection.size > 1 && index < objectFilter.categoryCollection.size - 1) {
                     argumentsQuery += " ${SintaxQueryUtils.OR} "
                 }
             }
+            argumentsQuery += ") "
+
         }
 
         argumentsQuery += " ${SintaxQueryUtils.AND} purchases.purchaseUserId = '$email' "
 
-        if(!isSumSearch!!){
+        if (!isSumSearch!!) {
             argumentsQuery += "${SintaxQueryUtils.GROUP} ${SintaxQueryUtils.BY} purchases.myShoppingIdPurchase ${SintaxQueryUtils.ORDER} ${SintaxQueryUtils.BY} purchases.date ${SintaxQueryUtils.DESC}"
         } else {
             val monthAndYearNumber =
@@ -170,7 +177,8 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
 
         updateSumOfSearchPurchase(mountArgumentsQuerySearchDatabase(objectFilter, true))
 
-        val purchaseMountItem = purchaseController.getPurchasesOfSearchDB(argumentsQuery).map { mountItemPurchase(it) }
+        val purchaseMountItem =
+            purchaseController.getPurchasesOfSearchDB(argumentsQuery).map { mountItemPurchase(it) }
 
         viewModelScope.launch(Dispatchers.Main) {
             purchaseMountItem.collect {
