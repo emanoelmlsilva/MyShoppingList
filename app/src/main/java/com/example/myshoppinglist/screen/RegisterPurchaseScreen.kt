@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import com.example.myshoppinglist.callback.CallbackObject
 import com.example.myshoppinglist.callback.CallbackPurchase
 import com.example.myshoppinglist.callback.CustomTextFieldOnClick
 import com.example.myshoppinglist.components.*
+import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.StatusSaveData
@@ -90,19 +92,23 @@ fun RegisterPurchaseScreen(
 
     val registerTextFieldViewModel: RegisterTextFieldViewModel = viewModel()
 
-    val purchaseAndCategoryDTOCollection by
-        registerTextFieldViewModel.purchaseAndCategoryDTOCollection.observeAsState(initial = mutableListOf())
+    var purchaseAndCategoryDTOCollection = remember { mutableStateListOf<PurchaseAndCategoryDTO>() }
+
     val categoryCollections by categoryController.getAllDB().observeAsState(initial = emptyList())
 
-    var countProduct by remember { mutableStateOf(0) }
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
     var visibleWaiting by remember { mutableStateOf(false) }
     var visibilityLocationAndDate by remember { mutableStateOf(false) }
-    var visibilityRemoveProduct by remember {mutableStateOf(false)}
-    var productRemove by remember {mutableStateOf("")}
+    var visibilityRemoveProduct by remember { mutableStateOf(false) }
+    var productRemove by remember { mutableStateOf("") }
     var status by remember { mutableStateOf<StatusSaveData?>(null) }
     var blockSwipeable by remember { mutableStateOf(false) }
+
+    registerTextFieldViewModel.purchaseAndCategoryDTOCollection.observe(lifecycleOwner){
+        purchaseAndCategoryDTOCollection.clear()
+        purchaseAndCategoryDTOCollection.addAll(it)
+    }
 
     LaunchedEffect(key1 = idCardCurrent) {
         creditCardController.findCreditCardByIdDB(idCardCurrent).observe(lifecycleOwner) {
@@ -113,7 +119,6 @@ fun RegisterPurchaseScreen(
 
     LaunchedEffect(key1 = purchaseEdit) {
         if (purchaseEdit != null) {
-            countProduct = 1
 
             val price = if (purchaseEdit.typeProduct == TypeProduct.KILO) MaskUtils.maskKiloGram(
                 MaskUtils.replaceAll(purchaseEdit.price.toString())
@@ -139,10 +144,6 @@ fun RegisterPurchaseScreen(
         }
     }
 
-    registerTextFieldViewModel.countProduct.observe(lifecycleOwner) {
-        countProduct = it
-    }
-
     fun updatePurchase(location: String, date: String, callback: Callback) {
 
         val purchase = Purchase(
@@ -165,7 +166,8 @@ fun RegisterPurchaseScreen(
         val category = categoryCollections.find {
             registerTextFieldViewModel.category.value == it.myShoppingId
         }
-        purchaseController.updatePurchase(false,
+        purchaseController.updatePurchase(
+            false,
             PurchaseDTO(
                 purchase, category!!,
                 registerTextFieldViewModel.creditCard.value!!
@@ -176,15 +178,15 @@ fun RegisterPurchaseScreen(
     fun savePurchases(location: String, date: String, callback: Callback) {
 
         val purchases = purchaseAndCategoryDTOCollection.map { purchaseAndCategoryDTO ->
-                val purchaseDTO = PurchaseDTO(
-                    purchaseAndCategoryDTO.purchaseDTO.toPurchase(purchaseAndCategoryDTO.categoryDTO.userDTO.email),
-                    purchaseAndCategoryDTO.categoryDTO.toCategory(),
-                    registerTextFieldViewModel.creditCard.value!!
-                )
-                purchaseDTO.locale = location
-                purchaseDTO.date = date
+            val purchaseDTO = PurchaseDTO(
+                purchaseAndCategoryDTO.purchaseDTO.toPurchase(purchaseAndCategoryDTO.categoryDTO.userDTO.email),
+                purchaseAndCategoryDTO.categoryDTO.toCategory(),
+                registerTextFieldViewModel.creditCard.value!!
+            )
+            purchaseDTO.locale = location
+            purchaseDTO.date = date
 
-                purchaseDTO
+            purchaseDTO
         }
 
         purchaseController.savePurchases(purchases, callback)
@@ -239,7 +241,13 @@ fun RegisterPurchaseScreen(
     }, "Sair", "Os dados adicionados serão perdidos!\nTem certeza que deseja sair?")
 
     Box {
-        status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = if (isEditable != null && isEditable) R.raw.update_full else R.raw.save) }
+        status?.let {
+            StatusSaveDataComponent(
+                visibility = true,
+                status = it,
+                statusMain = if (isEditable != null && isEditable) R.raw.update_full else R.raw.save
+            )
+        }
         DialogLocationAndDate(
             context,
             visibilityLocationAndDate,
@@ -275,47 +283,56 @@ fun RegisterPurchaseScreen(
                         Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .padding(top = 16.dp, bottom = 70.dp),
+                            .padding(top = 0.dp, bottom = 70.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Card(
-                            elevation = 2.dp,
-                            shape = RoundedCornerShape(6.dp),
-                            backgroundColor = text_primary,
-                            modifier = Modifier
-                                .fillMaxWidth(.2f)
-                                .height(5.dp)
-                        ) {}
-                        Spacer(Modifier.height(20.dp))
-                        Row {
-                            Text(
-                                text = "Produtos",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                modifier = Modifier.padding(bottom = 4.dp, end = 16.dp)
-                            )
-                            Text(
-                                text = "$countProduct".padStart(3, '0'),
-                                color = text_secondary,
-                                modifier = Modifier
-                                    .drawBehind {
-                                        drawCircle(
-                                            color = text_primary,
-                                            radius = this.size.minDimension
+                            backgroundColor = primary_dark,
+                            shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "R$ ${
+                                        MaskUtils.maskValue(
+                                            MaskUtils.convertValueDoubleToString(
+                                                registerTextFieldViewModel.valueTotal.observeAsState(
+                                                    initial = 0.0
+                                                ).value
+                                            )
                                         )
-                                    },
-                                fontSize = 12.sp
-                            )
+                                    }",
+                                    fontFamily = LatoBlack,
+                                    fontSize = 24.sp,
+                                    color = text_secondary,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                                Card(
+                                    elevation = 2.dp,
+                                    shape = RoundedCornerShape(6.dp),
+                                    backgroundColor = text_primary,
+                                    modifier = Modifier
+                                        .fillMaxWidth(.01f)
+                                        .height(40.dp)
+                                ) {}
+                                Text(
+                                    text = "${
+                                        registerTextFieldViewModel.countProduct.observeAsState(
+                                            initial = 0
+                                        ).value
+                                    }".padStart(3, '0'),
+                                    color = text_secondary,
+                                    fontFamily = LatoBlack,
+                                    modifier = Modifier.padding(12.dp),
+                                    fontSize = 24.sp
+                                )
+                            }
+
                         }
 
-                        Spacer(Modifier.height(8.dp))
-                        Divider(
-                            color = text_primary,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                        )
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(28.dp))
                         BoxProductRegisterComponent(
                             context,
                             purchaseAndCategoryDTOCollection,
@@ -350,7 +367,8 @@ fun RegisterPurchaseScreen(
                                     }
                                 }
                             },
-                            blockSwipeable)
+                            blockSwipeable
+                        )
                     }
                 }
 
@@ -361,7 +379,7 @@ fun RegisterPurchaseScreen(
                     title = {},
                     actions = {
                         IconButton(onClick = {
-                            if (countProduct > 0) {
+                            if (registerTextFieldViewModel.countProduct.value!! > 0) {
 
                                 visibilityLocationAndDate = true
                                 coroutineScope.launch {
@@ -434,7 +452,8 @@ fun RegisterPurchaseScreen(
                             onDone = {
                                 keyboardController?.hide()
                             }
-                        ),)
+                        ),
+                    )
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally

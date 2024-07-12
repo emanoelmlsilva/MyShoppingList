@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +28,7 @@ import com.example.myshoppinglist.callback.CallbackSwipe
 import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
+import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.MaskUtils
@@ -70,10 +75,13 @@ fun BoxProductRegisterComponent(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Column(modifier = Modifier) {
-                                Column(modifier = Modifier.fillMaxWidth().background(background_card_light)) {
+                                Column(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(background_card_light)) {
                                     Row(
                                         modifier = Modifier
-                                            .fillMaxWidth().background(background_card_light)
+                                            .fillMaxWidth()
+                                            .background(background_card_light)
                                             .padding(16.dp), horizontalArrangement = Arrangement.Center
                                     ) {
 
