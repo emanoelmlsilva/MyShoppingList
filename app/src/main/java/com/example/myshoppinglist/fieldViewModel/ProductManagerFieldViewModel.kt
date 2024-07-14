@@ -1,6 +1,7 @@
 package com.example.myshoppinglist.fieldViewModel
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -181,11 +182,10 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
             purchaseController.getPurchasesOfSearchDB(argumentsQuery).map { mountItemPurchase(it) }
 
         viewModelScope.launch(Dispatchers.Main) {
+            var auxCount = 0
             purchaseMountItem.collect {
-                var size = it.flatMap { item -> item.purchaseCollection }.size
-                quantityPurchases.value =
-                    if (size > 100) size.toString() else if (size < 10) "00${size}" else "0${size}"
-
+                it.forEach { it.purchaseCollection.forEach { item -> auxCount += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt() } }
+                quantityPurchases.value = if (auxCount > 100) auxCount.toString() else if (auxCount < 10) "00${auxCount}" else "0${auxCount}"
                 onChangePurchaseInfoCollection(it)
             }
         }

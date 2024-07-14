@@ -38,6 +38,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val countProduct: MutableLiveData<Int> = MutableLiveData(0)
     val discount: MutableLiveData<String> = MutableLiveData("")
     val enableButtonAdd: MutableLiveData<Boolean> = MutableLiveData(false)
+    var valueTotal: MutableLiveData<Double> = MutableLiveData(0.0)
 
     //variavel de error
     val productError: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -121,12 +122,27 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         purchaseAndCategoryDTOCollection.value!!.clear()
 
         purchaseAndCategoryDTOCollection.value = auxPurchaseCollection
+
     }
 
     fun removerPurchase(index: Int) {
         purchaseAndCategoryDTOCollection.value?.removeAt(index)
-//            updatePurchaseInfoCollection()
-        countProduct.value = purchaseAndCategoryDTOCollection.value!!.size
+        updatePurchaseAndCategoryDTOCollection()
+        upgradeValueCountAndPrice()
+    }
+
+
+    private fun upgradeValueCountAndPrice() {
+        var auxValueTotal = 0.0
+        var auxCountProduct = 0
+
+        purchaseAndCategoryDTOCollection.value?.forEach { item ->
+            auxCountProduct += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt()
+            auxValueTotal += (item.purchaseDTO.price * if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt())
+        }
+
+        valueTotal.value = auxValueTotal
+        countProduct.value = auxCountProduct
     }
 
     fun addPurchase() {
@@ -165,10 +181,9 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             purchaseAndCategoryDTOCollection.value!!.add(purchaserAndCategory)
         }
 
+        upgradeValueCountAndPrice()
+
         updatePurchaseAndCategoryDTOCollection()
-
-        countProduct.value = purchaseAndCategoryDTOCollection.value!!.size
-
     }
 
     fun onChangeDiscountCurrent(discount: String) {
