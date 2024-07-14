@@ -119,6 +119,8 @@ fun BoxPurchaseItemsComponent(
             ) {
                 itemsIndexed(purchaseInfo.purchaseCollection) { index, purchaseAndCategory ->
                     val purchase = purchaseAndCategory.purchaseDTO
+                    val hasAmount = purchase.typeProduct == TypeProduct.QUANTITY && purchase.quantiOrKilo.toInt() > 1
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -127,12 +129,14 @@ fun BoxPurchaseItemsComponent(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Column(modifier = Modifier
-                            .fillMaxWidth(.9f)
-                            .padding(top = 6.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(.9f)
+                                .padding(top = 6.dp)
+                        ) {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Bottom,
+                                verticalAlignment = Alignment.Top,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 8.dp)
@@ -206,6 +210,20 @@ fun BoxPurchaseItemsComponent(
                                                 )
                                             }
                                         }
+                                    } else if (hasAmount) {
+                                        Text(
+                                            fontFamily = LatoRegular,
+                                            fontSize = 12.sp,
+                                            text = "R$ ${
+                                                MaskUtils.maskValue(
+                                                    MaskUtils.convertValueDoubleToString(
+                                                        (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.quantiOrKilo.toInt() * purchase.price) else purchase.price)
+                                                    )
+                                                )
+                                            }",
+                                            modifier = Modifier
+                                                .padding(start = 12.dp, top = 8.dp),
+                                        )
                                     }
 
                                 }
@@ -249,7 +267,14 @@ fun BoxPurchaseItemsComponent(
                     ) {
                         Text(text = "Total", fontFamily = LatoBlack, color = text_title_secondary)
                         Text(
-                            text = "- R$ ${MaskUtils.maskValue(String.format("%.2f", purchaseInfo.value))}",
+                            text = "- R$ ${
+                                MaskUtils.maskValue(
+                                    String.format(
+                                        "%.2f",
+                                        purchaseInfo.value
+                                    )
+                                )
+                            }",
                             fontFamily = LatoBlack,
                             modifier = Modifier.padding(start = 8.dp, end = 6.dp),
                             color = primary_dark
