@@ -10,6 +10,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -37,15 +39,20 @@ import com.example.myshoppinglist.database.dtos.CreditCardDTODB
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
+import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.CardCreditFlag
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.enums.TypeCard
+import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.CreditCardService
+import com.example.myshoppinglist.services.UserService
 import com.example.myshoppinglist.services.dtos.CreditCardDTO
 import com.example.myshoppinglist.services.repository.CreditCardRepository
+import com.example.myshoppinglist.services.repository.LoginRepository
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.services.viewModel.CreditCardViewModel
+import com.example.myshoppinglist.services.viewModel.LoginViewModel
 import com.example.myshoppinglist.utils.ConversionUtils
 
 @ExperimentalComposeUiApi
@@ -55,8 +62,11 @@ fun CreateCardScreen(
     hasToolbar: Boolean,
     isUpdate: Boolean = false,
     holderNameUser: String,
-    creditCardDTOJson: String
-) {
+    creditCardDTOJson: String,
+    buttonsFooter: Boolean? = true,
+    prevPager: (() -> Unit)? = null,
+    userDTOCurrent: UserDTO? = null) {
+
     val LOG = "CREATE_CARD_SCREEN"
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val context = LocalContext.current
@@ -84,7 +94,7 @@ fun CreateCardScreen(
                     popUpTo(Screen.Home.name) { inclusive = false }
                 }
             } else {
-                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${userDTO.idAvatar}?nickName=${userDTO.nickName}")
+                navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${userDTO!!.idAvatar}?nickName=${userDTO!!.nickName}")
                 {
                     popUpTo(Screen.Home.name) { inclusive = false }
                 }
@@ -157,7 +167,7 @@ fun CreateCardScreen(
                 valueCreditCard!!,
                 colorCurrent.toArgb(),
                 typeCardRecover?.ordinal!!,
-                userDTO,
+                userDTOCurrent?:userDTO,
                 flagCurrent,
                 lastPosition!!,
                 dayClosedInvoice!!
@@ -165,7 +175,21 @@ fun CreateCardScreen(
 
 
             if (!isUpdate) {
-                creditCardViewModel.save(creditCardDTO, callback)
+                if(prevPager != null) {
+                    val loginViewModel =
+                        LoginViewModel(LoginRepository(UserService.getUserService()), UserViewModelDB(context))
+
+                    loginViewModel.updateUser(userDTOCurrent!!)
+
+                    UserInstanceImpl.getInstance(context).reset()
+                    UserInstanceImpl.getInstance(context)
+
+                    creditCardViewModel.save(creditCardDTO, callback)
+
+                } else {
+                    creditCardViewModel.save(creditCardDTO, callback)
+                }
+
             } else {
                 creditCardDTO.idCard = idCreditCard!!
 
@@ -265,13 +289,30 @@ fun CreateCardScreen(
 
                     })
 
-                if (!hasToolbar) {
-                    ButtonsFooterContent(
-                        modifierButton = Modifier.padding(top = 26.dp),
-                        btnTextAccept = "SALVAR",
-                        onClickAccept = {
-                            saveCreditCard()
-                        })
+                if (buttonsFooter!!) {
+
+                    if (!hasToolbar) {
+                        ButtonsFooterContent(
+                            modifierButton = Modifier.padding(top = 26.dp),
+                            btnTextCancel = "VOLTAR",
+                            rightBtnCancel = false,
+                            isEnabled = true,
+                            iconCancel = Icons.Filled.ArrowBack,
+                            btnTextAccept = "SALVAR",
+                            onClickCancel = {
+                                prevPager?.let { it() }
+                            },
+                            onClickAccept = {
+                                saveCreditCard()
+                            })
+                    } else {
+                        ButtonsFooterContent(
+                            modifierButton = Modifier.padding(top = 26.dp),
+                            btnTextAccept = "SALVAR",
+                            onClickAccept = {
+                                saveCreditCard()
+                            })
+                    }
                 }
             }
 
@@ -319,7 +360,7 @@ fun ChoiceFlag(flagIdCurrent: Int, callback: Callback) {
 @Composable
 fun ItemFlag(flagIdCurrent: Int, cardCreditFlag: CardCreditFlag, callback: Callback) {// flagId: Int
     var isFlagChoice = cardCreditFlag.flag == flagIdCurrent
-    val flagId = if(isFlagChoice) cardCreditFlag.flag else cardCreditFlag.flagBlack
+    val flagId = if (isFlagChoice) cardCreditFlag.flag else cardCreditFlag.flagBlack
 
     Card(elevation = 2.dp,
         shape = RoundedCornerShape(8.dp),

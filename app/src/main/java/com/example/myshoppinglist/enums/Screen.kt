@@ -18,7 +18,8 @@ enum class Screen(val drawable: Int, val id: Int) {
     SettingsScreen(R.drawable.default_avatar, 11),
     ChoiceLogin(R.drawable.default_avatar, 12),
     Login(R.drawable.default_avatar, 13),
-    Register(R.drawable.default_avatar, 14);
+    Register(R.drawable.default_avatar, 14),
+    PagerCreated(R.drawable.default_avatar, 15);
 
     companion object {
 

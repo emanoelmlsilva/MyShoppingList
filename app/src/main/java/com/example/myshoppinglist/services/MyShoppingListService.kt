@@ -4,6 +4,10 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.net.SocketException
+import java.util.*
 
 
 interface MyShoppingListService {
@@ -19,5 +23,4 @@ interface MyShoppingListService {
             return Retrofit.Builder().baseUrl(API_BASE_URL).client(client).addConverterFactory(GsonConverterFactory.create()).build()
         }
     }
-
 }

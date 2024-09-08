@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.R
+import com.example.myshoppinglist.enums.CreateLoginStatus
 import com.google.gson.annotations.SerializedName
 import org.jetbrains.annotations.NotNull
 
@@ -33,6 +34,10 @@ class User {
     @SerializedName("idAvatar")
     var idAvatar:Int = R.drawable.default_avatar
 
+    @ColumnInfo(name = "status")
+    @SerializedName("status")
+    var status: CreateLoginStatus = CreateLoginStatus.INCOMPLETE
+
     constructor()
 
     constructor(email: String, password: String): this() {
@@ -40,12 +45,13 @@ class User {
         this.password = password
     }
 
-    constructor(email: String, password: String, name: String, nickName: String, idAvatar: Int) {
+    constructor(email: String, password: String, name: String, nickName: String, idAvatar: Int, status: CreateLoginStatus) {
         this.email = email
         this.password = password
         this.name = name
         this.nickName = nickName
         this.idAvatar = idAvatar
+        this.status = status
     }
 
     override fun toString(): String {

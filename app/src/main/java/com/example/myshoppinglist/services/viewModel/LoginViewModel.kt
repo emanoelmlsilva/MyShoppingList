@@ -21,13 +21,13 @@ class LoginViewModel(
 
     private val TAG = "LoginViewModel"
 
-    fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>) {
+    fun updateUser(userDTO: UserDTO, callback: CallbackObject<UserDTO>? = null) {
         viewModelScope.launch {
             val resultUpdate = try {
                 loginRepository.updateUser(userDTO)
             } catch (exception: Exception) {
 
-                callback.onChangeStatus(StatusSaveData.ERROR)
+                callback?.onChangeStatus(StatusSaveData.ERROR)
                 delay(2000L)
 
                 when (exception) {
@@ -44,16 +44,18 @@ class LoginViewModel(
             }
 
             when (resultUpdate) {
-                is ResultData.Success -> {
-                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                is ResultData.Success<UserDTO> -> {
+                    val userUpdate = resultUpdate.data
+
+                    callback?.onChangeStatus(StatusSaveData.UPDATE)
                     delay(1000L)
 
-                    userViewModel.updateUser(userDTO.fromUser())
+                    userViewModel.updateUser(userUpdate.fromUser())
 
-                    callback.onSuccess(userDTO)
+                    callback?.onSuccess(userUpdate)
                 }
                 is ResultData.NotConnectionService -> {
-                    callback.onChangeStatus(StatusSaveData.UPDATE)
+                    callback?.onChangeStatus(StatusSaveData.UPDATE)
                     delay(1000L)
 
                     val userData = resultUpdate.data
@@ -62,13 +64,13 @@ class LoginViewModel(
 
                     userViewModel.updateUser(userData.fromUser())
 
-                    callback.onSuccess(userData)
+                    callback?.onSuccess(userData)
                 }
                 else -> {
                     val messageError = (resultUpdate as ResultData.Error).exception.message
 
                     Log.d(TAG, "error $messageError")
-                    callback.onFailed(messageError.toString())
+                    callback?.onFailed(messageError.toString())
                 }
             }
         }

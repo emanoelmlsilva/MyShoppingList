@@ -259,7 +259,7 @@ fun Register(navController: NavController) {
 
                                                         navController.currentBackStackEntry!!.arguments!!.putAll(bundle)
 
-                                                        navController.navigate(Screen.CreateUser.name) {
+                                                        navController.navigate(Screen.PagerCreated.name) {
                                                             popUpTo(0) { inclusive = false }
                                                         }
                                                     }
