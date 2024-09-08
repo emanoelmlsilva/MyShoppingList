@@ -103,7 +103,7 @@ fun ChoicePriceComponent(
         ) {
             RangeSlider(
                 enabled = !enableEditMaxStep,
-                values = sliderPosition,
+                value = sliderPosition,
                 onValueChange = {
                     sliderPosition = it
                     valueMin = sliderPosition.start

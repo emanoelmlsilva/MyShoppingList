@@ -6,14 +6,14 @@ import androidx.room.migration.AutoMigrationSpec
 import com.example.myshoppinglist.database.daos.*
 import com.example.myshoppinglist.database.entities.*
 
-@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 4, exportSchema = true
-//    , autoMigrations = [AutoMigration (
-//    from = 0,
-//    to = 1,
-//    spec = MyShopListDataBase.MyAutoMigration::class
-//)]
+@Database(entities = [User::class, CreditCard::class, Purchase::class, Category::class, ItemList::class], version = 1, exportSchema = true
+    , autoMigrations = [AutoMigration (
+    from = 0,
+    to = 1,
+    spec = MyShopListDataBase.MyAutoMigration::class
+)]
 )
-abstract class MyShopListDataBase : RoomDatabase() {
+abstract class  MyShopListDataBase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun creditCardDao(): CreditCardDAO
@@ -25,7 +25,7 @@ abstract class MyShopListDataBase : RoomDatabase() {
 
     companion object {
         private var instance: MyShopListDataBase? = null
-        val DATABASE_NAME = "MyShopListTest2.db"
+        private const val DATABASE_NAME = "MyShopListTest3.db"
 
         fun getInstance(context: Context): MyShopListDataBase {
 

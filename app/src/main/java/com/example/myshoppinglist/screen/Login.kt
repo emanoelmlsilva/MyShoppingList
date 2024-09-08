@@ -39,6 +39,7 @@ import com.example.myshoppinglist.components.WarningNoConnection
 import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
+import com.example.myshoppinglist.enums.CreateLoginStatus
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.UserService
@@ -233,8 +234,10 @@ fun Login(navController: NavController) {
                                                     object :
                                                         Callback {
                                                         override fun onSuccess() {
-                                                            navController.navigate(Screen.Home.name) {
-                                                                popUpTo(Screen.Home.name) {
+                                                            var route =  if(userDTO.status == CreateLoginStatus.INCOMPLETE) Screen.PagerCreated.name else Screen.Home.name
+
+                                                            navController.navigate(route) {
+                                                                popUpTo(route) {
                                                                     inclusive = false
                                                                 }
                                                             }

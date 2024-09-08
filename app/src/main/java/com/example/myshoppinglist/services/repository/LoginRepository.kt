@@ -17,7 +17,7 @@ class LoginRepository(private val userService: UserService) {
             return@withContext if (userExecute.isSuccessful) {
                 Log.d(
                     LOG,
-                    "success = $userExecute , user ${userExecute.body().toString()}"
+                    "success UPDATE = $userExecute , user ${userExecute.body().toString()}"
                 )
 
                 val userResponse = userExecute.body()

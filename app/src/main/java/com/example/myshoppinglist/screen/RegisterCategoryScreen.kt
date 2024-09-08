@@ -2,12 +2,11 @@ package com.example.myshoppinglist.screen
 
 //import androidx.compose.foundation.lazy.GridCells
 //import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -38,7 +37,7 @@ import com.example.myshoppinglist.utils.AssetsUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterCategoryScreen(
     navController: NavController,
@@ -48,7 +47,7 @@ fun RegisterCategoryScreen(
     val context = LocalContext.current
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val scope = rememberCoroutineScope()
-    val scrollState = rememberLazyListState()
+    val scrollState = rememberLazyGridState()
     var status by remember { mutableStateOf<StatusSaveData?>(null) }
 
     val isErrorName: Boolean by registerCategoryFieldViewModel.isErrorCategory.observeAsState(false)
@@ -187,7 +186,7 @@ fun RegisterCategoryScreen(
                         state = scrollState,
                         modifier = Modifier
                             .padding(start = 13.dp, top = 8.dp),
-                        cells = GridCells.Fixed(8)
+                        columns = GridCells.Fixed(8)
                     ) {
                         iconsCategories!!.forEachIndexed { indexAnimation, iconCategoryAnimation ->
 

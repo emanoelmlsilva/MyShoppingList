@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.components
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.Callback
+import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.ui.theme.text_primary
 

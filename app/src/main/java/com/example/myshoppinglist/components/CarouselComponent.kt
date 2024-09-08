@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.components
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
@@ -24,7 +23,9 @@ import com.google.android.material.animation.AnimationUtils
 import kotlin.math.*
 
 @SuppressLint("RestrictedApi")
-@OptIn(ExperimentalAnimationApi::class, ExperimentalPagerApi::class)
+@OptIn(ExperimentalAnimationApi::class,
+    ExperimentalPagerApi::class
+)
 @Composable
 fun CarouselComponent(
     fieldViewModel: HomeFieldViewModel,

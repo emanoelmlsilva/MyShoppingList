@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +26,7 @@ import com.example.myshoppinglist.database.dtos.UserDTO
 import com.example.myshoppinglist.fieldViewModel.HomeFieldViewModel
 import com.example.myshoppinglist.ui.theme.LatoBold
 import com.example.myshoppinglist.ui.theme.text_secondary
-import com.google.accompanist.pager.ExperimentalPagerApi
 
-@OptIn(ExperimentalComposeUiApi::class)
-@ExperimentalPagerApi
 @ExperimentalAnimationApi
 @Composable
 fun HomeScreen(

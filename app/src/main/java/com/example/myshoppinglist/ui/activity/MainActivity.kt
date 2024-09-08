@@ -27,11 +27,9 @@ import com.example.myshoppinglist.ui.theme.MyShoppingListTheme
 import com.example.myshoppinglist.ui.theme.primary
 import com.example.myshoppinglist.ui.theme.shadow
 import com.example.myshoppinglist.ui.theme.text_primary
-import com.google.accompanist.pager.ExperimentalPagerApi
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
-    @ExperimentalPagerApi
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @ExperimentalComposeUiApi

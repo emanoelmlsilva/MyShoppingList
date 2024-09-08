@@ -1,5 +1,6 @@
 package com.example.myshoppinglist.screen
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -7,8 +8,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -42,6 +45,7 @@ import com.example.myshoppinglist.components.ButtonsFooterContent
 import com.example.myshoppinglist.components.StatusSaveDataComponent
 import com.example.myshoppinglist.components.TextInputComponent
 import com.example.myshoppinglist.database.dtos.UserDTO
+import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.UserViewModelDB
 import com.example.myshoppinglist.enums.Screen
@@ -63,10 +67,13 @@ import io.reactivex.rxjava3.kotlin.toObservable
 fun CreateUserScreen(
     navController: NavController?,
     isUpdate: Boolean? = true,
-    hasToolbar: Boolean? = true
+    hasToolbar: Boolean? = true,
+    buttonsFooter: Boolean? = true,
+    nextPager: ((user: UserDTO) -> Unit)? = null
 ) {
     val TAG = "CREATE_USER_SCREEN"
     val createUserViewModel: CreateUserFieldViewModel = viewModel()
+    val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
     val name: String by createUserViewModel.name.observeAsState("")
     val nickName: String by createUserViewModel.nickName.observeAsState(initial = "")
     val idAvatar: Int by createUserViewModel.idAvatar.observeAsState(0)
@@ -74,7 +81,7 @@ fun CreateUserScreen(
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     val user by createUserViewModel.getUser(context).observeAsState(initial = UserDTO())
     var status by remember { mutableStateOf<StatusSaveData?>(null) }
-    var typeStatus by remember { mutableStateOf(TypeStatus.UPDATE) }
+    val typeStatus by remember { mutableStateOf(TypeStatus.UPDATE) }
 
     val categoryCollections = listOf(
         CategoryDTO(
@@ -149,9 +156,9 @@ fun CreateUserScreen(
 
     LaunchedEffect(Unit) {
 
-        if(isUpdate!!){
-            createUserViewModel.getUser(context).observe(lifecycleOwner){ userDTO ->
-                if(userDTO != null){
+        if (isUpdate!!) {
+            createUserViewModel.getUser(context).observe(lifecycleOwner) { userDTO ->
+                if (userDTO != null) {
                     createUserViewModel.onChangeName(userDTO.name)
                     createUserViewModel.onChangeNickName(userDTO.nickName)
                     createUserViewModel.onChangeIdAvatar(userDTO.idAvatar)
@@ -164,35 +171,39 @@ fun CreateUserScreen(
 
     fun saveUser() {
         if (createUserViewModel.checkFields()) {
-            if (!isUpdate!!) {
-                categoryCollections.toObservable().subscribeBy(onNext = {
-                    categoryController.saveCategory(it, object : CallbackObject<CategoryDTO> {
-                        override fun onSuccess() {
-                        }
-
-                        override fun onFailed(messageError: String) {
-
-                        }
-
-                        override fun onChangeStatus(newStatus: StatusSaveData) {
-                            status = newStatus
-                        }
-                    })
-                }, onError = { throwable -> {} }, onComplete = {})
-
-            }else{
-                status = StatusSaveData.WAITING
-            }
-
             user!!.name = name.trim()
             user!!.nickName = nickName.trim()
             user!!.idAvatar = idAvatar
 
-            loginViewModel.updateUser(user!!, callback)
+            if (nextPager != null) {
+                nextPager(user)
+            } else {
+                if (!isUpdate!!) {
+                    categoryCollections.toObservable().subscribeBy(onNext = {
+                        categoryController.saveCategory(it, object : CallbackObject<CategoryDTO> {
+                            override fun onSuccess() {
+                            }
+
+                            override fun onFailed(messageError: String) {
+
+                            }
+
+                            override fun onChangeStatus(newStatus: StatusSaveData) {
+                                status = newStatus
+                            }
+                        })
+                    }, onError = { throwable -> {} }, onComplete = {})
+
+                } else {
+                    status = StatusSaveData.WAITING
+                }
+
+                loginViewModel.updateUser(user!!, callback)
+            }
         }
     }
 
-    fun popBackStack(){
+    fun popBackStack() {
         navController?.navigate("${Screen.SettingsScreen.name}?idAvatar=${idAvatar}?nickName=${nickName}")
         {
             popUpTo(Screen.CreateUser.name) { inclusive = true }
@@ -200,7 +211,12 @@ fun CreateUserScreen(
     }
 
     BackHandler {
-        popBackStack()
+        if(isUpdate!!){
+            popBackStack()
+        } else {
+            navController?.popBackStack()
+        }
+
     }
 
     TopAppBarScreen(
@@ -211,17 +227,24 @@ fun CreateUserScreen(
         onClickIcon = {
             popBackStack()
         },
+        modifier = Modifier.background(card_green),
         onClickIconDone = { saveUser() },
         content = {
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(start = 28.dp, end = 28.dp, top = 16.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxHeight().fillMaxWidth()
+                    .padding(start = 28.dp, end = 28.dp, top = 32.dp),
+                verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                status?.let { StatusSaveDataComponent(visibility = true, status = it, statusMain = typeStatus.getRawStatus()) }
+                if (status != null && isUpdate!!) {
+                    StatusSaveDataComponent(
+                        visibility = true,
+                        status = status!!,
+                        statusMain = typeStatus.getRawStatus()
+                    )
+                }
 
                 Column(modifier = Modifier) {
                     if (!hasToolbar!!) {
@@ -236,10 +259,10 @@ fun CreateUserScreen(
                     })
                 }
 
-                if (!hasToolbar!!) {
+                if (buttonsFooter!!) {
+
                     ButtonsFooterContent(
                         btnTextAccept = "PROXIMO",
-                        iconAccept = Icons.Filled.ArrowForward,
                         onClickAccept = {
                             saveUser()
                         })
@@ -402,7 +425,8 @@ fun TextFieldContent(createUserViewModel: CreateUserFieldViewModel, callback: Ca
         Modifier
             .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TextInputComponent(modifier = Modifier .fillMaxWidth()
+        TextInputComponent(modifier = Modifier
+            .fillMaxWidth()
             .padding(top = 16.dp),
             value = name,
             label = "Nome",

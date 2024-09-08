@@ -32,12 +32,10 @@ import com.example.myshoppinglist.model.ObjectFilter
 import com.example.myshoppinglist.screen.*
 import com.example.myshoppinglist.ui.theme.secondary
 import com.example.myshoppinglist.utils.ConversionUtils
-import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.delay
 
 @SuppressLint("FlowOperatorInvokedInComposition", "StateFlowValueCalledInComposition")
 @RequiresApi(Build.VERSION_CODES.N)
-@ExperimentalPagerApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
@@ -83,6 +81,9 @@ fun NavController(
     }
 
     NavHost(navController = navHostController, startDestination = routeInitial) {
+        composable(Screen.PagerCreated.name) { navBackStack ->
+            PagerCreatedScreen(navHostController)
+        }
         composable(Screen.CreateUser.name) { navBackStack ->
 
             var arguments = navHostController.previousBackStackEntry?.arguments

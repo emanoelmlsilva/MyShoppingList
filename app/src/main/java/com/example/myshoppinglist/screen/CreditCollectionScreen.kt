@@ -1,6 +1,9 @@
 package com.example.myshoppinglist.screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
@@ -19,12 +22,8 @@ import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.fieldViewModel.BaseFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreateCardCreditFieldViewModel
 import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
-import com.example.myshoppinglist.utils.FormatDateUtils
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 
-@ExperimentalPagerApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CreditCollectionScreen(navController: NavController?) {
     val createCardCreditViewModel: CreateCardCreditFieldViewModel = viewModel()
@@ -34,7 +33,7 @@ fun CreditCollectionScreen(navController: NavController?) {
     val creditCardCollectionFieldViewModel = CreditCollectionFieldViewModel()
     val creditCardDTOCollection =
         creditCardCollectionFieldViewModel.creditCardCollection.observeAsState(initial = listOf<CreditCardDTODB>()).value
-    val pagerState = rememberPagerState()
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { creditCardDTOCollection.size })
 
     LaunchedEffect(Unit) {
         creditCardViewModel.getAllWithSum()
@@ -44,7 +43,7 @@ fun CreditCollectionScreen(navController: NavController?) {
         Column(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pagerState, contentPadding = PaddingValues(start = 26.dp, end = 14.dp),
-                count = creditCardDTOCollection.size, modifier = Modifier.fillMaxHeight(.25f)
+                modifier = Modifier.fillMaxHeight(.25f)
             ) { page ->
                 val card = creditCardDTOCollection[page]
 
