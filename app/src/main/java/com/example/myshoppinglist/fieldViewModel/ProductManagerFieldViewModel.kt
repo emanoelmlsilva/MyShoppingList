@@ -121,9 +121,9 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
             argumentsQuery += " ${SintaxQueryUtils.AND} purchases.purchaseCardId = credit_cards.myShoppingId "
         }
 
-        if (objectFilter.idCard <= 0) {
+        if (objectFilter.idCard <= 0 && objectFilter.month.isNotBlank()) {
             val monthAndYearNumber =
-                FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
+                if(objectFilter.month.isNotBlank()) objectFilter.month else FormatDateUtils().getMonthAndYearNumber(FormatDateUtils().getNameMonth((Date().month + 1).toString()))
 
             argumentsQuery += "${if (argumentsQuery.isNotEmpty()) " ${SintaxQueryUtils.AND} " else " "} date ${SintaxQueryUtils.LIKE} '%' || '$monthAndYearNumber' || '%' "
         } else if (objectFilter.month.isNotBlank()) {
