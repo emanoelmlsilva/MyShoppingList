@@ -130,4 +130,8 @@ class PurchaseRepository(private val purchaseDAO: PurchaseDAO) {
     fun getPurchasesSearchSum(query: SupportSQLiteQuery): Flow<Double?> {
         return purchaseDAO.getPurchasesSearchSum(query)
     }
+
+    fun getPurchaseAllWithRepeatByIdCard(idCard: Long): LiveData<List<Purchase>> {
+        return purchaseDAO.getPurchaseAllWithRepeatByIdCard(idCard, email)
+    }
 }

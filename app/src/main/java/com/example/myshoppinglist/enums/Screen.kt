@@ -19,7 +19,8 @@ enum class Screen(val drawable: Int, val id: Int) {
     ChoiceLogin(R.drawable.default_avatar, 12),
     Login(R.drawable.default_avatar, 13),
     Register(R.drawable.default_avatar, 14),
-    PagerCreated(R.drawable.default_avatar, 15);
+    PagerCreated(R.drawable.default_avatar, 15),
+    RepeatPurchase(R.drawable.default_avatar, 16);
 
     companion object {
 
@@ -27,4 +28,4 @@ enum class Screen(val drawable: Int, val id: Int) {
             return name == Home.name || name == ProductsManager.name || name == Categories.name
         }
     }
-    }
+}

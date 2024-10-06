@@ -2,14 +2,17 @@ package com.example.myshoppinglist.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.EventRepeat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -52,19 +55,40 @@ fun BoxPurchaseSpendingComponent(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconCategoryComponent(
-                iconCategory = AssetsUtils.readIconBitmapById(context, category.idImage)!!
-                    .asImageBitmap(),
-                size = 46.dp,
-                colorIcon = Color(category.color),
-                enabledBackground = true,
-                enableClick = true,
-                callback = object : Callback {
-                    override fun onClick() {
-                        callback.onClick()
+            Box() {
+                IconCategoryComponent(
+                    iconCategory = AssetsUtils.readIconBitmapById(context, category.idImage)!!
+                        .asImageBitmap(),
+                    size = 46.dp,
+                    colorIcon = Color(category.color),
+                    enabledBackground = true,
+                    enableClick = true,
+                    callback = object : Callback {
+                        override fun onClick() {
+                            callback.onClick()
+                        }
+                    }
+                )
+
+                if (purchase.isRepeat) {
+                    Card(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clip(CircleShape),
+                        backgroundColor = text_primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.EventRepeat,
+                            contentDescription = null,
+                            tint = text_secondary_light,
+                            modifier = Modifier
+                                .padding(4.dp)
+                        )
                     }
                 }
-            )
+
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,7 +175,7 @@ fun BoxPurchaseSpendingComponent(
                         }
                     }
                     Text(
-                        text = "${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                        text = "${purchase.amountOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                         color = text_title_secondary, modifier = Modifier
                             .padding(top = 8.dp), fontSize = 14.sp, textAlign = TextAlign.End
                     )

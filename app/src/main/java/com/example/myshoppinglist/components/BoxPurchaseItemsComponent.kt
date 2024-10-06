@@ -5,16 +5,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.EventRepeat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -119,7 +122,8 @@ fun BoxPurchaseItemsComponent(
             ) {
                 itemsIndexed(purchaseInfo.purchaseCollection) { index, purchaseAndCategory ->
                     val purchase = purchaseAndCategory.purchaseDTO
-                    val hasAmount = purchase.typeProduct == TypeProduct.QUANTITY && purchase.quantiOrKilo.toInt() > 1
+                    val hasAmount =
+                        purchase.typeProduct == TypeProduct.QUANTITY && purchase.amountOrKilo.toInt() > 1
 
                     Column(
                         modifier = Modifier
@@ -129,123 +133,147 @@ fun BoxPurchaseItemsComponent(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(.9f)
-                                .padding(top = 6.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                            ) {
-                                Text(
-                                    fontFamily = LatoRegular,
-                                    text = purchase.locale, modifier = Modifier
-                                        .padding(start = 12.dp),
-                                    textAlign = TextAlign.Start
-                                )
-
-                                Column(horizontalAlignment = Alignment.End) {
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.End,
-                                        verticalAlignment = Alignment.Bottom,
+                        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                            if (purchase.isRepeat) {
+                                Column(Modifier.padding(end = 14.dp),){
+                                    Card(
                                         modifier = Modifier
-                                            .fillMaxWidth(.75f)
+                                            .size(16.dp)
+                                            .clip(CircleShape),
+                                        backgroundColor = text_primary
                                     ) {
-                                        Text(
-                                            fontFamily = LatoRegular,
-                                            fontSize = 12.sp,
-                                            text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
-                                        )
-
-                                        Text(
-                                            fontFamily = LatoRegular,
-                                            fontSize = 12.sp,
-                                            text = "R$ ${
-                                                purchaseAndCategory.priceFormat
-                                            }",
+                                        Icon(
+                                            imageVector = Icons.Outlined.EventRepeat,
+                                            contentDescription = null,
+                                            tint = text_secondary_light,
                                             modifier = Modifier
-                                                .padding(start = 12.dp),
+                                                .padding(4.dp)
                                         )
                                     }
+                                }
 
-                                    if (purchase.discount > 0) {
+                            }
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(if (purchase.isRepeat) .99f else .9f)
+                                    .padding(top = 6.dp)
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                ) {
+
+                                    Text(
+                                        fontFamily = LatoRegular,
+                                        text = purchase.locale, modifier = Modifier
+                                            .padding(start = 12.dp),
+                                        textAlign = TextAlign.Start
+                                    )
+
+                                    Column(horizontalAlignment = Alignment.End) {
+
                                         Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.End,
+                                            verticalAlignment = Alignment.Bottom,
                                             modifier = Modifier
                                                 .fillMaxWidth(.75f)
-                                                .padding(top = 8.dp)
                                         ) {
                                             Text(
                                                 fontFamily = LatoRegular,
-                                                text = "desconto", modifier = Modifier
-                                                    .padding(start = 16.dp),
-                                                textAlign = TextAlign.Start,
-                                                fontSize = 12.sp
+                                                fontSize = 12.sp,
+                                                text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.amountOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
                                             )
+
+                                            Text(
+                                                fontFamily = LatoRegular,
+                                                fontSize = 12.sp,
+                                                text = "R$ ${
+                                                    purchaseAndCategory.priceFormat
+                                                }",
+                                                modifier = Modifier
+                                                    .padding(start = 12.dp),
+                                            )
+                                        }
+
+                                        if (purchase.discount > 0) {
                                             Row(
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.Bottom,
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .fillMaxWidth(.75f)
+                                                    .padding(top = 8.dp)
                                             ) {
                                                 Text(
                                                     fontFamily = LatoRegular,
-                                                    fontSize = 12.sp,
-                                                    text = "R$ -${
-                                                        purchaseAndCategory.discountFormat
-                                                    }"
+                                                    text = "desconto", modifier = Modifier
+                                                        .padding(start = 16.dp),
+                                                    textAlign = TextAlign.Start,
+                                                    fontSize = 12.sp
                                                 )
-                                                Text(
-                                                    fontFamily = LatoRegular,
-                                                    fontSize = 12.sp,
-                                                    text = "R$ ${
-                                                        purchaseAndCategory.totalWithoutDiscountFormat
-                                                    }",
-                                                    modifier = Modifier
-                                                        .padding(start = 12.dp),
-                                                )
-                                            }
-                                        }
-                                    } else if (hasAmount) {
-                                        Text(
-                                            fontFamily = LatoRegular,
-                                            fontSize = 12.sp,
-                                            text = "R$ ${
-                                                MaskUtils.maskValue(
-                                                    MaskUtils.convertValueDoubleToString(
-                                                        (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.quantiOrKilo.toInt() * purchase.price) else purchase.price)
+                                                Row(
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    verticalAlignment = Alignment.Bottom,
+                                                ) {
+                                                    Text(
+                                                        fontFamily = LatoRegular,
+                                                        fontSize = 12.sp,
+                                                        text = "R$ -${
+                                                            purchaseAndCategory.discountFormat
+                                                        }"
                                                     )
-                                                )
-                                            }",
-                                            modifier = Modifier
-                                                .padding(start = 12.dp, top = 8.dp),
-                                        )
+                                                    Text(
+                                                        fontFamily = LatoRegular,
+                                                        fontSize = 12.sp,
+                                                        text = "R$ ${
+                                                            purchaseAndCategory.totalWithoutDiscountFormat
+                                                        }",
+                                                        modifier = Modifier
+                                                            .padding(start = 12.dp),
+                                                    )
+                                                }
+                                            }
+                                        } else if (hasAmount) {
+                                            Text(
+                                                fontFamily = LatoRegular,
+                                                fontSize = 12.sp,
+                                                text = "R$ ${
+                                                    MaskUtils.maskValue(
+                                                        MaskUtils.convertValueDoubleToString(
+                                                            (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.amountOrKilo.toInt() * purchase.price) else purchase.price)
+                                                        )
+                                                    )
+                                                }",
+                                                modifier = Modifier
+                                                    .padding(start = 12.dp, top = 8.dp),
+                                            )
+                                        }
+
                                     }
 
+                                    Text(
+                                        text = purchaseAndCategory.dateFormat,
+                                        fontFamily = LatoBlack,
+                                        fontSize = 12.sp,
+                                        color = text_primary_light,
+                                        modifier = Modifier
+                                            .padding(start = 12.dp)
+                                    )
+
                                 }
-
-                                Text(
-                                    text = purchaseAndCategory.dateFormat,
-                                    fontFamily = LatoBlack,
-                                    fontSize = 12.sp,
-                                    color = text_primary_light,
+                                Divider(
+                                    color = divider_ligth,
                                     modifier = Modifier
-                                        .padding(start = 12.dp)
+                                        .fillMaxWidth()
+                                        .height(1.dp)
                                 )
-
                             }
-                            Divider(
-                                color = divider_ligth,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(1.dp)
-                            )
                         }
                     }
+
                 }
             }
             item {

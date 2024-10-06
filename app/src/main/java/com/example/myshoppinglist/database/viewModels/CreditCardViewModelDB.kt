@@ -52,4 +52,8 @@ class CreditCardViewModelDB(context: Context, lifecycleOwner: LifecycleOwner): V
     fun getAutoIncrement(): Int{
         return repository.getAutoIncrement()
     }
+
+    fun getCardCreditByName(name: String): LiveData<CreditCard> {
+        return repository.getCardCreditByName(email, name)
+    }
 }

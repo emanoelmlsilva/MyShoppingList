@@ -2,7 +2,6 @@ package com.example.myshoppinglist.screen
 
 import DialogRecoveryItemList
 import DialogRegisterItemList
-import android.app.Activity
 import android.content.Context
 import android.os.Parcelable
 import androidx.activity.compose.BackHandler
@@ -16,9 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,35 +26,29 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.myshoppinglist.R
 import com.example.myshoppinglist.callback.*
 import com.example.myshoppinglist.components.*
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
-import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.enums.FilterFabState
 import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.fieldViewModel.MarketItemFieldViewModel
-import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
 import com.example.myshoppinglist.model.LocationAndDate
 import com.example.myshoppinglist.services.controller.ItemListController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
-import com.example.myshoppinglist.services.dtos.PurchaseDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTOService
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.*
-import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 @Composable
@@ -170,7 +160,7 @@ fun MakingMarketScreen(
                         email,
                         MaskUtils.convertValueStringToDouble(it.discount.toString())
                     )
-                    PurchaseDTO(
+                    PurchaseDTOService(
                         purchase,
                         category.toCategory(),
                         itemList.creditCardDTO.toCreditCard()

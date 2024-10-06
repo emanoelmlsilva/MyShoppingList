@@ -1,11 +1,8 @@
 package com.example.myshoppinglist.fieldViewModel
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.dtos.CreditCardDTODB
@@ -22,7 +19,6 @@ import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.utils.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -184,7 +180,7 @@ class ProductManagerFieldViewModel(context: Context, lifecycleOwner: LifecycleOw
         viewModelScope.launch(Dispatchers.Main) {
             var auxCount = 0
             purchaseMountItem.collect {
-                it.forEach { it.purchaseCollection.forEach { item -> auxCount += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt() } }
+                it.forEach { it.purchaseCollection.forEach { item -> auxCount += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.amountOrKilo.toInt() } }
                 quantityPurchases.value = if (auxCount > 100) auxCount.toString() else if (auxCount < 10) "00${auxCount}" else "0${auxCount}"
                 onChangePurchaseInfoCollection(it)
             }
@@ -261,7 +257,7 @@ private fun mountItemPurchase(purchaseCollection: List<PurchaseAndCategory>): Li
                 }
 
                 val valueSum =
-                    purchaseMultCollection.sumOf { if (it.purchase.discount > 0) it.purchase.price - it.purchase.discount else it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.quantiOrKilo.toInt() else 1 }
+                    purchaseMultCollection.sumOf { if (it.purchase.discount > 0) it.purchase.price - it.purchase.discount else it.purchase.price * if (it.purchase.typeProduct == TypeProduct.QUANTITY) it.purchase.amountOrKilo.toInt() else 1 }
 
                 val purchaseInfo = PurchaseInfo(
                     purchase.name,

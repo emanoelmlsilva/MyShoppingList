@@ -36,7 +36,7 @@ import com.example.myshoppinglist.model.PurchaseAndCategoryInfo
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
-import com.example.myshoppinglist.services.dtos.PurchaseDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTOService
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.ConversionUtils
 import com.example.myshoppinglist.utils.FormatDateUtils
@@ -272,7 +272,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         .width(20.dp)
                                 )
 
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                     Card(modifier = Modifier
                                         .size(62.dp)
                                         .clip(CircleShape),
@@ -284,7 +284,7 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                             }
                                         }) {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.list_view),
+                                            painter = painterResource(id = R.drawable.ic_outline_list_alt_24),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(ButtonDefaults.IconSize)
@@ -292,7 +292,40 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
                                         )
                                     }
                                     Text(
-                                        text = "Lista Mercado",
+                                        text = "Lista\nMercado",
+                                        fontFamily = LatoBlack,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+
+                                Spacer(
+                                    Modifier
+                                        .width(20.dp)
+                                )
+
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    Card(modifier = Modifier
+                                        .size(62.dp)
+                                        .clip(CircleShape),
+                                        backgroundColor = background_card,
+                                        onClick = {
+                                            scope.launch {
+                                                delay(50L)
+                                                navController?.popBackStack()
+                                                navController?.navigate("${Screen.RepeatPurchase.name}?idCard=${currentCreditCard?.myShoppingId ?: idCard}")
+                                            }
+                                        }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_outline_repeat_24),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(ButtonDefaults.IconSize)
+                                                .padding(18.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = "Compras\nRepetidas",
                                         fontFamily = LatoBlack,
                                         fontSize = 16.sp,
                                         modifier = Modifier.padding(top = 4.dp)
@@ -335,13 +368,13 @@ fun SpendingScreen(navController: NavHostController?, idCard: Long) {
 
                                             purchase.purchaseCardId = idCardCurrent
 
-                                            val purchaseDTO = PurchaseDTO(
+                                            val purchaseDTOService = PurchaseDTOService(
                                                 purchase, category!!,
                                                 creditCard!!
                                             )
 
                                             purchaseController.updatePurchase(true,
-                                                purchaseDTO,
+                                                purchaseDTOService,
                                                 callback
                                             )
 

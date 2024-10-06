@@ -7,15 +7,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import com.example.myshoppinglist.callback.Callback
 import com.example.myshoppinglist.callback.CallbackObject
+import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.dtos.UserDTO
+import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
+import com.example.myshoppinglist.database.viewModels.CategoryViewModelDB
+import com.example.myshoppinglist.database.viewModels.CreditCardViewModelDB
 import com.example.myshoppinglist.database.viewModels.PurchaseViewModelDB
 import com.example.myshoppinglist.enums.StatusSaveData
 import com.example.myshoppinglist.model.UserInstanceImpl
 import com.example.myshoppinglist.services.PurchaseService
-import com.example.myshoppinglist.services.dtos.PurchaseDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTOService
 import com.example.myshoppinglist.services.repository.PurchaseRepository
 import com.example.myshoppinglist.services.viewModel.PurchaseViewModel
 import io.reactivex.rxjava3.core.Observable
@@ -26,16 +30,18 @@ class PurchaseController {
 
     companion object {
         private lateinit var purchaseViewModel: PurchaseViewModel
-        private val email = UserLoggedShared.getEmailUserCurrent()
         private lateinit var lifecycleOwner: LifecycleOwner
         private lateinit var userDTO: UserDTO
         private val TAG = "PurchaseController"
 
         fun getData(context: Context, mLifecycleOwner: LifecycleOwner): PurchaseController {
+            val email = UserLoggedShared.getEmailUserCurrent()
             lifecycleOwner = mLifecycleOwner
             purchaseViewModel = PurchaseViewModel(
                 PurchaseRepository(PurchaseService.getPurchaseService()),
-                PurchaseViewModelDB(context)
+                PurchaseViewModelDB(context),
+                CategoryViewModelDB(context, lifecycleOwner),
+                CreditCardViewModelDB(context, lifecycleOwner)
             )
 
             lifecycleOwner.lifecycleScope.launch {
@@ -89,7 +95,7 @@ class PurchaseController {
         return purchaseViewModel.getPurchasesSumOfSearchDB(arguments)
     }
 
-    fun savePurchases(purchaseCollection: List<PurchaseDTO>, callback: Callback) {
+    fun savePurchases(purchaseCollection: List<PurchaseDTOService>, callback: Callback) {
             val indexObservable = Observable.range(0, purchaseCollection.size)
 
             Observable.fromIterable(purchaseCollection)
@@ -100,7 +106,7 @@ class PurchaseController {
                     purchaseDTO.category.userDTO = userDTO
                     purchaseDTO.creditCard.userDTO = userDTO
 
-                    purchaseViewModel.save(purchaseDTO, object : CallbackObject<PurchaseDTO> {
+                    purchaseViewModel.save(purchaseDTO, object : CallbackObject<PurchaseDTOService> {
                         override fun onSuccess() {
                             Log.d(TAG, "saveItemList - onSuccess")
                             if (index == purchaseCollection.size - 1) {
@@ -132,11 +138,11 @@ class PurchaseController {
                 }
     }
 
-    fun updatePurchase(isTransfer: Boolean = false, purchaseDTO: PurchaseDTO, callback: Callback) {
-            purchaseDTO.category.userDTO = userDTO
-            purchaseDTO.creditCard.userDTO = userDTO
+    fun updatePurchase(isTransfer: Boolean = false, purchaseDTOService: PurchaseDTOService, callback: Callback) {
+            purchaseDTOService.category.userDTO = userDTO
+            purchaseDTOService.creditCard.userDTO = userDTO
 
-            purchaseViewModel.update(isTransfer, purchaseDTO, object : CallbackObject<PurchaseDTO> {
+            purchaseViewModel.update(isTransfer, purchaseDTOService, object : CallbackObject<PurchaseDTOService> {
                 override fun onSuccess() {
                     Log.d(TAG, "updatePurchase - onSuccess")
                     callback.onSuccess()
@@ -167,8 +173,8 @@ class PurchaseController {
     fun savePurchaseAll(idCard: Long, callback: Callback) {
         purchaseViewModel.findAndSaveAllPurchase(
             idCard,
-            object : CallbackObject<List<PurchaseDTO>> {
-                override fun onSuccess(purchaseCollection: List<PurchaseDTO>) {
+            object : CallbackObject<List<PurchaseDTOService>> {
+                override fun onSuccess(purchaseCollection: List<PurchaseDTOService>) {
                     Log.d(TAG, "savePurchaseAll - onSuccess ${purchaseCollection.size}")
                 }
 
@@ -203,6 +209,42 @@ class PurchaseController {
 
             override fun onChangeStatus(status: StatusSaveData) {
                 Log.d(TAG, "delete Purchase By Id - onChangeStatus")
+                callback.onChangeStatus(status)
+            }
+        })
+    }
+
+    fun getPurchaseRepeatHabilitated(creditCardList: List<CreditCard>, callback: Callback) {
+        purchaseViewModel.getPurchaseRepeatHabilitated(creditCardList, callback)
+    }
+
+    fun removeRepeatPurchase(purchaseDTO: PurchaseDTO, callback: Callback){
+
+        callback.onChangeStatus(StatusSaveData.WAITING)
+
+        purchaseViewModel.removeRepeatPurchase(purchaseDTO, object : CallbackObject<PurchaseDTOService> {
+            override fun onSuccess() {
+                Log.d(TAG, "removeRepeatPurchase - onSuccess")
+                callback.onSuccess()
+            }
+
+            override fun onFailed(messageError: String) {
+                Log.d(TAG, "removeRepeatPurchase - onFailed")
+                callback.onFailed(messageError)
+            }
+
+            override fun onChangeValue(newValue: String) {
+                Log.d(TAG, "removeRepeatPurchase - onFailed")
+                callback.onChangeValue(newValue)
+            }
+
+            override fun onChangeValue(newValue: Boolean) {
+                Log.d(TAG, "removeRepeatPurchase - onChangeValue")
+                callback.onChangeValue(newValue)
+            }
+
+            override fun onChangeStatus(status: StatusSaveData) {
+                Log.d(TAG, "removeRepeatPurchase - onChangeStatus")
                 callback.onChangeStatus(status)
             }
         })

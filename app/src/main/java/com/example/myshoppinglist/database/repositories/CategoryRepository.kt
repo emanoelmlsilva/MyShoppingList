@@ -39,5 +39,8 @@ class CategoryRepository(private val categoryDAO: CategoryDAO) {
        return categoryDAO.getAll(email)
     }
 
+    fun getCategoryByName(nameCard: String): Category{
+        return categoryDAO.getCategoryByName(email, nameCard)
+    }
 
 }

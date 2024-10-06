@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.components
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,13 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +21,6 @@ import com.example.myshoppinglist.callback.CallbackSwipe
 import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
-import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.MaskUtils
@@ -119,8 +111,8 @@ fun BoxProductRegisterComponent(
                                                         fontSize = 12.sp,
                                                         text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${
                                                             if (purchase.typeProduct == TypeProduct.QUANTITY) MaskUtils.replaceAll(
-                                                                purchase.quantiOrKilo
-                                                            ).toInt() else purchase.quantiOrKilo
+                                                                purchase.amountOrKilo
+                                                            ).toInt() else purchase.amountOrKilo
                                                         } ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}"
                                                     )
                                                     Text(
@@ -172,7 +164,7 @@ fun BoxProductRegisterComponent(
                                                             text = "R$ ${
                                                                 MaskUtils.maskValue(
                                                                     MaskUtils.convertValueDoubleToString(
-                                                                        (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.quantiOrKilo.toInt() * purchase.price) else purchase.price) - purchase.discount
+                                                                        (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.amountOrKilo.toInt() * purchase.price) else purchase.price) - purchase.discount
                                                                     )
                                                                 )
                                                             }",
@@ -181,13 +173,13 @@ fun BoxProductRegisterComponent(
                                                         )
                                                     }
                                                 }
-                                            } else if (purchase.typeProduct == TypeProduct.QUANTITY && purchase.quantiOrKilo.toInt() > 1) {
+                                            } else if (purchase.typeProduct == TypeProduct.QUANTITY && purchase.amountOrKilo.toInt() > 1) {
                                                 Text(
                                                     fontFamily = LatoBold,
                                                     text = "R$ ${
                                                         MaskUtils.maskValue(
                                                             MaskUtils.convertValueDoubleToString(
-                                                                (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.quantiOrKilo.toInt() * purchase.price) else purchase.price)
+                                                                (if (purchase.typeProduct == TypeProduct.QUANTITY) (purchase.amountOrKilo.toInt() * purchase.price) else purchase.price)
                                                             )
                                                         )
                                                     }",

@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myshoppinglist.database.dtos.PurchaseDTO
+import com.example.myshoppinglist.enums.TypeFrequencyRepeat
 import com.example.myshoppinglist.enums.TypeProduct
 import com.google.gson.annotations.SerializedName
 
@@ -14,7 +15,7 @@ class Purchase {
     @ColumnInfo(name = "myShoppingIdPurchase")
     var myShoppingId: Long = 0
 
-    @SerializedName("idMyShoppingApi")
+    @SerializedName("idPurchaseApi")
     @ColumnInfo(name = "idPurchaseApi")
     var idPurchaseApi: Long = 0
 
@@ -27,10 +28,10 @@ class Purchase {
     @ColumnInfo(name = "purchaseCardId")
     var purchaseCardId: Long = 0
 
-    @ColumnInfo(name = "quantiOrKilo")
-    var quantiOrKilo: String = ""
+    @ColumnInfo(name = "amount_or_kilo")
+    var amountOrKilo: String = ""
 
-    @ColumnInfo(name = "typeProduct")
+    @ColumnInfo(name = "type_product")
     var typeProduct: TypeProduct = TypeProduct.QUANTITY
 
     @ColumnInfo(name = "date")
@@ -50,6 +51,17 @@ class Purchase {
 
     @ColumnInfo(name = "isSynchronized")
     var isSynchronized: Boolean = false
+
+    @ColumnInfo(name = "is_repeat")
+    var isRepeat: Boolean = false
+
+    @ColumnInfo(name = "date_repeat")
+    var dateRepeat: String = ""
+
+    @ColumnInfo(name = "frequency_repeat")
+    var frequencyRepeat: TypeFrequencyRepeat = TypeFrequencyRepeat.NEVER
+
+    var idOriginal: Long = 0
 
     constructor(name: String) {
         this.name = name
@@ -72,7 +84,7 @@ class Purchase {
         this.name = name
         this.locale = locale
         this.purchaseCardId = purchaseCardId
-        this.quantiOrKilo = quantiOrKilo
+        this.amountOrKilo = quantiOrKilo
         this.typeProduct = typeProduct
         this.date = date
         this.price = price
@@ -122,7 +134,7 @@ class Purchase {
         this.name = name
         this.locale = locale
         this.purchaseCardId = purchaseCardId
-        this.quantiOrKilo = quantiOrKilo
+        this.amountOrKilo = quantiOrKilo
         this.typeProduct = typeProduct
         this.date = date
         this.price = price
@@ -173,6 +185,78 @@ class Purchase {
         categoryOwnerId: Long,
         purchaseUserId: String,
         discount: Double,
+        isRepeat: Boolean,
+        dateRepeat: String,
+        frequencyRepeat: TypeFrequencyRepeat
+    ) : this(
+        idMyShoppingApi,
+        myShoppingId,
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId,
+        discount
+    ) {
+        this.isRepeat = isRepeat
+        this.dateRepeat = dateRepeat
+        this.frequencyRepeat = frequencyRepeat
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        myShoppingId: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double,
+        isRepeat: Boolean,
+        dateRepeat: String,
+        frequencyRepeat: TypeFrequencyRepeat,
+        isSynchronized: Boolean
+        ) : this(
+        idMyShoppingApi,
+        myShoppingId,
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId,
+        discount
+    ) {
+        this.isRepeat = isRepeat
+        this.dateRepeat = dateRepeat
+        this.frequencyRepeat = frequencyRepeat
+        this.isSynchronized = isSynchronized
+    }
+
+    constructor(
+        idMyShoppingApi: Long,
+        myShoppingId: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double,
         isSynchronized: Boolean
     ) : this(
         idMyShoppingApi,
@@ -191,8 +275,76 @@ class Purchase {
         this.isSynchronized = isSynchronized
     }
 
+    constructor(
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double,
+        isRepeat: Boolean,
+        dateRepeat: String,
+        frequencyRepeat: TypeFrequencyRepeat
+    ) : this(
+        name,
+        locale,
+        purchaseCardId,
+        quantiOrKilo,
+        typeProduct,
+        date,
+        price,
+        categoryOwnerId,
+        purchaseUserId,
+        discount
+    ) {
+        this.isRepeat = isRepeat
+        this.dateRepeat = dateRepeat
+        this.frequencyRepeat = frequencyRepeat
+    }
+
+    constructor(
+        myShoppingId: Long,
+        idPurchaseApi: Long,
+        name: String,
+        locale: String,
+        purchaseCardId: Long,
+        quantiOrKilo: String,
+        typeProduct: TypeProduct,
+        date: String,
+        price: Double,
+        categoryOwnerId: Long,
+        purchaseUserId: String,
+        discount: Double,
+        isSynchronized: Boolean,
+        isRepeat: Boolean,
+        dateRepeat: String,
+        frequencyRepeat: TypeFrequencyRepeat
+    ) {
+        this.myShoppingId = myShoppingId
+        this.idPurchaseApi = idPurchaseApi
+        this.name = name
+        this.locale = locale
+        this.purchaseCardId = purchaseCardId
+        this.amountOrKilo = quantiOrKilo
+        this.typeProduct = typeProduct
+        this.date = date
+        this.price = price
+        this.categoryOwnerId = categoryOwnerId
+        this.purchaseUserId = purchaseUserId
+        this.discount = discount
+        this.isSynchronized = isSynchronized
+        this.isRepeat = isRepeat
+        this.dateRepeat = dateRepeat
+        this.frequencyRepeat = frequencyRepeat
+    }
+
+
     override fun toString(): String {
-        return "Purchase(myShoppingId=$myShoppingId, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, quantiOrKilo='$quantiOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
+        return "Purchase(myShoppingId=$myShoppingId, name='$name', locale='$locale', purchaseCardId=$purchaseCardId, amountOrKilo='$amountOrKilo', typeProduct=$typeProduct, date=$date, price=$price, categoryOwnerId=$categoryOwnerId)"
     }
 
     fun toDTO(purchaseDTO: PurchaseDTO) {
@@ -201,12 +353,17 @@ class Purchase {
         this.name = purchaseDTO.name
         this.locale = purchaseDTO.locale
         this.purchaseCardId = purchaseDTO.purchaseCardId
-        this.quantiOrKilo = purchaseDTO.quantiOrKilo
+        this.amountOrKilo = purchaseDTO.amountOrKilo
         this.typeProduct = purchaseDTO.typeProduct
         this.date = purchaseDTO.date
         this.price = purchaseDTO.price
         this.categoryOwnerId = purchaseDTO.categoryOwnerId
         this.purchaseUserId = purchaseDTO.purchaseUserId
         this.discount = purchaseDTO.discount
+        this.isSynchronized = purchaseDTO.isSynchronized
+        this.isRepeat = purchaseDTO.isRepeat
+        this.dateRepeat = purchaseDTO.dateRepeat
+        this.frequencyRepeat = purchaseDTO.frequencyRepeat
+        this.isSynchronized = purchaseDTO.isSynchronized
     }
 }

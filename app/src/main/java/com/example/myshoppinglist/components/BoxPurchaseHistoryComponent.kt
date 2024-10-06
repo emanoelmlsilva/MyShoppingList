@@ -3,25 +3,32 @@ package com.example.myshoppinglist.components
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.EventRepeat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myshoppinglist.R
 import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
+import com.example.myshoppinglist.enums.Screen
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.ui.theme.LatoBlack
-import com.example.myshoppinglist.ui.theme.LatoRegular
-import com.example.myshoppinglist.ui.theme.text_primary_light
-import com.example.myshoppinglist.ui.theme.text_title_secondary
+import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalAnimationApi
 @Composable
 fun BoxPurchaseHistoryComponent(
@@ -48,17 +55,38 @@ fun BoxPurchaseHistoryComponent(
                             .padding(vertical = 16.dp),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        IconCategoryComponent(
-                            modifier = Modifier.padding(start = 6.dp),
-                            iconCategory = AssetsUtils.readIconBitmapById(
-                                context,
-                                category.idImage
-                            )!!
-                                .asImageBitmap(),
-                            colorIcon = Color(category.color),
-                            size = 40.dp,
-                            enabledBackground = true
-                        )
+                        Box() {
+                            IconCategoryComponent(
+                                modifier = Modifier.padding(start = 6.dp),
+                                iconCategory = AssetsUtils.readIconBitmapById(
+                                    context,
+                                    category.idImage
+                                )!!
+                                    .asImageBitmap(),
+                                colorIcon = Color(category.color),
+                                size = 40.dp,
+                                enabledBackground = true
+                            )
+
+                            if (purchase.isRepeat) {
+                                Card(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape),
+                                    backgroundColor = text_primary
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.EventRepeat,
+                                        contentDescription = null,
+                                        tint = text_secondary_light,
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                    )
+                                }
+                            }
+
+                        }
+
                         Column(
                             modifier = Modifier
                                 .padding(start = 12.dp)
@@ -96,7 +124,7 @@ fun BoxPurchaseHistoryComponent(
                                     .padding(top = 12.dp)
                             ) {
                                 Text(
-                                    text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.quantiOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
+                                    text = "${if (purchase.typeProduct == TypeProduct.QUANTITY) "x" else ""} ${purchase.amountOrKilo} ${if (purchase.typeProduct == TypeProduct.QUANTITY) "UN" else "Kg"}",
                                     fontFamily = LatoRegular,
                                     fontSize = 12.sp,
                                     color = text_primary_light

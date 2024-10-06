@@ -13,7 +13,7 @@ import java.util.*
 interface MyShoppingListService {
 
     companion object{
-        private const val API_BASE_URL = "http://10.0.0.194:9090/v1/api/"
+        private const val API_BASE_URL = "http://10.0.0.196:9090/v1/api/"
 
         fun create() : Retrofit{
             val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
