@@ -1,11 +1,6 @@
 package com.example.myshoppinglist.fieldViewModel
 
 import android.os.Handler
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.MutableLiveData
 import com.example.myshoppinglist.database.dtos.CategoryDTO
 import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
@@ -13,12 +8,12 @@ import com.example.myshoppinglist.database.dtos.PurchaseDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.CreditCard
 import com.example.myshoppinglist.database.entities.Purchase
-import com.example.myshoppinglist.database.entities.relations.PurchaseAndCategory
 import com.example.myshoppinglist.database.sharedPreference.UserLoggedShared
+import com.example.myshoppinglist.enums.TypeFrequencyRepeat
 import com.example.myshoppinglist.enums.TypeProduct
-import com.example.myshoppinglist.model.PurchaseInfo
 import com.example.myshoppinglist.utils.FormatDateUtils
 import com.example.myshoppinglist.utils.MaskUtils
+import java.util.*
 
 class RegisterTextFieldViewModel : BaseFieldViewModel() {
     var product: MutableLiveData<String> = MutableLiveData("")
@@ -39,6 +34,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
     val discount: MutableLiveData<String> = MutableLiveData("")
     val enableButtonAdd: MutableLiveData<Boolean> = MutableLiveData(false)
     var valueTotal: MutableLiveData<Double> = MutableLiveData(0.0)
+    var typeFrequencyRepeat: MutableLiveData<TypeFrequencyRepeat> = MutableLiveData(TypeFrequencyRepeat.NEVER)
 
     //variavel de error
     val productError: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -62,10 +58,11 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         onChangeLocale(purchase.locale)
         onChangeDateCurrent(purchase.date)
         creditCard.value!!.myShoppingId = purchase.purchaseCardId
-        onChangeQuantOrKilo(purchase.quantiOrKilo)
+        onChangeQuantOrKilo(purchase.amountOrKilo)
         onChangeDiscountCurrent(purchase.discount.toString())
         index.value = newIndex
         updateDate.value = true
+        typeFrequencyRepeat.value = purchase.frequencyRepeat
     }
 
     override fun checkFields(disableError: Boolean): Boolean {
@@ -137,8 +134,8 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         var auxCountProduct = 0
 
         purchaseAndCategoryDTOCollection.value?.forEach { item ->
-            auxCountProduct += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt()
-            auxValueTotal += (item.purchaseDTO.price * if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.quantiOrKilo.toInt())
+            auxCountProduct += if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.amountOrKilo.toInt()
+            auxValueTotal += (item.purchaseDTO.price * if (item.purchaseDTO.typeProduct == TypeProduct.KILO) 1 else item.purchaseDTO.amountOrKilo.toInt())
         }
 
         valueTotal.value = auxValueTotal
@@ -147,25 +144,30 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
 
     fun addPurchase() {
 
+        val formatDateUtils = FormatDateUtils()
+
         val purchase = Purchase(
-            product.value!!,
-            locale.value!!,
-            creditCard.value!!.myShoppingId,
-            quantOrKilo.value!!,
-            typeProduct.value!!,
-            dateCurrent.value!!,
-            MaskUtils.convertValueStringToDouble(
+            name = product.value!!,
+            locale = locale.value!!,
+            purchaseCardId = creditCard.value!!.myShoppingId,
+            quantiOrKilo = quantOrKilo.value!!,
+            typeProduct = typeProduct.value!!,
+            date = dateCurrent.value!!,
+            price = MaskUtils.convertValueStringToDouble(
                 price.value!!
             ),
-            category.value!!,
-            email,
-            MaskUtils.convertValueStringToDouble(
+            categoryOwnerId = category.value!!,
+            purchaseUserId = email,
+            discount = MaskUtils.convertValueStringToDouble(
                 if (discount.value!!.isNotBlank()) {
                     discount.value!!
                 } else {
                     "0.0"
                 }
-            )
+            ),
+            isRepeat = typeFrequencyRepeat.value!! != TypeFrequencyRepeat.NEVER,
+            dateRepeat = if (typeFrequencyRepeat.value!! != TypeFrequencyRepeat.NEVER) formatDateUtils.incrementDate(formatDateUtils.getDateFormatted(Date(), false), typeFrequencyRepeat.value!!.getMonth()) else "",
+            frequencyRepeat = typeFrequencyRepeat.value!!
         )
 
         val purchaseFormatData = PurchaseDTO(purchase)
@@ -184,6 +186,10 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
         upgradeValueCountAndPrice()
 
         updatePurchaseAndCategoryDTOCollection()
+    }
+
+    fun onChangeTypeFrequencyRepeat(typeFrequencyRepeat: TypeFrequencyRepeat){
+        this.typeFrequencyRepeat.value = typeFrequencyRepeat
     }
 
     fun onChangeDiscountCurrent(discount: String) {
@@ -215,6 +221,7 @@ class RegisterTextFieldViewModel : BaseFieldViewModel() {
             locale.value = ""
             dateCurrent.value = FormatDateUtils().getDateFormatted(formatPtBR = false)
         }
+        typeFrequencyRepeat.value = TypeFrequencyRepeat.NEVER
     }
 
     fun onFieldResetData() {

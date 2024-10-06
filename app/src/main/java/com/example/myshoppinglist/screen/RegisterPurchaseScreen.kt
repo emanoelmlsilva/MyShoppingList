@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -51,6 +50,7 @@ import com.example.myshoppinglist.database.dtos.PurchaseAndCategoryDTO
 import com.example.myshoppinglist.database.entities.Category
 import com.example.myshoppinglist.database.entities.Purchase
 import com.example.myshoppinglist.enums.StatusSaveData
+import com.example.myshoppinglist.enums.TypeFrequencyRepeat
 import com.example.myshoppinglist.enums.TypeProduct
 import com.example.myshoppinglist.enums.TypeState
 import com.example.myshoppinglist.fieldViewModel.RegisterTextFieldViewModel
@@ -59,7 +59,7 @@ import com.example.myshoppinglist.services.controller.CategoryController
 import com.example.myshoppinglist.services.controller.CreditCardController
 import com.example.myshoppinglist.services.controller.PurchaseController
 import com.example.myshoppinglist.services.dtos.ItemListDTO
-import com.example.myshoppinglist.services.dtos.PurchaseDTO
+import com.example.myshoppinglist.services.dtos.PurchaseDTOService
 import com.example.myshoppinglist.ui.theme.*
 import com.example.myshoppinglist.utils.AssetsUtils
 import com.example.myshoppinglist.utils.MaskUtils
@@ -98,6 +98,7 @@ fun RegisterPurchaseScreen(
 
     var visibilityBackHandler by remember { mutableStateOf(false) }
     var isCheck by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
     var visibleWaiting by remember { mutableStateOf(false) }
     var visibilityLocationAndDate by remember { mutableStateOf(false) }
     var visibilityRemoveProduct by remember { mutableStateOf(false) }
@@ -105,7 +106,7 @@ fun RegisterPurchaseScreen(
     var status by remember { mutableStateOf<StatusSaveData?>(null) }
     var blockSwipeable by remember { mutableStateOf(false) }
 
-    registerTextFieldViewModel.purchaseAndCategoryDTOCollection.observe(lifecycleOwner){
+    registerTextFieldViewModel.purchaseAndCategoryDTOCollection.observe(lifecycleOwner) {
         purchaseAndCategoryDTOCollection.clear()
         purchaseAndCategoryDTOCollection.addAll(it)
     }
@@ -129,8 +130,9 @@ fun RegisterPurchaseScreen(
             registerTextFieldViewModel.onChangeDateCurrent(purchaseEdit.date)
             registerTextFieldViewModel.onChangePrice(price)
             registerTextFieldViewModel.onChangeProduct(purchaseEdit.name)
-            registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.quantiOrKilo)
+            registerTextFieldViewModel.onChangeQuantOrKilo(purchaseEdit.amountOrKilo)
             registerTextFieldViewModel.onChangeTypeProduct(purchaseEdit.typeProduct)
+            registerTextFieldViewModel.onChangeTypeFrequencyRepeat(purchaseEdit.frequencyRepeat)
             if (purchaseEdit.discount > 0) {
                 registerTextFieldViewModel.onChangeDiscountCurrent(
                     MaskUtils.maskQuantity(
@@ -168,7 +170,7 @@ fun RegisterPurchaseScreen(
         }
         purchaseController.updatePurchase(
             false,
-            PurchaseDTO(
+            PurchaseDTOService(
                 purchase, category!!,
                 registerTextFieldViewModel.creditCard.value!!
             ), callback
@@ -178,15 +180,15 @@ fun RegisterPurchaseScreen(
     fun savePurchases(location: String, date: String, callback: Callback) {
 
         val purchases = purchaseAndCategoryDTOCollection.map { purchaseAndCategoryDTO ->
-            val purchaseDTO = PurchaseDTO(
+            val purchaseDTOService = PurchaseDTOService(
                 purchaseAndCategoryDTO.purchaseDTO.toPurchase(purchaseAndCategoryDTO.categoryDTO.userDTO.email),
                 purchaseAndCategoryDTO.categoryDTO.toCategory(),
                 registerTextFieldViewModel.creditCard.value!!
             )
-            purchaseDTO.locale = location
-            purchaseDTO.date = date
+            purchaseDTOService.locale = location
+            purchaseDTOService.date = date
 
-            purchaseDTO
+            purchaseDTOService
         }
 
         purchaseController.savePurchases(purchases, callback)
@@ -225,7 +227,7 @@ fun RegisterPurchaseScreen(
     }
 
     fun getHeightScreenDP(): Dp {
-        val pixels = screenHeightDp.value.toDouble()
+        val pixels = screenHeightDp.value.toDouble() / 2
         return (pixels / density).dp
     }
 
@@ -545,6 +547,55 @@ fun RegisterPurchaseScreen(
                             }
                         }
                     )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(), horizontalAlignment = Alignment.Start
+                    ) {
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Divider(
+                            color = divider,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                        )
+
+                        Spacer(Modifier.height(2.dp))
+
+                        Text(text = "Repetir compra", fontFamily = LatoBlack, modifier = Modifier.padding(vertical = 16.dp))
+
+                        Card(
+                                elevation = 0.dp,
+                                backgroundColor = background_text_field_dark,
+                                modifier = Modifier
+                                    .padding(start = 12.dp, bottom = 12.dp)
+                                    .clickable(onClick = { expanded = true })
+                            ) {
+                                Text(
+                                    text = registerTextFieldViewModel.typeFrequencyRepeat.value!!.title,
+                                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 10.dp),
+                                    color = text_primary,
+                                    fontSize = 16.sp
+                                )
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }) {
+                                    TypeFrequencyRepeat.values().forEach { frequencyRepeat ->
+                                        DropdownMenuItem(
+                                            modifier = Modifier.height(25.dp),
+                                            onClick = {
+                                                expanded = false
+                                                registerTextFieldViewModel.onChangeTypeFrequencyRepeat(frequencyRepeat)
+                                            }) {
+                                            Text(text = frequencyRepeat.title, fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                            }
+
+                    }
 
                     if (!isEditable) {
                         Button(

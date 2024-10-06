@@ -52,4 +52,19 @@ class CreditCardDTO(
             position,
             dayClosedInvoice)
     }
+
+    fun toCreditCardDTO(cardCredit: CreditCard, userDTO: UserDTO) : CreditCardDTO{
+        return CreditCardDTO(
+            cardCredit.idMyShoppingApi,
+            cardCredit.myShoppingId,
+            cardCredit.cardName,
+            cardCredit.holderName,
+            cardCredit.value,
+            cardCredit.colorCard,
+            cardCredit.typeCard.ordinal,
+            userDTO,
+            cardCredit.flag,
+            cardCredit.position,
+            cardCredit.dayClosedInvoice)
+    }
 }

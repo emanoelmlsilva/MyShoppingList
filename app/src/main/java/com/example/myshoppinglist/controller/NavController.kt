@@ -3,7 +3,6 @@ package com.example.myshoppinglist.controller
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Build
-import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
@@ -13,7 +12,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
@@ -58,7 +56,7 @@ fun NavController(
     val registerCategoryFieldViewModel = RegisterCategoryFieldViewModel(context, lifecycleOwner)
     val listItemFieldViewModel = ListItemFieldViewModel(context, lifecycleOwner)
     val marketItemFieldViewModel = MarketItemFieldViewModel(context, lifecycleOwner)
-
+    val purchaseViewModel = PurchaseViewModel(context, lifecycleOwner)
 
     fun softInputMode(isKeyBoard: Boolean) {
         window.setSoftInputMode(if (isKeyBoard) WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE else WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
@@ -81,6 +79,16 @@ fun NavController(
     }
 
     NavHost(navController = navHostController, startDestination = routeInitial) {
+        composable("${Screen.RepeatPurchase.name}?idCard={idCard}",
+            arguments = listOf(navArgument("idCard") { type = NavType.LongType })
+            ) { navBackStack ->
+
+            val idCard = navBackStack.arguments?.getLong("idCard")
+
+            purchaseViewModel.getPurchaseAllWithRepeatByIdCard(idCard?:0)
+
+            RepeatPurchaseScreen(navHostController, idCard?:0, purchaseViewModel)
+        }
         composable(Screen.PagerCreated.name) { navBackStack ->
             PagerCreatedScreen(navHostController)
         }

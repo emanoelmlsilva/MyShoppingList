@@ -26,6 +26,10 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
         repository = PurchaseRepository(purchaseDAO)
     }
 
+    fun getPurchaseAllWithRepeatByIdCard(idCard: Long): LiveData<List<Purchase>>{
+        return repository.getPurchaseAllWithRepeatByIdCard(idCard)
+    }
+
     fun getPurchasesOfSearch(
         arguments: String
     ): Flow<List<PurchaseAndCategory>> {
@@ -45,7 +49,7 @@ class PurchaseViewModelDB(context: Context) : ViewModel() {
             newArguments = " " + arguments.substring(SintaxQueryUtils.AND.name.length + 1)
         }
 
-        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 'QUANTITY' WHEN typeProduct THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(quantiOrKilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) as value FROM purchases, credit_cards WHERE ${newArguments ?: arguments}")
+        val query: SimpleSQLiteQuery = SimpleSQLiteQuery("SELECT COALESCE(SUM(CASE 'QUANTITY' WHEN type_product THEN CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END * CAST(amount_or_kilo AS NUMBER) ELSE CASE 0 WHEN discount THEN CAST(price AS NUMBER) ELSE CAST(price AS NUMBER) - CAST(DISCOUNT as NUMBER) END END), 0.0) as value FROM purchases, credit_cards WHERE ${newArguments ?: arguments}")
 
         return repository.getPurchasesSearchSum(query)
     }

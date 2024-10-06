@@ -5,6 +5,8 @@ import androidx.annotation.RequiresApi
 import java.text.NumberFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -27,7 +29,21 @@ class FormatDateUtils {
         "novembro" to 11,
         "dezembro" to 12
     )
+
+    fun incrementDate(dateString: String, monthIncrement: Int): String{
+        val dateFormat = SimpleDateFormat(patternReverseDate, Locale.getDefault())
+        val dateCurrent = dateFormat.parse(dateString)
+        val calendar = Calendar.getInstance()
+        calendar.time = dateCurrent
+        calendar.add(Calendar.MONTH, monthIncrement)
+        return dateFormat.format(calendar.time)
+    }
+
     fun getDateFormatted(date: Date): String {
+        return getDateFormatted(date, true)
+    }
+
+    fun getDateFormatted(date: Date, formatPtBR: Boolean? = false): String {
         val calendar = Calendar.getInstance()
         calendar.time = date
 
@@ -35,7 +51,7 @@ class FormatDateUtils {
         val month = calendar.get(Calendar.MONTH)
         val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
 
-        return getDateFormatted(dayOfMonth, month, year, true)
+       return getDateFormatted(dayOfMonth, month, year, formatPtBR)
     }
 
     fun getDateFormatted(

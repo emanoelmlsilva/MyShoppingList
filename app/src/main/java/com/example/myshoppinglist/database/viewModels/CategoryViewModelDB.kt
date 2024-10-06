@@ -99,11 +99,7 @@ class CategoryViewModelDB(context: Context, lifecycleOwner: LifecycleOwner) : Vi
         return repository.getCategoryById(idCategory)
     }
 
-    fun getCategoryByCategory(category: String) {
-//        var emailUser = ""
-//        userViewModel.searchResult.observe(mLifecycleOwner) {
-//            emailUser = it.email
-//            repository.getCategoryByCategory(emailUser, category)
-//        }
+    fun getCategoryByCategory(category: String): Category {
+        return repository.getCategoryByName(category)
     }
 }

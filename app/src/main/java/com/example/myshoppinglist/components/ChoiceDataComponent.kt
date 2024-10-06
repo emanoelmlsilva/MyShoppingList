@@ -1,7 +1,6 @@
 package com.example.myshoppinglist.components
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +21,7 @@ import com.example.myshoppinglist.ui.theme.LatoBlack
 import com.example.myshoppinglist.ui.theme.background_card_light
 import com.example.myshoppinglist.ui.theme.text_primary
 import com.example.myshoppinglist.utils.FormatDateUtils
+import kotlinx.coroutines.delay
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -54,7 +54,8 @@ fun ChoiceDataComponent(
         choiceDataFieldViewModel.updateMonths(idCard)
     }
 
-    LaunchedEffect(key1 = yearCurrent, key2 = dateMonthAndYear.size) {
+    LaunchedEffect(key1 = yearCurrent, key2 = dateMonthAndYear.keys) {
+        delay(500)
         choiceDataFieldViewModel.updateMonthCollection()
     }
 

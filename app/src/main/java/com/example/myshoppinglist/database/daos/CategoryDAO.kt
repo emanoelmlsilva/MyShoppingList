@@ -25,4 +25,7 @@ interface CategoryDAO {
 
     @Query("SELECT * FROM category, users WHERE users.email = :emailUser AND categoryUserId = users.email")
     fun getAll(emailUser: String): LiveData<List<Category>>
+
+    @Query("SELECT * FROM category, users WHERE users.email = :emailUser AND categoryUserId = users.email AND category = :name")
+    fun getCategoryByName(emailUser: String, name: String): Category
 }

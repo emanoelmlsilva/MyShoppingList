@@ -49,4 +49,8 @@ class CreditCardRepository(private val cardCreditCardDAO: CreditCardDAO){
         return cardCreditCardDAO.getAutoIncrement()
     }
 
+    fun getCardCreditByName(emailUser: String, name: String): LiveData<CreditCard>{
+        return cardCreditCardDAO.getCardCreditByName(emailUser, name)
+    }
+
 }
